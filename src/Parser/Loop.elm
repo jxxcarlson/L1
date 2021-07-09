@@ -55,67 +55,56 @@ when the offset comes to the end of the source.
 
 -}
 nextCursor : Packet Element -> TextCursor -> Parser.Tool.Step TextCursor TextCursor
-nextCursor packet tc =
-    if tc.offset >= tc.length then
-        Parser.Tool.Done tc
+nextCursor packet cursor =
+    if cursor.offset >= cursor.length then
+        Parser.Tool.Done cursor
 
     else
         let
-            _ =
-                Debug.log "XXX tc.remainingSource" tc.remainingSource
-
             remaining =
                 -- offset has been updated, so remaining should be also
-                String.dropLeft tc.offset tc.remainingSource
+                String.dropLeft cursor.offset cursor.remainingSource
                     |> Debug.log "nextCursor, remaining"
 
             chompedText =
                 -- get some more text
                 -- this means text from one mark to the next
                 advance configuration remaining |> Debug.log "CHOMPED TEXT"
-
-            n =
-                chompedText.finish - chompedText.start
-
-            firstChar =
-                String.uncons remaining |> Maybe.map Tuple.first |> Debug.log "FIRST CHAR"
-
-            _ =
-                Maybe.map (Parser.Config.isBeginChar configuration) firstChar |> Debug.log "IS BEGIN CHAR"
         in
-        if n > 0 then
+        if chompedText.finish - chompedText.start > 0 then
             -- the chompedText is non-void; add it it to the cursor
-            Parser.Tool.Loop <| TextCursor.add chompedText.content tc
+            Parser.Tool.Loop <| TextCursor.add chompedText.content cursor
 
         else
-            -- We are at a mark, and so must decide whether to push, pop, or call it quits.
-            case firstChar of
+            -- We are at a mark, and so must decide whether to push, pop, or call it quits
+            -- Decide this on the basis of the character at the heading the remaining text
+            case String.uncons remaining |> Maybe.map Tuple.first of
                 Nothing ->
-                    Parser.Tool.Done tc
+                    Parser.Tool.Done cursor
 
                 Just c ->
-                    if Parser.Config.isBeginChar configuration c then
-                        case Parser.Config.lookup configuration c of
-                            Nothing ->
-                                Parser.Tool.Done tc
+                    handleCharacterAtCursor packet c cursor
 
-                            Just expectation ->
-                                let
-                                    _ =
-                                        Debug.log "expectation" expectation
-                                in
-                                case expectation.etype of
-                                    VerbatimType ->
-                                        handleVerbatimType tc
 
-                                    _ ->
-                                        Parser.Tool.Loop <| TextCursor.push packet.parser expectation tc
+handleCharacterAtCursor packet c tc =
+    if Parser.Config.isBeginChar configuration c then
+        case Parser.Config.lookup configuration c of
+            Nothing ->
+                Parser.Tool.Done tc
 
-                    else if Parser.Config.isEndChar configuration c then
-                        Parser.Tool.Loop <| TextCursor.pop packet.parser tc
+            Just expectation ->
+                case expectation.etype of
+                    VerbatimType ->
+                        handleVerbatimType tc
 
-                    else
-                        Parser.Tool.Done tc
+                    _ ->
+                        Parser.Tool.Loop <| TextCursor.push packet.parser expectation tc
+
+    else if Parser.Config.isEndChar configuration c then
+        Parser.Tool.Loop <| TextCursor.pop packet.parser tc
+
+    else
+        Parser.Tool.Done tc
 
 
 handleVerbatimType tc =
