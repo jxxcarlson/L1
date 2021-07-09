@@ -71,10 +71,10 @@ render renderArgs element =
         Raw str _ ->
             E.el [] (text str)
 
-        Element (Name name) _ body _ ->
+        Element (Name name) body _ ->
             renderWithDictionary renderArgs name [] body
 
-        Element Undefined _ body _ ->
+        Element Undefined body _ ->
             E.el [] (text <| "Undefined element")
 
         EList elements _ ->
@@ -376,7 +376,7 @@ args2 body =
                 (Raw r_ _) :: (Raw g_ _) :: (Raw b_ _) :: rest_ ->
                     Just { r = toInt r_, g = toInt g_, b = toInt b_, rest = rest_ }
 
-                ((Raw str _) as raw) :: ((Element _ _ _ _) as elt) :: rest ->
+                ((Raw str _) as raw) :: ((Element _ _ _) as elt) :: rest ->
                     let
                         aa =
                             convertString str

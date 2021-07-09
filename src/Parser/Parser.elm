@@ -5,7 +5,7 @@ import Parser.Advanced as Parser exposing ((|.), (|=))
 import Parser.Error exposing (Context(..), Problem(..))
 import Parser.Loc as Loc exposing (Position)
 import Utility.ParserTools as T
-import Utility.XString as XString
+import Utility.StringParser as XString
 
 
 type alias ErrorMessage =
@@ -66,7 +66,7 @@ primitiveElement : Int -> Parser Element
 primitiveElement generation =
     Parser.inContext CElement <|
         -- TODO: is this correct?
-        Parser.succeed (\start name ( args, body_ ) end source -> Element name args body_ (meta generation start end))
+        Parser.succeed (\start name body_ end source -> Element name body_ (meta generation start end))
             |= Parser.getOffset
             |. leftBracket
             |= Parser.oneOf [ elementName |> Parser.map Name, Parser.succeed Undefined ]
@@ -81,9 +81,9 @@ elementName =
     T.first (string_ [ '[', ']', ' ', '\n' ]) Parser.spaces
 
 
+argsAndBody : Int -> Parser.Parser Context Problem Element
 argsAndBody generation =
-    Parser.inContext CArgsAndBody <|
-        Parser.oneOf [ argsAndBody_ generation, bodyOnly generation ]
+    Parser.inContext CArgsAndBody <| elementBody generation
 
 
 elementArgs =

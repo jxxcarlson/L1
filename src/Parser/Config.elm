@@ -89,9 +89,3 @@ isBeginChar config c =
 isEndChar : Configuration -> Char -> Bool
 isEndChar config c =
     List.member c config.endChars
-
-
-
---expectationsDict : ExpectationsDict
---expectationsDict =
---    Dict.fromList [ ( '[', { begin = '[', end = ']' } ) ]

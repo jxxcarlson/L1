@@ -8,7 +8,7 @@ import Parser.MetaData exposing (MetaData)
 
 type Element
     = Raw String MetaData
-    | Element Name (List String) Element MetaData
+    | Element Name Element MetaData
     | EList (List Element) MetaData
     | Problem (List ParseError) String
     | StackError Int Int String String --- errorTextStart errorTextEnd message errorText
@@ -28,7 +28,7 @@ type Name
 -}
 type Element_
     = Raw_ String
-    | Element_ Name (List String) Element_
+    | Element_ Name Element_
     | EList_ (List Element_)
     | Problem_ Problem String
     | StackError_ Int Int String String -- errorTextStart errorTextEnd message errorText
@@ -50,7 +50,7 @@ position element =
         Raw _ meta ->
             meta.position
 
-        Element _ _ _ meta ->
+        Element _ _ meta ->
             meta.position
 
         EList _ meta ->
@@ -72,8 +72,8 @@ simplify element =
         Raw str _ ->
             Raw_ str
 
-        Element name strList el _ ->
-            Element_ name strList (simplify el)
+        Element name el _ ->
+            Element_ name (simplify el)
 
         EList elementList _ ->
             EList_ (List.map simplify elementList)
@@ -95,8 +95,8 @@ simplify element =
 join : Element -> List Element -> Element
 join el list =
     case el of
-        Element name args (EList list1 _) meta ->
-            Element name args (EList (list1 ++ list) Parser.MetaData.dummy) meta
+        Element name (EList list1 _) meta ->
+            Element name (EList (list1 ++ list) Parser.MetaData.dummy) meta
 
         _ ->
             el
@@ -105,7 +105,7 @@ join el list =
 body : Element -> List Element
 body element =
     case element of
-        Element _ _ (EList list _) _ ->
+        Element _ (EList list _) _ ->
             list
 
         _ ->
@@ -115,7 +115,7 @@ body element =
 body_ : Element_ -> List Element_
 body_ element =
     case element of
-        Element_ _ _ (EList_ list) ->
+        Element_ _ (EList_ list) ->
             list
 
         _ ->

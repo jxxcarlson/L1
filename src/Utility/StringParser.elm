@@ -1,4 +1,4 @@
-module Utility.XString exposing (isNonLanguageChar, isNotExtendedLanguageChar, textListWithPredicate, textWithPredicate)
+module Utility.StringParser exposing (isNonLanguageChar, isNotExtendedLanguageChar, textListWithPredicate, textWithPredicate)
 
 {-| Grammar:
 

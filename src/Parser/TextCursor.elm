@@ -270,7 +270,6 @@ handleEmptyText parse stackTop tc =
 
                 newParsed =
                     Element (AST.Name fname)
-                        []
                         (EList (args ++ List.reverse tc.parsed) Parser.MetaData.dummy)
                         Parser.MetaData.dummy
             in

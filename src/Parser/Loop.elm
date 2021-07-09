@@ -130,7 +130,7 @@ handleVerbatim etype tc =
             Raw tc.text MetaData.dummy
 
         newElement =
-            Element (Name name) [] (Raw verbatimText.content MetaData.dummy) MetaData.dummy
+            Element (Name name) (Raw verbatimText.content MetaData.dummy) MetaData.dummy
 
         newTC =
             { tc
@@ -140,11 +140,6 @@ handleVerbatim etype tc =
             }
     in
     ParserTools.Loop <| newTC
-
-
-notDelimiter : Char -> Bool
-notDelimiter c =
-    not (List.member c [ '[', ']', '`', '$' ])
 
 
 advance : Configuration -> String -> ParserTools.StringData
