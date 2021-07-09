@@ -20,7 +20,7 @@ This [i is] a [b real test! Lorem ipsum dolor sit amet, consectetur adipiscing e
 
 This [i is] a [b real] test of [strike this], [underline that], and the [violet other stuff].
 
-This [i is] a [b real] test of [b [strike this], [underline that], and the [violet other stuff]].
+[red THE FOLLOWING IS MESSED UP:] This [i is] a [b real] test of [b [strike this], [underline that], and the [violet other stuff]].
 
 This is code: `a[i] = b[i] + 1`.
 

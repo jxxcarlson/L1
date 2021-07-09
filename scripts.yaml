@@ -1,5 +1,8 @@
 scripts:
 
+  env:
+    GH: /Users/carlson/dev/jxxcarlson.github.io/app
+
   cloc: cloc --by-file src
   cloc-parser: cloc --by-file src/Parser
 
@@ -9,7 +12,15 @@ scripts:
 
   debug: elm make app/Main.elm --output=app/public/Main.js
 
+  publish:
+    - cp ./app/public/assets/elm-katex.js /Users/carlson/dev/jxxcarlson.github.io/app/L1/assets
+    - cp ./app/public/index.html /Users/carlson/dev/jxxcarlson.github.io/app/L1/
+    - cp ./app/public/Main.js /Users/carlson/dev/jxxcarlson.github.io/app/L1/
 
+  check-gh-local: open -a /Applications/Firefox.app file:///Users/carlson/dev/jxxcarlson.github.io/app/L1/index.html
+
+  check-gh: open -a /Applications/Firefox.app https://jxxcarlson.github.io/app/L1/
+  
   #live: elm-live src/Main.elm
 
   look: open -a /Applications/Firefox.app app/public/index.html
