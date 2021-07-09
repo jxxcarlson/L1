@@ -7,14 +7,15 @@ module Parser.Config exposing
     , isEndChar
     , lookup
     , name
+    , notDelimiter
     )
 
 import Dict exposing (Dict)
-import Maybe.Extra
+import List.Extra
 
 
 type alias Expectation =
-    { begin : Char, end : Char, etype : EType }
+    { begin : Char, end : Char, etype : EType, isVerbatim : Bool }
 
 
 type EType
@@ -47,6 +48,8 @@ type alias ConfigurationDefinition =
 type alias Configuration =
     { beginChars : List Char
     , endChars : List Char
+    , delimiters : List Char
+    , verbatimChars : List Char
     , expectationsDict : ExpectationsDict
     }
 
@@ -67,8 +70,15 @@ configure configDef =
     in
     { beginChars = beginChars
     , endChars = endChars
+    , delimiters = beginChars ++ endChars |> List.Extra.unique
+    , verbatimChars = List.filter (\def -> def.isVerbatim) configDef |> List.map .begin |> List.Extra.unique
     , expectationsDict = Dict.fromList (List.map (\e -> ( e.begin, e )) configDef)
     }
+
+
+notDelimiter : Configuration -> Char -> Bool
+notDelimiter config c =
+    not (List.member c config.delimiters)
 
 
 isBeginChar : Configuration -> Char -> Bool

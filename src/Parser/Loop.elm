@@ -21,9 +21,9 @@ type alias Packet a =
 
 
 expectations =
-    [ { begin = '[', end = ']', etype = ElementType }
-    , { begin = '`', end = '`', etype = CodeType }
-    , { begin = '$', end = '$', etype = InlineMathType }
+    [ { begin = '[', end = ']', etype = ElementType, isVerbatim = False }
+    , { begin = '`', end = '`', etype = CodeType, isVerbatim = True }
+    , { begin = '$', end = '$', etype = InlineMathType, isVerbatim = True }
     ]
 
 
@@ -121,7 +121,7 @@ handleVerbatim etype tc =
             String.dropLeft (tc.offset + 1) tc.remainingSource
 
         verbatimText =
-            advanceVerbatim remaining_ |> Debug.log "VERBATIM TEXT"
+            advanceVerbatim configuration remaining_ |> Debug.log "VERBATIM TEXT"
 
         verbatimTextLength =
             verbatimText.finish - verbatimText.start |> Debug.log "VERBATIM TEXT LENGTH"
@@ -149,7 +149,7 @@ notDelimiter c =
 
 advance : Configuration -> String -> ParserTools.StringData
 advance config str =
-    case Parser.run (ParserTools.text notDelimiter notDelimiter) str of
+    case Parser.run (ParserTools.text (Parser.Config.notDelimiter configuration) (Parser.Config.notDelimiter configuration)) str of
         Ok stringData ->
             stringData
 
@@ -157,14 +157,14 @@ advance config str =
             { content = "", finish = 0, start = 0 }
 
 
-advanceVerbatim : String -> ParserTools.StringData
-advanceVerbatim str =
+advanceVerbatim : Configuration -> String -> ParserTools.StringData
+advanceVerbatim config str =
     let
-        significantChars =
-            [ '`', '$' ]
+        verbatimChars =
+            config.verbatimChars
 
         predicate =
-            \c -> not (List.member c significantChars)
+            \c -> not (List.member c verbatimChars)
     in
     (case Parser.run (ParserTools.text predicate predicate) str of
         Ok stringData ->
