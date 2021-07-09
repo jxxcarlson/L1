@@ -89,7 +89,12 @@ nextCursor packet tc =
 
                 Just c ->
                     if Parser.Config.isBeginChar configuration c then
-                        Parser.Tool.Loop <| TextCursor.push packet.parser { begin = '[', end = ']' } tc
+                        case Parser.Config.lookup configuration c of
+                            Nothing ->
+                                Parser.Tool.Done tc
+
+                            Just expectation ->
+                                Parser.Tool.Loop <| TextCursor.push packet.parser expectation tc
 
                     else if Parser.Config.isEndChar configuration c then
                         Parser.Tool.Loop <| TextCursor.pop packet.parser tc
