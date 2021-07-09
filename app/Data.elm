@@ -18,9 +18,13 @@ This [i is] a [b real test! Lorem ipsum dolor sit amet, consectetur adipiscing e
 
 [link https://washingtonpost.com]
 
-This [i is] a [b real] test! [strike this] [underline that]
+This [i is] a [b real] test of [strike this], [underline that], and the [violet other stuff].
+
+This [i is] a [b real] test of [b [strike this], [underline that], and the [violet other stuff]].
 
 This is code: `a[i] = b[i] + 1`.
+
+This is [red red meat].  [gray (We shouldn't eat so much of it.)]
 
 Pythagoras said that [math a^2 + b^2 = c^2].
 

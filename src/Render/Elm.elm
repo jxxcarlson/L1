@@ -1,17 +1,15 @@
 module Render.Elm exposing (convertString, render, renderList)
 
 import Dict exposing (Dict)
-import Element as E exposing (column, el, fill, paragraph, px, rgb255, row, spacing, text)
+import Element as E exposing (column, el, fill, paragraph, px, rgb, rgb255, row, spacing, text)
 import Element.Background as Background
 import Element.Font as Font
-import Element.Input as Input
 import Html exposing (Html)
 import Html.Attributes as HA
 import Html.Keyed
 import Json.Encode
 import Parser.AST exposing (Element(..), Element_(..), Name(..))
 import Parser.Advanced
-import Parser.Driver
 import Parser.Error exposing (Context(..), Problem(..))
 import Parser.MetaData as MetaData
 import Utility.Utility as Utility
@@ -47,14 +45,11 @@ renderElementDict =
         , ( "highlight", highlight )
         , ( "highlightRGB", highlight )
         , ( "fontRGB", fontRGB )
-
-        --, ( "red", red )
-        --, ( "blue", blue )
-        --, ( "violet", violet )
-        --, ( "medgray", medgray )
+        , ( "red", red )
+        , ( "blue", blue )
+        , ( "violet", violet )
+        , ( "gray", gray )
         , ( "code", code )
-
-        --, ( "c", renderCode )
         , ( "math", renderMath )
         , ( "math2", renderMath2 )
         , ( "m", renderMath )
@@ -140,6 +135,26 @@ hide renderArgs _ _ body =
 highlight : FRender msg
 highlight renderArgs _ _ body =
     el [ Background.color yellowColor, E.paddingXY 4 2 ] (render renderArgs body)
+
+
+red : FRender msg
+red renderArgs _ _ body =
+    el [ Font.color redColor ] (render renderArgs body)
+
+
+blue : FRender msg
+blue renderArgs _ _ body =
+    el [ Font.color blueColor ] (render renderArgs body)
+
+
+violet : FRender msg
+violet renderArgs _ _ body =
+    el [ Font.color violetColor ] (render renderArgs body)
+
+
+gray : FRender msg
+gray renderArgs _ _ body =
+    el [ Font.color (rgb 0.55 0.55 0.55) ] (render renderArgs body)
 
 
 code : FRender msg
