@@ -110,7 +110,7 @@ add str tc =
     { tc
         | count = tc.count + 1
         , text = str ++ tc.text
-        , offset = tc.offset + String.length str
+        , offset = tc.offset + String.length str |> Debug.log "ADD, OFFSET"
     }
 
 

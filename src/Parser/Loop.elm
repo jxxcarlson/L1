@@ -1,9 +1,10 @@
 module Parser.Loop exposing (Packet, advance, parseLoop)
 
-import Parser.AST as AST exposing (Element, simplify)
+import Parser.AST as AST exposing (Element(..), Name(..))
 import Parser.Advanced as Parser exposing ((|.), (|=))
 import Parser.Config exposing (Configuration, EType(..))
 import Parser.Error exposing (Context, Problem)
+import Parser.MetaData as MetaData
 import Parser.TextCursor as TextCursor exposing (TextCursor)
 import Parser.Tool
 
@@ -60,9 +61,13 @@ nextCursor packet tc =
 
     else
         let
+            _ =
+                Debug.log "XXX tc.remainingSource" tc.remainingSource
+
             remaining =
                 -- offset has been updated, so remaining should be also
                 String.dropLeft tc.offset tc.remainingSource
+                    |> Debug.log "nextCursor, remaining"
 
             chompedText =
                 -- get some more text
@@ -102,13 +107,33 @@ nextCursor packet tc =
                                 case expectation.etype of
                                     VerbatimType ->
                                         let
+                                            _ =
+                                                Debug.log "VT, offset" tc.offset
+
                                             remaining_ =
-                                                String.dropLeft 1 tc.remainingSource
+                                                String.dropLeft (tc.offset + 1) (Debug.log "REMAINING" tc.remainingSource)
+                                                    |> Debug.log "REM_"
 
                                             verbatimText =
-                                                advanceVerbatim remaining_ |> Debug.log "VERBATIM"
+                                                advanceVerbatim remaining_ |> Debug.log "CODE"
+
+                                            verbatimTextLength =
+                                                verbatimText.finish - verbatimText.start
+
+                                            preceding =
+                                                Raw tc.text MetaData.dummy
+
+                                            newElement =
+                                                Element (Name "code") [] (Raw verbatimText.content MetaData.dummy) MetaData.dummy
+
+                                            newTC =
+                                                { tc
+                                                    | offset = tc.offset + verbatimTextLength + 2
+                                                    , text = ""
+                                                    , parsed = newElement :: preceding :: tc.parsed
+                                                }
                                         in
-                                        Parser.Tool.Loop <| TextCursor.push packet.parser expectation tc
+                                        Parser.Tool.Loop <| newTC
 
                                     _ ->
                                         Parser.Tool.Loop <| TextCursor.push packet.parser expectation tc
@@ -118,11 +143,6 @@ nextCursor packet tc =
 
                     else
                         Parser.Tool.Done tc
-
-
-notDelimiter1 : Char -> Bool
-notDelimiter1 c =
-    not (List.member c [ '[', ']' ])
 
 
 notDelimiter : Char -> Bool

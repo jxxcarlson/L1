@@ -52,7 +52,8 @@ renderElementDict =
         --, ( "blue", blue )
         --, ( "violet", violet )
         --, ( "medgray", medgray )
-        --, ( "code", renderCode )
+        , ( "code", code )
+
         --, ( "c", renderCode )
         , ( "math", renderMath )
         , ( "m", renderMath )
@@ -138,6 +139,18 @@ hide renderArgs _ _ body =
 highlight : FRender msg
 highlight renderArgs _ _ body =
     el [ Background.color yellowColor, E.paddingXY 4 2 ] (render renderArgs body)
+
+
+code : FRender msg
+code renderArgs _ _ body =
+    el
+        [ Font.family
+            [ Font.typeface "Inconsolata"
+            , Font.monospace
+            ]
+        , Font.color codeColor
+        ]
+        (text (getText2 body))
 
 
 fontRGB : FRender msg
