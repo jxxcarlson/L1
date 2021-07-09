@@ -1,0 +1,17 @@
+scripts:
+
+  cloc: cloc --by-file src
+  cloc-parser: cloc --by-file src/Parser
+
+  complexity: npx elm-review --template jfmengels/elm-review-cognitive-complexity/example --rules CognitiveComplexity
+
+  make: elm make  --optimize app/Main.elm --output=app/public/Main.js
+
+  debug: elm make app/Main.elm --output=app/public/Main.js
+
+
+  #live: elm-live src/Main.elm
+
+  look: open -a /Applications/Firefox.app app/public/index.html
+
+  local: open -a /Applications/Firefox.app http://localhost:8000
