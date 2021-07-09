@@ -1,11 +1,16 @@
-module Parser.Config exposing (Configuration, configure, isBeginChar, isEndChar, lookup)
+module Parser.Config exposing (Configuration, EType(..), Expectation, configure, isBeginChar, isEndChar, lookup)
 
 import Dict exposing (Dict)
 import Maybe.Extra
 
 
 type alias Expectation =
-    { begin : Char, end : Char }
+    { begin : Char, end : Char, etype : EType }
+
+
+type EType
+    = ElementType
+    | VerbatimType
 
 
 type alias ExpectationsDict =

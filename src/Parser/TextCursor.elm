@@ -12,6 +12,7 @@ module Parser.TextCursor exposing
 import Html exposing (a)
 import List.Extra
 import Parser.AST as AST exposing (Element(..), simplify)
+import Parser.Config exposing (Expectation)
 import Parser.MetaData exposing (MetaData)
 import Parser.Parser as Parser
 
@@ -96,10 +97,6 @@ init generation source =
 simpleStackItem : StackItem -> String
 simpleStackItem { data, offset } =
     "Offset " ++ String.fromInt offset ++ ": " ++ data
-
-
-type alias Expectation =
-    { begin : Char, end : Char }
 
 
 {-| Add text to the .text field
