@@ -106,34 +106,7 @@ nextCursor packet tc =
                                 in
                                 case expectation.etype of
                                     VerbatimType ->
-                                        let
-                                            _ =
-                                                Debug.log "VT, offset" tc.offset
-
-                                            remaining_ =
-                                                String.dropLeft (tc.offset + 1) (Debug.log "REMAINING" tc.remainingSource)
-                                                    |> Debug.log "REM_"
-
-                                            verbatimText =
-                                                advanceVerbatim remaining_ |> Debug.log "CODE"
-
-                                            verbatimTextLength =
-                                                verbatimText.finish - verbatimText.start
-
-                                            preceding =
-                                                Raw tc.text MetaData.dummy
-
-                                            newElement =
-                                                Element (Name "code") [] (Raw verbatimText.content MetaData.dummy) MetaData.dummy
-
-                                            newTC =
-                                                { tc
-                                                    | offset = tc.offset + verbatimTextLength + 2
-                                                    , text = ""
-                                                    , parsed = newElement :: preceding :: tc.parsed
-                                                }
-                                        in
-                                        Parser.Tool.Loop <| newTC
+                                        handleVerbatimType tc
 
                                     _ ->
                                         Parser.Tool.Loop <| TextCursor.push packet.parser expectation tc
@@ -143,6 +116,33 @@ nextCursor packet tc =
 
                     else
                         Parser.Tool.Done tc
+
+
+handleVerbatimType tc =
+    let
+        remaining_ =
+            String.dropLeft (tc.offset + 1) tc.remainingSource
+
+        verbatimText =
+            advanceVerbatim remaining_
+
+        verbatimTextLength =
+            verbatimText.finish - verbatimText.start
+
+        preceding =
+            Raw tc.text MetaData.dummy
+
+        newElement =
+            Element (Name "code") [] (Raw verbatimText.content MetaData.dummy) MetaData.dummy
+
+        newTC =
+            { tc
+                | offset = tc.offset + verbatimTextLength + 2
+                , text = ""
+                , parsed = newElement :: preceding :: tc.parsed
+            }
+    in
+    Parser.Tool.Loop <| newTC
 
 
 notDelimiter : Char -> Bool

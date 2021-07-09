@@ -20,6 +20,8 @@ This [i is] a [b real test! Lorem ipsum dolor sit amet, consectetur adipiscing e
 
 This [i is] a [b real] test! [strike this] [underline that]
 
+This is code: `a[i] = b[i] + 1`.
+
 Pythagoras said that [math a^2 + b^2 = c^2].
 
 In class, we learned that

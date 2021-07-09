@@ -4,7 +4,6 @@ import Parser.AST as AST exposing (Element(..), Name(..))
 import Parser.Advanced as Parser exposing ((|.), (|=))
 import Parser.Error exposing (Context(..), Problem(..))
 import Parser.Loc as Loc exposing (Position)
-import Parser.RawString as RawString
 import Parser.Tool as T
 import Parser.XString as XString
 
@@ -51,7 +50,7 @@ listParser generation lineNumber =
 
 parser : Int -> Parser Element
 parser generation =
-    Parser.oneOf [ primitiveElement generation, text generation ]
+    Parser.oneOf [ primitiveElement generation, plainText generation ]
 
 
 {-|
@@ -140,21 +139,8 @@ hasProblem elements =
 -- TEXT AND STRINGS
 
 
-text : Int -> Parser Element
-text generation =
-    Parser.oneOf [ rawString generation, plainText generation ]
-
-
 meta generation start finish =
     { position = { start = start, end = finish }, generation = generation }
-
-
-rawString : Int -> Parser Element
-rawString generation =
-    Parser.succeed (\start source finish -> Raw source (meta generation start finish))
-        |= Parser.getOffset
-        |= RawString.parser
-        |= Parser.getOffset
 
 
 plainText : Int -> Parser Element
@@ -197,14 +183,6 @@ comma_ =
 
 comma =
     T.first comma_ Parser.spaces
-
-
-rawStringBegin =
-    Parser.symbol (Parser.Token "r##" ExpectingRawStringBegin)
-
-
-rawStringEnd =
-    Parser.symbol (Parser.Token "##" ExpectingRawStringEnd)
 
 
 pipeSymbol =
