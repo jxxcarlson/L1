@@ -205,32 +205,8 @@ handleNonEmptyText parse stackTop tc =
     -- is the item on the top of the stack.
     -- (a)
     let
-        top =
-            if stackTop.data == "" then
-                Raw (tc.text ++ " ") Parser.MetaData.dummy
-
-            else
-                String.fromChar stackTop.expect.begin
-                    ++ stackTop.data
-                    ++ String.fromChar stackTop.expect.end
-                    |> parse
-
-        txt =
-            if stackTop.data == "" then
-                String.fromChar stackTop.expect.begin
-                    ++ tc.text
-                    ++ String.fromChar stackTop.expect.end
-                    |> parse
-
-            else
-                Raw (tc.text ++ " ") Parser.MetaData.dummy
-
         parsed =
-            if stackTop.data == "" then
-                txt :: tc.parsed
-
-            else
-                [ AST.join top (List.reverse <| txt :: tc.parsed) ]
+            getParsed parse stackTop tc
 
         stack =
             List.drop 1 tc.stack
@@ -255,6 +231,32 @@ handleNonEmptyText parse stackTop tc =
         }
 
 
+getParsed : (String -> Element) -> StackItem -> TextCursor -> List Element
+getParsed parse stackTop tc =
+    if stackTop.data == "" then
+        let
+            txt =
+                String.fromChar stackTop.expect.begin
+                    ++ tc.text
+                    ++ String.fromChar stackTop.expect.end
+                    |> parse
+        in
+        txt :: tc.parsed
+
+    else
+        let
+            top =
+                String.fromChar stackTop.expect.begin
+                    ++ stackTop.data
+                    ++ String.fromChar stackTop.expect.end
+                    |> parse
+
+            txt =
+                Raw (tc.text ++ " ") Parser.MetaData.dummy
+        in
+        [ AST.join top (List.reverse <| txt :: tc.parsed) ]
+
+
 handleEmptyText : (String -> Element) -> StackItem -> TextCursor -> TextCursor
 handleEmptyText parse stackTop tc =
     case List.head tc.stack of
@@ -274,17 +276,9 @@ handleEmptyText parse stackTop tc =
                         []
                         (EList (args ++ List.reverse tc.parsed) Parser.MetaData.dummy)
                         Parser.MetaData.dummy
-
-                _ =
-                    newParsed |> AST.simplify |> Debug.log "NEW PARSED"
-
-                _ =
-                    args ++ List.reverse tc.parsed |> List.map AST.simplify |> Debug.log "args ++ reversed from tc"
             in
             { tc
                 | parsed = [ newParsed ]
-
-                --, complete = newParsed :: tc.complete
                 , stack = List.drop 1 tc.stack
                 , offset = tc.offset + 1
                 , count = tc.count + 1
@@ -309,9 +303,6 @@ commit_ tc =
 
         complete =
             parsed ++ tc.complete
-
-        _ =
-            complete |> List.map simplify |> Debug.log "!! COMPLETE"
     in
     case tc.stack of
         [] ->
@@ -319,24 +310,8 @@ commit_ tc =
 
         top :: restOfStack ->
             let
-                _ =
-                    Debug.log "AT END, STACK SIZE" (1 + List.length restOfStack)
-
-                _ =
-                    Debug.log "TOP OF STACK" top
-
-                _ =
-                    Debug.log "PARSED" (tc.parsed |> List.map AST.simplify)
-
-                newParsed =
-                    Parser.parse tc.generation <| "[" ++ String.trim top.data ++ "]"
-
-                --- more here
                 errorMessage =
                     StackError top.offset tc.offset "((unmatched bracket))" (String.slice top.offset tc.offset tc.source)
-
-                trailingElement =
-                    Parser.parse tc.generation tc.text
             in
             commit
                 { tc
