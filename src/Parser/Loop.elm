@@ -120,14 +120,19 @@ nextCursor packet tc =
                         Parser.Tool.Done tc
 
 
+notDelimiter1 : Char -> Bool
+notDelimiter1 c =
+    not (List.member c [ '[', ']' ])
+
+
 notDelimiter : Char -> Bool
 notDelimiter c =
-    not (List.member c [ '[', ']' ])
+    not (List.member c [ '[', ']', '`' ])
 
 
 advance : Configuration -> String -> Parser.Tool.StringData
 advance config str =
-    case Parser.run (Parser.Tool.text (\c -> notDelimiter c) (\c -> notDelimiter c)) str of
+    case Parser.run (Parser.Tool.text notDelimiter notDelimiter) str of
         Ok stringData ->
             stringData
 
