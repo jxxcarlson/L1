@@ -1,11 +1,11 @@
-module Parser.Config exposing (Configuration, configure)
+module Parser.Config exposing (Configuration, configure, isBeginChar, isEndChar, lookup)
 
 import Dict exposing (Dict)
 import Maybe.Extra
 
 
 type alias Expectation =
-    { begin : Char, end : Maybe Char }
+    { begin : Char, end : Char }
 
 
 type alias ExpectationsDict =
@@ -23,6 +23,11 @@ type alias Configuration =
     }
 
 
+lookup : Configuration -> Char -> Maybe Expectation
+lookup config c =
+    Dict.get c config.expectationsDict
+
+
 configure : ConfigurationDefinition -> Configuration
 configure configDef =
     let
@@ -30,7 +35,7 @@ configure configDef =
             List.map .begin configDef
 
         endChars =
-            List.map .end configDef |> Maybe.Extra.values
+            List.map .end configDef
     in
     { beginChars = beginChars
     , endChars = endChars
@@ -48,6 +53,7 @@ isEndChar config c =
     List.member c config.endChars
 
 
-expectationsDict : ExpectationsDict
-expectationsDict =
-    Dict.fromList [ ( '[', { begin = '[', end = Just ']' } ) ]
+
+--expectationsDict : ExpectationsDict
+--expectationsDict =
+--    Dict.fromList [ ( '[', { begin = '[', end = ']' } ) ]

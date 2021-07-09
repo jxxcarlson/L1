@@ -20,7 +20,11 @@ type alias Packet a =
 
 
 expectations =
-    [ { begin = '[', end = Just ']' } ]
+    [ { begin = '[', end = ']' } ]
+
+
+defaultExpectation =
+    { begin = '@', end = '@' }
 
 
 configuration =
@@ -84,10 +88,10 @@ nextCursor packet tc =
                     Parser.Tool.Done tc
 
                 Just c ->
-                    if c == '[' then
+                    if Parser.Config.isBeginChar configuration c then
                         Parser.Tool.Loop <| TextCursor.push packet.parser { begin = '[', end = ']' } tc
 
-                    else if c == ']' then
+                    else if Parser.Config.isEndChar configuration c then
                         Parser.Tool.Loop <| TextCursor.pop packet.parser tc
 
                     else
