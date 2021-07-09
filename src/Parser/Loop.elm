@@ -24,6 +24,7 @@ expectations =
     [ { begin = '[', end = ']', etype = ElementType, isVerbatim = False }
     , { begin = '`', end = '`', etype = CodeType, isVerbatim = True }
     , { begin = '$', end = '$', etype = InlineMathType, isVerbatim = True }
+    , { begin = '#', end = '#', etype = ElementType, isVerbatim = False }
     ]
 
 

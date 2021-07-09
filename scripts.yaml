@@ -20,7 +20,7 @@ scripts:
   check-gh-local: open -a /Applications/Firefox.app file:///Users/carlson/dev/jxxcarlson.github.io/app/L1/index.html
 
   check-gh: open -a /Applications/Firefox.app https://jxxcarlson.github.io/app/L1/
-  
+
   #live: elm-live src/Main.elm
 
   look: open -a /Applications/Firefox.app app/public/index.html
