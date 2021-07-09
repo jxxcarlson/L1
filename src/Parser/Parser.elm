@@ -4,8 +4,8 @@ import Parser.AST as AST exposing (Element(..), Name(..))
 import Parser.Advanced as Parser exposing ((|.), (|=))
 import Parser.Error exposing (Context(..), Problem(..))
 import Parser.Loc as Loc exposing (Position)
-import Parser.Tool as T
-import Parser.XString as XString
+import Utility.ParserTools as T
+import Utility.XString as XString
 
 
 type alias ErrorMessage =

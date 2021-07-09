@@ -14,7 +14,7 @@ import Parser.Advanced
 import Parser.Driver
 import Parser.Error exposing (Context(..), Problem(..))
 import Parser.MetaData as MetaData
-import Utility
+import Utility.Utility as Utility
 
 
 type alias ParseError =
@@ -56,6 +56,7 @@ renderElementDict =
 
         --, ( "c", renderCode )
         , ( "math", renderMath )
+        , ( "math2", renderMath2 )
         , ( "m", renderMath )
         , ( "mathblock", renderMathDisplay )
         , ( "mb", renderMathDisplay )
@@ -280,6 +281,16 @@ image renderArgs name _ body =
 type DisplayMode
     = InlineMathMode
     | DisplayMathMode
+
+
+renderMathDisplay2 : FRender msg
+renderMathDisplay2 rendArgs name args body =
+    mathText rendArgs DisplayMathMode (getText2 body)
+
+
+renderMath2 : FRender msg
+renderMath2 renderArgs name args body =
+    mathText renderArgs InlineMathMode (getText2 body)
 
 
 renderMathDisplay : FRender msg

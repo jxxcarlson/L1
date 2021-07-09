@@ -1,4 +1,4 @@
-module Utility exposing
+module Utility.Utility exposing
     ( commaSeparatedToList
     , entities
     , keyValueDict

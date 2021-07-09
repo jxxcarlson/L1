@@ -1,4 +1,13 @@
-module Parser.Config exposing (Configuration, EType(..), Expectation, configure, isBeginChar, isEndChar, lookup)
+module Parser.Config exposing
+    ( Configuration
+    , EType(..)
+    , Expectation
+    , configure
+    , isBeginChar
+    , isEndChar
+    , lookup
+    , name
+    )
 
 import Dict exposing (Dict)
 import Maybe.Extra
@@ -10,7 +19,21 @@ type alias Expectation =
 
 type EType
     = ElementType
-    | VerbatimType
+    | CodeType
+    | InlineMathType
+
+
+name : EType -> String
+name etype =
+    case etype of
+        ElementType ->
+            "element"
+
+        CodeType ->
+            "code"
+
+        InlineMathType ->
+            "math2"
 
 
 type alias ExpectationsDict =

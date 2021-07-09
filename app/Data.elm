@@ -24,6 +24,8 @@ This is code: `a[i] = b[i] + 1`.
 
 Pythagoras said that [math a^2 + b^2 = c^2].
 
+Pythagoras said that $a^2 + b^2 = c^2$. Wow! What a dude!!
+
 In class, we learned that
 
 [mathblock \\int_0^1 x^n dx = \\frac{1}{n+1}]

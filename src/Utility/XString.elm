@@ -1,4 +1,4 @@
-module Parser.XString exposing (isNonLanguageChar, isNotExtendedLanguageChar, textListWithPredicate, textWithPredicate)
+module Utility.XString exposing (isNonLanguageChar, isNotExtendedLanguageChar, textListWithPredicate, textWithPredicate)
 
 {-| Grammar:
 
@@ -17,7 +17,7 @@ module Parser.XString exposing (isNonLanguageChar, isNotExtendedLanguageChar, te
 
 import Parser.Advanced exposing ((|.), (|=))
 import Parser.Error exposing (Context(..), Problem(..))
-import Parser.Tool as T
+import Utility.ParserTools as ParserTools
 
 
 type alias Parser a =
@@ -51,7 +51,7 @@ reduce list =
 
 textListWithPredicate : (Char -> Bool) -> Parser (List StringData)
 textListWithPredicate predicate =
-    T.manyNonEmpty (Parser.Advanced.oneOf [ textWithPredicate_ predicate, escapedChar ])
+    ParserTools.manyNonEmpty (Parser.Advanced.oneOf [ textWithPredicate_ predicate, escapedChar ])
 
 
 
@@ -84,20 +84,20 @@ isNotExtendedLanguageChar c =
 
 textWithPredicate_ : (Char -> Bool) -> Parser StringData
 textWithPredicate_ predicate =
-    T.text predicate (\c -> c /= '\\' && predicate c)
+    ParserTools.text predicate (\c -> c /= '\\' && predicate c)
 
 
 textWithoutEscape : Parser StringData
 textWithoutEscape =
-    T.text isNonLanguageChar isNonLanguageChar
+    ParserTools.text isNonLanguageChar isNonLanguageChar
 
 
 languageChar : Parser StringData
 languageChar =
-    T.char isLanguageChar
+    ParserTools.char isLanguageChar
 
 
 escapedChar : Parser StringData
 escapedChar =
-    T.second (Parser.Advanced.symbol (Parser.Advanced.Token "\\" ExpectingEscape)) (T.char (\c -> True))
+    ParserTools.second (Parser.Advanced.symbol (Parser.Advanced.Token "\\" ExpectingEscape)) (ParserTools.char (\c -> True))
         |> Parser.Advanced.map (\result -> { content = "\\" ++ result.content, start = result.start - 1, finish = result.finish })

@@ -1,4 +1,4 @@
-module Parser.Loop exposing (Packet, advance, parseLoop)
+module Parser.Loop exposing (Packet, advance, advanceVerbatim, parseLoop)
 
 import Parser.AST as AST exposing (Element(..), Name(..))
 import Parser.Advanced as Parser exposing ((|.), (|=))
@@ -6,7 +6,7 @@ import Parser.Config exposing (Configuration, EType(..))
 import Parser.Error exposing (Context, Problem)
 import Parser.MetaData as MetaData
 import Parser.TextCursor as TextCursor exposing (TextCursor)
-import Parser.Tool
+import Utility.ParserTools as ParserTools
 
 
 type alias Parser a =
@@ -22,7 +22,8 @@ type alias Packet a =
 
 expectations =
     [ { begin = '[', end = ']', etype = ElementType }
-    , { begin = '`', end = '`', etype = VerbatimType }
+    , { begin = '`', end = '`', etype = CodeType }
+    , { begin = '$', end = '$', etype = InlineMathType }
     ]
 
 
@@ -37,7 +38,7 @@ the AST of the processed source.
 -}
 parseLoop : Packet Element -> Int -> String -> TextCursor
 parseLoop packet generation str =
-    Parser.Tool.loop (TextCursor.init generation str) (nextCursor packet)
+    ParserTools.loop (TextCursor.init generation str) (nextCursor packet)
         |> TextCursor.commit
 
 
@@ -54,10 +55,10 @@ that parseLoop is guaranteed to terminate. The program terminates
 when the offset comes to the end of the source.
 
 -}
-nextCursor : Packet Element -> TextCursor -> Parser.Tool.Step TextCursor TextCursor
+nextCursor : Packet Element -> TextCursor -> ParserTools.Step TextCursor TextCursor
 nextCursor packet cursor =
     if cursor.offset >= cursor.length then
-        Parser.Tool.Done cursor
+        ParserTools.Done cursor
 
     else
         let
@@ -73,14 +74,14 @@ nextCursor packet cursor =
         in
         if chompedText.finish - chompedText.start > 0 then
             -- the chompedText is non-void; add it it to the cursor
-            Parser.Tool.Loop <| TextCursor.add chompedText.content cursor
+            ParserTools.Loop <| TextCursor.add chompedText.content cursor
 
         else
             -- We are at a mark, and so must decide whether to push, pop, or call it quits
             -- Decide this on the basis of the character at the heading the remaining text
             case String.uncons remaining |> Maybe.map Tuple.first of
                 Nothing ->
-                    Parser.Tool.Done cursor
+                    ParserTools.Done cursor
 
                 Just c ->
                     handleCharacterAtCursor packet c cursor
@@ -90,39 +91,46 @@ handleCharacterAtCursor packet c tc =
     if Parser.Config.isBeginChar configuration c then
         case Parser.Config.lookup configuration c of
             Nothing ->
-                Parser.Tool.Done tc
+                ParserTools.Done tc
 
             Just expectation ->
                 case expectation.etype of
-                    VerbatimType ->
-                        handleVerbatimType tc
+                    CodeType ->
+                        handleVerbatim CodeType tc
+
+                    InlineMathType ->
+                        handleVerbatim InlineMathType tc
 
                     _ ->
-                        Parser.Tool.Loop <| TextCursor.push packet.parser expectation tc
+                        ParserTools.Loop <| TextCursor.push packet.parser expectation tc
 
     else if Parser.Config.isEndChar configuration c then
-        Parser.Tool.Loop <| TextCursor.pop packet.parser tc
+        ParserTools.Loop <| TextCursor.pop packet.parser tc
 
     else
-        Parser.Tool.Done tc
+        ParserTools.Done tc
 
 
-handleVerbatimType tc =
+handleVerbatim : EType -> TextCursor -> ParserTools.Step TextCursor TextCursor
+handleVerbatim etype tc =
     let
+        name =
+            Parser.Config.name etype
+
         remaining_ =
             String.dropLeft (tc.offset + 1) tc.remainingSource
 
         verbatimText =
-            advanceVerbatim remaining_
+            advanceVerbatim remaining_ |> Debug.log "VERBATIM TEXT"
 
         verbatimTextLength =
-            verbatimText.finish - verbatimText.start
+            verbatimText.finish - verbatimText.start |> Debug.log "VERBATIM TEXT LENGTH"
 
         preceding =
             Raw tc.text MetaData.dummy
 
         newElement =
-            Element (Name "code") [] (Raw verbatimText.content MetaData.dummy) MetaData.dummy
+            Element (Name name) [] (Raw verbatimText.content MetaData.dummy) MetaData.dummy
 
         newTC =
             { tc
@@ -131,17 +139,17 @@ handleVerbatimType tc =
                 , parsed = newElement :: preceding :: tc.parsed
             }
     in
-    Parser.Tool.Loop <| newTC
+    ParserTools.Loop <| newTC
 
 
 notDelimiter : Char -> Bool
 notDelimiter c =
-    not (List.member c [ '[', ']', '`' ])
+    not (List.member c [ '[', ']', '`', '$' ])
 
 
-advance : Configuration -> String -> Parser.Tool.StringData
+advance : Configuration -> String -> ParserTools.StringData
 advance config str =
-    case Parser.run (Parser.Tool.text notDelimiter notDelimiter) str of
+    case Parser.run (ParserTools.text notDelimiter notDelimiter) str of
         Ok stringData ->
             stringData
 
@@ -149,11 +157,20 @@ advance config str =
             { content = "", finish = 0, start = 0 }
 
 
-advanceVerbatim : String -> Parser.Tool.StringData
+advanceVerbatim : String -> ParserTools.StringData
 advanceVerbatim str =
-    case Parser.run (Parser.Tool.text (\c -> c /= '`') (\c -> c /= '`')) str of
+    let
+        significantChars =
+            [ '`', '$' ]
+
+        predicate =
+            \c -> not (List.member c significantChars)
+    in
+    (case Parser.run (ParserTools.text predicate predicate) str of
         Ok stringData ->
-            stringData
+            stringData |> Debug.log "!!! ADVANCE VERBATIM"
 
         Err _ ->
             { content = "", finish = 0, start = 0 }
+    )
+        |> Debug.log "ADVANCE VERBATIM"
