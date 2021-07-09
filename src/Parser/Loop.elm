@@ -2,6 +2,7 @@ module Parser.Loop exposing (Packet, advance, parseLoop)
 
 import Parser.AST as AST exposing (Element, simplify)
 import Parser.Advanced as Parser exposing ((|.), (|=))
+import Parser.Config
 import Parser.Error exposing (Context, Problem)
 import Parser.TextCursor as TextCursor exposing (TextCursor)
 import Parser.Tool
@@ -16,6 +17,14 @@ type alias Packet a =
     , getLength : a -> Int
     , handleError : Maybe (List (Parser.DeadEnd Context Problem) -> TextCursor -> TextCursor)
     }
+
+
+expectations =
+    [ { begin = '[', end = Just ']' } ]
+
+
+configuration =
+    Parser.Config.configure expectations
 
 
 {-| parseLoop scans the source text from right to left, update the TextCursor
@@ -44,23 +53,6 @@ when the offset comes to the end of the source.
 -}
 nextCursor : Packet Element -> TextCursor -> Parser.Tool.Step TextCursor TextCursor
 nextCursor packet tc =
-    let
-        -- TODO: All the stuff in this let block is diagnostic code and will be removed
-        p =
-            tc.parsed |> List.map AST.simplify
-
-        co =
-            tc.complete |> List.map AST.simplify
-
-        _ =
-            Debug.log "(count, offset, remaining)" ( tc.count, tc.offset, String.dropLeft tc.offset tc.remainingSource )
-
-        _ =
-            Debug.log ("TC " ++ String.fromInt tc.count) { p = p, c = co, s = tc.stack |> List.map TextCursor.simpleStackItem, t = tc.text }
-
-        _ =
-            Debug.log "-" "-------------------------------------------------"
-    in
     if tc.offset >= tc.length then
         Parser.Tool.Done tc
 
@@ -82,7 +74,7 @@ nextCursor packet tc =
                 String.uncons remaining |> Maybe.map Tuple.first
         in
         if n > 0 then
-            -- the chompedText is non-void; addit it to the cursor
+            -- the chompedText is non-void; add it it to the cursor
             Parser.Tool.Loop <| TextCursor.add chompedText.content tc
 
         else
