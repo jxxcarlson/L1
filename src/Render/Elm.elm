@@ -72,7 +72,7 @@ renderList renderArgs list =
 render : RenderArgs -> Element -> E.Element msg
 render renderArgs element =
     case element of
-        Raw str _ ->
+        Text str _ ->
             E.el [] (text str)
 
         Element (Name name) body _ ->
@@ -399,10 +399,10 @@ args2 body =
     case body of
         EList list _ ->
             case list of
-                (Raw r_ _) :: (Raw g_ _) :: (Raw b_ _) :: rest_ ->
+                (Text r_ _) :: (Text g_ _) :: (Text b_ _) :: rest_ ->
                     Just { r = toInt r_, g = toInt g_, b = toInt b_, rest = rest_ }
 
-                ((Raw str _) as raw) :: ((Element _ _ _) as elt) :: rest ->
+                ((Text str _) as raw) :: ((Element _ _ _) as elt) :: rest ->
                     let
                         aa =
                             convertString str
@@ -416,7 +416,7 @@ args2 body =
                                 { r = a.r
                                 , g = a.g
                                 , b = a.b
-                                , rest = Raw phrase MetaData.dummy :: elt :: rest
+                                , rest = Text phrase MetaData.dummy :: elt :: rest
 
                                 --, rest = elt :: rest
                                 }
@@ -439,7 +439,7 @@ convertString str =
                 { r = String.toInt r |> Maybe.withDefault 0
                 , g = String.toInt g |> Maybe.withDefault 0
                 , b = String.toInt b |> Maybe.withDefault 0
-                , rest = [ Raw (String.join " " rest) MetaData.dummy ]
+                , rest = [ Text (String.join " " rest) MetaData.dummy ]
                 }
 
         _ ->
@@ -459,7 +459,7 @@ getInt e =
 getText2 : Element -> String
 getText2 element =
     case element of
-        Raw s _ ->
+        Text s _ ->
             s
 
         _ ->
@@ -469,7 +469,7 @@ getText2 element =
 getText : Element -> Maybe String
 getText element =
     case element of
-        EList [ Raw content _ ] _ ->
+        EList [ Text content _ ] _ ->
             Just content
 
         _ ->

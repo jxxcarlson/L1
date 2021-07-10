@@ -53,23 +53,23 @@ when the offset comes to the end of the source.
 nextCursor : Packet Element -> TextCursor -> ParserTools.Step TextCursor TextCursor
 nextCursor packet cursor =
     let
+        --
+        --_ =
+        --    Debug.log "SCANR" cursor.scannerType
+        --
+        --_ =
+        --    Debug.log " TEXT" cursor.text
+        --
+        --_ =
+        --    Debug.log "STACK" cursor.stack
+        --
+        --_ =
+        --    Debug.log "PARSD" cursor.parsed |> List.map AST.simplify
+        --
+        --_ =
+        --    Debug.log "COMPL" cursor.complete |> List.map AST.simplify
         _ =
-            Debug.log (String.fromInt cursor.count) "-----------------------------"
-
-        _ =
-            Debug.log "SCANR" cursor.scannerType
-
-        _ =
-            Debug.log " TEXT" cursor.text
-
-        _ =
-            Debug.log "STACK" cursor.stack
-
-        _ =
-            Debug.log "PARSD" cursor.parsed |> List.map AST.simplify
-
-        _ =
-            Debug.log "COMPL" cursor.complete |> List.map AST.simplify
+            Debug.log " " (TextCursor.print cursor)
     in
     if cursor.offset >= cursor.length then
         ParserTools.Done cursor
@@ -79,7 +79,6 @@ nextCursor packet cursor =
             remaining =
                 -- offset has been updated, so remaining should be also
                 String.dropLeft cursor.offset cursor.remainingSource
-                    |> Debug.log " REMA"
 
             chompedText =
                 -- get some more text
@@ -152,10 +151,10 @@ handleVerbatim etype verbatimChar tc =
             verbatimText.finish - verbatimText.start |> Debug.log "VERBATIM TEXT LENGTH"
 
         preceding =
-            Raw tc.text MetaData.dummy
+            Text tc.text MetaData.dummy
 
         newElement =
-            Element (Name name) (Raw verbatimText.content MetaData.dummy) MetaData.dummy
+            Element (Name name) (Text verbatimText.content MetaData.dummy) MetaData.dummy
 
         newTC =
             { tc
@@ -194,10 +193,10 @@ handleQuoted verbatimChar tc =
             Debug.log "QUOTED parsed" tc.parsed
 
         preceding =
-            Raw tc.text MetaData.dummy |> Debug.log "QUOTED preceding"
+            Text tc.text MetaData.dummy |> Debug.log "QUOTED preceding"
 
         newElement =
-            Raw (Utility.unquote verbatimText.content) MetaData.dummy |> Debug.log "QUOTED newElement"
+            Text (Utility.unquote verbatimText.content) MetaData.dummy |> Debug.log "QUOTED newElement"
 
         newTC =
             { tc
@@ -249,11 +248,9 @@ advanceVerbatim2 verbatimChar str =
         predicate =
             \c -> c /= verbatimChar
     in
-    (case Parser.run (ParserTools.text predicate predicate) str of
+    case Parser.run (ParserTools.text predicate predicate) str of
         Ok stringData ->
-            stringData |> Debug.log "!!! ADVANCE VERBATIM"
+            stringData
 
         Err _ ->
             { content = "", finish = 0, start = 0 }
-    )
-        |> Debug.log "ADVANCE VERBATIM"

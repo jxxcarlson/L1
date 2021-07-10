@@ -147,7 +147,7 @@ plainText : Int -> Parser Element
 plainText generation =
     Parser.inContext TextExpression <|
         (XString.textWithPredicate XString.isNonLanguageChar
-            |> Parser.map (\data -> Raw data.content (meta generation data.start data.finish))
+            |> Parser.map (\data -> Text data.content (meta generation data.start data.finish))
         )
 
 
@@ -155,7 +155,7 @@ textWithPredicate : (Char -> Bool) -> Int -> Parser Element
 textWithPredicate predicate generation =
     Parser.inContext TextExpression <|
         (XString.textWithPredicate predicate
-            |> Parser.map (\data -> Raw data.content (meta generation data.start data.finish))
+            |> Parser.map (\data -> Text data.content (meta generation data.start data.finish))
         )
 
 

@@ -7,7 +7,7 @@ import Parser.MetaData as MetaData
 getText : Element -> String
 getText element =
     case element of
-        Raw s _ ->
+        Text s _ ->
             s
 
         _ ->
@@ -16,14 +16,14 @@ getText element =
 
 makeRaw : String -> Element
 makeRaw str =
-    Raw str MetaData.dummy
+    Text str MetaData.dummy
 
 
 mapRaw : (String -> String) -> Element -> Element
 mapRaw f element =
     case element of
-        Raw s meta ->
-            Raw (f s) meta
+        Text s meta ->
+            Text (f s) meta
 
         _ ->
             element
