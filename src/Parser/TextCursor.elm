@@ -17,6 +17,7 @@ import Parser.Config exposing (EType(..), Expectation)
 import Parser.MetaData as MetaData exposing (MetaData)
 import Parser.Utility
 import Render.Text
+import Utility.Console as Console
 import Utility.Utility
 
 
@@ -280,6 +281,9 @@ getParsed parse stackTop tc =
 
     else
         let
+            _ =
+                Debug.log "BRANCH" 2
+
             top =
                 case stackTop.expect.end of
                     Nothing ->
@@ -399,35 +403,46 @@ print : TextCursor -> String
 print cursor =
     (case List.head cursor.stack of
         Nothing ->
-            printParsed cursor.complete
-                ++ " "
+            printComplete cursor
                 ++ printStack cursor.stack
-                ++ cursor.text
-                ++ " "
-                ++ printParsed cursor.parsed
-                ++ " ^"
-                ++ String.dropLeft cursor.offset cursor.remainingSource
+                ++ printCursorText cursor
+                ++ printParsed cursor
+                ++ printCaret
+                ++ printRemaining cursor
 
         Just top ->
-            printParsed cursor.complete
-                ++ " "
+            printComplete cursor
                 ++ printStack cursor.stack
-                ++ cursor.text
-                ++ " "
+                ++ printCursorText cursor
                 --++ String.join " " top.preceding
                 --++ " "
-                ++ printParsed cursor.parsed
-                ++ " ^"
-                ++ String.dropLeft cursor.offset cursor.remainingSource
+                ++ printParsed cursor
+                ++ printCaret
+                ++ printRemaining cursor
     )
         |> Utility.Utility.normalize
         |> String.replace "[ " "["
         |> String.trim
 
 
-printParsed : List Element -> String
-printParsed elements =
-    elements |> List.map Render.Text.print |> String.join " "
+printCaret =
+    " ^ " |> Console.bgRed
+
+
+printRemaining cursor =
+    String.dropLeft cursor.offset cursor.remainingSource |> Console.black |> Console.bgGreen
+
+
+printCursorText cursor =
+    cursor.text ++ " " |> Console.black |> Console.bgYellow
+
+
+printParsed cursor =
+    cursor.parsed |> List.map Render.Text.print |> String.join " " |> Console.bgMagenta
+
+
+printComplete cursor =
+    cursor.parsed |> List.map Render.Text.print |> String.join " " |> (\x -> x ++ " ") |> Console.bgBlue
 
 
 printStackItem : StackItem -> String
@@ -438,4 +453,4 @@ printStackItem item =
 
 printStack : List StackItem -> String
 printStack items =
-    List.map printStackItem (List.reverse items) |> String.join " " |> String.trim
+    List.map printStackItem (List.reverse items) |> String.join " " |> String.trim |> Console.bgWhite |> Console.black
