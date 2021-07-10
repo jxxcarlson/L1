@@ -1,6 +1,6 @@
 module Parser.TextCursor exposing
     ( TextCursor, init
-    , ErrorStatus(..), ParseError, ScannerType(..), add, commit, empty, parseResult, pop, push, simpleStackItem
+    , ErrorStatus(..), ParseError, ScannerType(..), add, commit, empty, parseResult, pop, print, push, simpleStackItem
     )
 
 {-| TextCursor is the data structure used by Parser.parseLoop.
@@ -9,13 +9,14 @@ module Parser.TextCursor exposing
 
 -}
 
-import Html exposing (a)
+-- import Render.Text
+
 import List.Extra
 import Parser.AST as AST exposing (Element(..), Name(..))
 import Parser.Config exposing (EType(..), Expectation)
 import Parser.MetaData as MetaData exposing (MetaData)
-import Parser.Parser as Parser
 import Parser.Utility
+import Render.Text
 import Utility.Utility
 
 
@@ -44,7 +45,7 @@ type ScannerType
 
 
 type alias StackItem =
-    { expect : Expectation, data : String, count : Int, offset : Int }
+    { expect : Expectation, data : String, preceding : List String, count : Int, offset : Int }
 
 
 type alias ParseError =
@@ -115,12 +116,12 @@ add : String -> TextCursor -> TextCursor
 add str tc =
     let
         _ =
-            Debug.log "!" "ADD"
+            Debug.log (String.fromInt tc.count) "ADD ----------------------------------------"
     in
     { tc
         | count = tc.count + 1
         , text = str ++ tc.text
-        , offset = tc.offset + String.length str |> Debug.log "ADD, OFFSET"
+        , offset = tc.offset + String.length str
     }
 
 
@@ -130,7 +131,7 @@ push : (String -> Element) -> Expectation -> TextCursor -> TextCursor
 push parse expectation tc =
     let
         _ =
-            Debug.log "!" "PUSH"
+            Debug.log (String.fromInt tc.count) "PUSH ----------------------------------------"
     in
     case tc.stack of
         [] ->
@@ -152,7 +153,7 @@ push parse expectation tc =
             { tc
                 | count = tc.count + 1
                 , offset = tc.offset + 1
-                , stack = { expect = expectation, data = "", count = tc.count, offset = tc.offset } :: tc.stack
+                , stack = { expect = expectation, data = "", preceding = tc.text :: [], count = tc.count, offset = tc.offset } :: tc.stack
                 , parsed = []
                 , complete = complete
                 , text = ""
@@ -175,7 +176,7 @@ push parse expectation tc =
             { tc
                 | count = tc.count + 1
                 , offset = tc.offset + 1
-                , stack = { expect = expectation, data = "", count = tc.count, offset = tc.offset } :: top_ :: rest
+                , stack = { expect = expectation, data = "", preceding = tc.text :: top.preceding, count = tc.count, offset = tc.offset } :: top_ :: rest
                 , text = ""
             }
 
@@ -189,7 +190,7 @@ pop parse tc =
     -- two case, depending on whether cursor.text is empty.
     let
         _ =
-            Debug.log "!" "POP"
+            Debug.log (String.fromInt tc.count) "POP ----------------------------------------"
     in
     case List.head tc.stack of
         Nothing ->
@@ -209,17 +210,11 @@ handleNonEmptyText parse stackTop tc =
     -- is the item on the top of the stack.
     -- (a)
     let
-        _ =
-            Debug.log "XXX @ stackTop.data" stackTop.data
-
-        _ =
-            Debug.log "XXX @ tc.text" tc.text
-
         parsed =
             let
                 parsed_ : List Element
                 parsed_ =
-                    getParsed parse stackTop tc |> Debug.log "HNET, PARSED"
+                    getParsed parse stackTop tc
             in
             case stackTop.expect.etype of
                 InlineMathType ->
@@ -268,9 +263,6 @@ getParsed : (String -> Element) -> StackItem -> TextCursor -> List Element
 getParsed parse stackTop tc =
     if stackTop.data == "" then
         let
-            _ =
-                Debug.log "BRANCH 1" ( tc.text, tc.scannerType )
-
             txt =
                 case stackTop.expect.end of
                     Nothing ->
@@ -283,15 +275,11 @@ getParsed parse stackTop tc =
                             ++ tc.text
                             ++ String.fromChar endChar
                             |> Utility.Utility.ifApply (tc.scannerType == NormalScan) parse Parser.Utility.makeRaw
-                            |> Debug.log "PARSED (1)"
         in
         txt :: tc.parsed
 
     else
         let
-            _ =
-                Debug.log "BRANCH" 2
-
             top =
                 case stackTop.expect.end of
                     Nothing ->
@@ -306,7 +294,7 @@ getParsed parse stackTop tc =
                             |> parse
 
             txt =
-                Raw (tc.text ++ " ") MetaData.dummy
+                Text (tc.text ++ " ") MetaData.dummy
         in
         [ AST.join top (List.reverse <| txt :: tc.parsed) ]
 
@@ -323,7 +311,7 @@ handleEmptyText parse stackTop tc =
                     stackItem.data |> String.words |> List.Extra.uncons |> Maybe.withDefault ( "fname", [] )
 
                 args =
-                    List.map (\a -> Raw (a ++ " ") MetaData.dummy) args_
+                    List.map (\a -> Text (a ++ " ") MetaData.dummy) args_
 
                 newParsed =
                     Element (AST.Name fname)
@@ -353,7 +341,7 @@ commit_ tc =
                 tc.parsed
 
             else
-                AST.Raw tc.text MetaData.dummy :: tc.parsed
+                AST.Text tc.text MetaData.dummy :: tc.parsed
 
         complete =
             parsed ++ tc.complete
@@ -381,7 +369,7 @@ commit_ tc =
                         Nothing ->
                             let
                                 parsed_ =
-                                    parsed ++ [ Raw top.data MetaData.dummy ]
+                                    parsed ++ [ Text top.data MetaData.dummy ]
                             in
                             List.reverse tc.complete ++ [ Element (AST.Name "heading") (EList (List.reverse parsed_) MetaData.dummy) MetaData.dummy ]
 
@@ -401,3 +389,53 @@ commit_ tc =
                     , parsed = []
                     , complete = complete_
                 }
+
+
+
+-- PRINT
+
+
+print : TextCursor -> String
+print cursor =
+    (case List.head cursor.stack of
+        Nothing ->
+            printParsed cursor.complete
+                ++ " "
+                ++ printStack cursor.stack
+                ++ cursor.text
+                ++ " "
+                ++ printParsed cursor.parsed
+                ++ " ^"
+                ++ String.dropLeft cursor.offset cursor.remainingSource
+
+        Just top ->
+            printParsed cursor.complete
+                ++ " "
+                ++ printStack cursor.stack
+                ++ cursor.text
+                ++ " "
+                --++ String.join " " top.preceding
+                --++ " "
+                ++ printParsed cursor.parsed
+                ++ " ^"
+                ++ String.dropLeft cursor.offset cursor.remainingSource
+    )
+        |> Utility.Utility.normalize
+        |> String.replace "[ " "["
+        |> String.trim
+
+
+printParsed : List Element -> String
+printParsed elements =
+    elements |> List.map Render.Text.print |> String.join " "
+
+
+printStackItem : StackItem -> String
+printStackItem item =
+    String.fromChar item.expect.begin
+        ++ String.trim item.data
+
+
+printStack : List StackItem -> String
+printStack items =
+    List.map printStackItem (List.reverse items) |> String.join " " |> String.trim
