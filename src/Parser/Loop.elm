@@ -86,7 +86,7 @@ nextCursor packet cursor =
                 -- this means text from one mark to the next
                 case cursor.scannerType of
                     NormalScan ->
-                        advance configuration remaining
+                        advance configuration cursor.offset remaining
 
                     VerbatimScan c ->
                         advanceVerbatim2 c remaining
@@ -213,9 +213,9 @@ handleQuoted verbatimChar tc =
     ParserTools.Loop <| newTC
 
 
-advance : Configuration -> String -> ParserTools.StringData
-advance config str =
-    case Parser.run (ParserTools.text (Parser.Config.notDelimiter configuration) (Parser.Config.notDelimiter configuration)) str of
+advance : Configuration -> Int -> String -> ParserTools.StringData
+advance config position str =
+    case Parser.run (ParserTools.text (Parser.Config.notDelimiter configuration position) (Parser.Config.notDelimiter configuration position)) str of
         Ok stringData ->
             stringData
 
