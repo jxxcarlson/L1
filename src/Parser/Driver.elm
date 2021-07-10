@@ -37,9 +37,6 @@ pl str =
     let
         tc =
             parseLoop 0 str
-
-        _ =
-            Debug.log "FINAL OFFSET" tc.offset
     in
     tc |> .complete |> List.map AST.simplify
 
