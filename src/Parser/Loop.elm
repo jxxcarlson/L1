@@ -164,7 +164,7 @@ handleQuoted verbatimChar tc =
                     tc.stack
 
                 Just stackTop ->
-                    { stackTop | data = tc.text } :: List.drop 1 tc.stack
+                    { stackTop | content = tc.text } :: List.drop 1 tc.stack
 
         remaining_ =
             String.dropLeft (tc.offset + 1) tc.remainingSource

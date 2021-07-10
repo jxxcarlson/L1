@@ -46,7 +46,7 @@ type ScannerType
 
 
 type alias StackItem =
-    { expect : Expectation, data : String, preceding : List String, count : Int, offset : Int }
+    { expect : Expectation, content : String, precedingText : List String, count : Int, offset : Int }
 
 
 type alias ParseError =
@@ -107,8 +107,8 @@ init generation source =
 {-| for testing by humans
 -}
 simpleStackItem : StackItem -> String
-simpleStackItem { data, offset } =
-    "Offset " ++ String.fromInt offset ++ ": " ++ data
+simpleStackItem { content, offset } =
+    "Offset " ++ String.fromInt offset ++ ": " ++ content
 
 
 {-| Add text to the .text field
@@ -154,7 +154,7 @@ push parse expectation tc =
             { tc
                 | count = tc.count + 1
                 , offset = tc.offset + 1
-                , stack = { expect = expectation, data = "", preceding = tc.text :: [], count = tc.count, offset = tc.offset } :: tc.stack
+                , stack = { expect = expectation, content = "", precedingText = tc.text :: [], count = tc.count, offset = tc.offset } :: tc.stack
                 , parsed = []
                 , complete = complete
                 , text = ""
@@ -172,12 +172,12 @@ push parse expectation tc =
                         top
 
                     else
-                        { top | data = tc.text }
+                        { top | content = tc.text }
             in
             { tc
                 | count = tc.count + 1
                 , offset = tc.offset + 1
-                , stack = { expect = expectation, data = "", preceding = tc.text :: top.preceding, count = tc.count, offset = tc.offset } :: top_ :: rest
+                , stack = { expect = expectation, content = "", precedingText = tc.text :: top.precedingText, count = tc.count, offset = tc.offset } :: top_ :: rest
                 , text = ""
             }
 
@@ -262,7 +262,7 @@ handleNonEmptyText parse stackTop tc =
 
 getParsed : (String -> Element) -> StackItem -> TextCursor -> List Element
 getParsed parse stackTop tc =
-    if stackTop.data == "" then
+    if stackTop.content == "" then
         let
             txt =
                 case stackTop.expect.expectedEndChar of
@@ -288,12 +288,12 @@ getParsed parse stackTop tc =
                 case stackTop.expect.expectedEndChar of
                     Nothing ->
                         String.fromChar stackTop.expect.beginChar
-                            ++ stackTop.data
+                            ++ stackTop.content
                             |> parse
 
                     Just endChar ->
                         String.fromChar stackTop.expect.beginChar
-                            ++ stackTop.data
+                            ++ stackTop.content
                             ++ String.fromChar endChar
                             |> parse
 
@@ -312,7 +312,7 @@ handleEmptyText parse stackTop tc =
         Just stackItem ->
             let
                 ( fname, args_ ) =
-                    stackItem.data |> String.words |> List.Extra.uncons |> Maybe.withDefault ( "fname", [] )
+                    stackItem.content |> String.words |> List.Extra.uncons |> Maybe.withDefault ( "fname", [] )
 
                 args =
                     List.map (\a -> Text (a ++ " ") MetaData.dummy) args_
@@ -363,7 +363,7 @@ commit_ tc =
                     Debug.log "@@ parsed" parsed
 
                 _ =
-                    Debug.log "@@ top.data" top.data
+                    Debug.log "@@ top.data" top.content
 
                 _ =
                     Debug.log "@@ complete  " complete
@@ -373,7 +373,7 @@ commit_ tc =
                         Nothing ->
                             let
                                 parsed_ =
-                                    parsed ++ [ Text top.data MetaData.dummy ]
+                                    parsed ++ [ Text top.content MetaData.dummy ]
                             in
                             List.reverse tc.complete ++ [ Element (AST.Name "heading") (EList (List.reverse parsed_) MetaData.dummy) MetaData.dummy ]
 
@@ -457,7 +457,7 @@ printComplete cursor =
 printStackItem : StackItem -> String
 printStackItem item =
     String.fromChar item.expect.beginChar
-        ++ String.trim item.data
+        ++ String.trim item.content
 
 
 printStack : List StackItem -> String
