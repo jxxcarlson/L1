@@ -7,6 +7,7 @@ import Parser.Error exposing (Context, Problem)
 import Parser.MetaData as MetaData
 import Parser.TextCursor as TextCursor exposing (TextCursor)
 import Utility.ParserTools as ParserTools
+import Utility.Utility as Utility
 
 
 type alias Parser a =
@@ -21,10 +22,11 @@ type alias Packet a =
 
 
 expectations =
-    [ { begin = '[', end = ']', etype = ElementType, isVerbatim = False }
-    , { begin = '`', end = '`', etype = CodeType, isVerbatim = True }
-    , { begin = '$', end = '$', etype = InlineMathType, isVerbatim = True }
-    , { begin = '#', end = '#', etype = ElementType, isVerbatim = False }
+    [ { begin = '[', end = Just ']', etype = ElementType, isVerbatim = False }
+    , { begin = '`', end = Just '`', etype = CodeType, isVerbatim = True }
+    , { begin = '$', end = Just '$', etype = InlineMathType, isVerbatim = True }
+    , { begin = '#', end = Nothing, etype = ElementType, isVerbatim = False }
+    , { begin = '"', end = Just '"', etype = QuotedType, isVerbatim = False }
     ]
 
 
@@ -58,6 +60,22 @@ when the offset comes to the end of the source.
 -}
 nextCursor : Packet Element -> TextCursor -> ParserTools.Step TextCursor TextCursor
 nextCursor packet cursor =
+    let
+        _ =
+            Debug.log (String.fromInt cursor.count) "-----------------------------"
+
+        _ =
+            Debug.log " TEXT" cursor.text
+
+        _ =
+            Debug.log "STACK" cursor.stack
+
+        _ =
+            Debug.log "PARSD" cursor.parsed |> List.map AST.simplify
+
+        _ =
+            Debug.log "COMPL" cursor.complete |> List.map AST.simplify
+    in
     if cursor.offset >= cursor.length then
         ParserTools.Done cursor
 
@@ -66,12 +84,12 @@ nextCursor packet cursor =
             remaining =
                 -- offset has been updated, so remaining should be also
                 String.dropLeft cursor.offset cursor.remainingSource
-                    |> Debug.log "nextCursor, remaining"
+                    |> Debug.log " REMA"
 
             chompedText =
                 -- get some more text
                 -- this means text from one mark to the next
-                advance configuration remaining |> Debug.log "CHOMPED TEXT"
+                advance configuration remaining
         in
         if chompedText.finish - chompedText.start > 0 then
             -- the chompedText is non-void; add it it to the cursor
@@ -97,10 +115,13 @@ handleCharacterAtCursor packet c tc =
             Just expectation ->
                 case expectation.etype of
                     CodeType ->
-                        handleVerbatim CodeType tc
+                        handleVerbatim CodeType c tc
 
                     InlineMathType ->
-                        handleVerbatim InlineMathType tc
+                        handleVerbatim InlineMathType c tc
+
+                    QuotedType ->
+                        handleQuoted c tc
 
                     _ ->
                         ParserTools.Loop <| TextCursor.push packet.parser expectation tc
@@ -112,8 +133,8 @@ handleCharacterAtCursor packet c tc =
         ParserTools.Done tc
 
 
-handleVerbatim : EType -> TextCursor -> ParserTools.Step TextCursor TextCursor
-handleVerbatim etype tc =
+handleVerbatim : EType -> Char -> TextCursor -> ParserTools.Step TextCursor TextCursor
+handleVerbatim etype verbatimChar tc =
     let
         name =
             Parser.Config.name etype
@@ -122,7 +143,8 @@ handleVerbatim etype tc =
             String.dropLeft (tc.offset + 1) tc.remainingSource
 
         verbatimText =
-            advanceVerbatim configuration remaining_ |> Debug.log "VERBATIM TEXT"
+            -- advanceVerbatim configuration remaining_ |> Debug.log "VERBATIM TEXT"
+            advanceVerbatim2 verbatimChar remaining_ |> Debug.log "VERBATIM TEXT"
 
         verbatimTextLength =
             verbatimText.finish - verbatimText.start |> Debug.log "VERBATIM TEXT LENGTH"
@@ -138,6 +160,52 @@ handleVerbatim etype tc =
                 | offset = tc.offset + verbatimTextLength + 2
                 , text = ""
                 , parsed = newElement :: preceding :: tc.parsed
+            }
+    in
+    ParserTools.Loop <| newTC
+
+
+handleQuoted : Char -> TextCursor -> ParserTools.Step TextCursor TextCursor
+handleQuoted verbatimChar tc =
+    let
+        _ =
+            Debug.log "PUSH" "handleQuote"
+
+        newStack =
+            case List.head tc.stack of
+                Nothing ->
+                    tc.stack
+
+                Just stackTop ->
+                    { stackTop | data = tc.text } :: List.drop 1 tc.stack
+
+        remaining_ =
+            String.dropLeft (tc.offset + 1) tc.remainingSource
+
+        verbatimText =
+            advanceVerbatim2 verbatimChar remaining_ |> Debug.log "VERBATIM TEXT"
+
+        verbatimTextLength =
+            verbatimText.finish - verbatimText.start |> Debug.log "VERBATIM TEXT LENGTH"
+
+        _ =
+            Debug.log "QUOTED parsed" tc.parsed
+
+        preceding =
+            Raw tc.text MetaData.dummy |> Debug.log "QUOTED preceding"
+
+        newElement =
+            Raw (Utility.unquote verbatimText.content) MetaData.dummy |> Debug.log "QUOTED newElement"
+
+        newTC =
+            { tc
+                | offset = tc.offset + verbatimTextLength + 2
+                , text = ""
+                , stack = newStack
+
+                -- , parsed = newElement :: preceding :: tc.parsed
+                , parsed = newElement :: tc.parsed
+                , count = tc.count + 1
             }
     in
     ParserTools.Loop <| newTC
@@ -161,6 +229,22 @@ advanceVerbatim config str =
 
         predicate =
             \c -> not (List.member c verbatimChars)
+    in
+    (case Parser.run (ParserTools.text predicate predicate) str of
+        Ok stringData ->
+            stringData |> Debug.log "!!! ADVANCE VERBATIM"
+
+        Err _ ->
+            { content = "", finish = 0, start = 0 }
+    )
+        |> Debug.log "ADVANCE VERBATIM"
+
+
+advanceVerbatim2 : Char -> String -> ParserTools.StringData
+advanceVerbatim2 verbatimChar str =
+    let
+        predicate =
+            \c -> c /= verbatimChar
     in
     (case Parser.run (ParserTools.text predicate predicate) str of
         Ok stringData ->
