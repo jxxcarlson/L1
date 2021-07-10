@@ -92,11 +92,11 @@ nextCursor packet cursor =
 
 handleCharacterAtCursor : Packet Element -> Char -> TextCursor -> ParserTools.Step TextCursor TextCursor
 handleCharacterAtCursor packet c tc =
-    if Just c == (List.head tc.stack |> Maybe.andThen (.expect >> .expectedEndChar)) then
+    if TextCursor.canPop tc c then
         ParserTools.Loop <| TextCursor.pop packet.parser tc
         --else
 
-    else if Parser.Config.isBeginChar configuration c then
+    else if Parser.Config.isBeginChar configuration tc.offset c then
         case Parser.Config.lookup configuration c of
             Nothing ->
                 ParserTools.Done tc
@@ -112,7 +112,7 @@ handleCharacterAtCursor packet c tc =
                 in
                 ParserTools.Loop <| TextCursor.push packet.parser expectation { tc | scannerType = scannerType }
 
-    else if Parser.Config.isEndChar configuration c then
+    else if Parser.Config.isEndChar configuration tc.offset c then
         ParserTools.Loop <| TextCursor.pop packet.parser { tc | scannerType = NormalScan }
 
     else

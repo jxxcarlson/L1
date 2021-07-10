@@ -57,7 +57,9 @@ type alias ConfigurationDefinition =
 
 type alias Configuration =
     { beginChars : List Char
+    , interiorBeginChars : List Char
     , endChars : List Char
+    , interiorEndChars : List Char
     , delimiters : List Char
     , interiorDelimiters : List Char
     , verbatimChars : List Char
@@ -88,7 +90,9 @@ configure configDef =
                 |> List.filter (\c -> c /= '0')
     in
     { beginChars = beginChars
+    , interiorBeginChars = interiorBeginChars
     , endChars = endChars
+    , interiorEndChars = interiorEndChars
     , delimiters = beginChars |> List.Extra.unique
     , interiorDelimiters = interiorBeginChars ++ interiorEndChars |> List.Extra.unique
     , verbatimChars = List.filter (\def -> def.isVerbatim) configDef |> List.map .beginChar |> List.Extra.unique
@@ -105,11 +109,19 @@ notDelimiter config position c =
         not (List.member c config.interiorDelimiters)
 
 
-isBeginChar : Configuration -> Char -> Bool
-isBeginChar config c =
-    List.member c config.beginChars
+isBeginChar : Configuration -> Int -> Char -> Bool
+isBeginChar config position c =
+    if position == 0 then
+        List.member c config.beginChars
+
+    else
+        List.member c config.interiorBeginChars
 
 
-isEndChar : Configuration -> Char -> Bool
-isEndChar config c =
-    List.member c config.endChars
+isEndChar : Configuration -> Int -> Char -> Bool
+isEndChar config position c =
+    if position == 0 then
+        List.member c config.endChars
+
+    else
+        List.member c config.interiorEndChars
