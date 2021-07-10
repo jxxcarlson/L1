@@ -3,6 +3,7 @@ module Parser.Loop exposing (Packet, advance, parseLoop)
 import Parser.AST as AST exposing (Element(..), Name(..))
 import Parser.Advanced as Parser exposing ((|.), (|=))
 import Parser.Config exposing (Configuration, EType(..))
+import Parser.Configuration as Configuration
 import Parser.Error exposing (Context, Problem)
 import Parser.MetaData as MetaData
 import Parser.TextCursor as TextCursor exposing (ScannerType(..), TextCursor)
@@ -21,17 +22,8 @@ type alias Packet a =
     }
 
 
-expectations =
-    [ { begin = '[', end = Just ']', etype = ElementType, isVerbatim = False }
-    , { begin = '`', end = Just '`', etype = CodeType, isVerbatim = True }
-    , { begin = '$', end = Just '$', etype = InlineMathType, isVerbatim = True }
-    , { begin = '#', end = Nothing, etype = ElementType, isVerbatim = False }
-    , { begin = '"', end = Just '"', etype = QuotedType, isVerbatim = False }
-    ]
-
-
 configuration =
-    Parser.Config.configure expectations
+    Parser.Config.configure Configuration.expectations
 
 
 {-| parseLoop scans the source text from right to left, update the TextCursor
