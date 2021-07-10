@@ -2,6 +2,7 @@ module Parser.Config exposing
     ( Configuration
     , EType(..)
     , Expectation
+    , MarkPosition(..)
     , configure
     , isBeginChar
     , isEndChar
@@ -15,7 +16,7 @@ import List.Extra
 
 
 type alias Expectation =
-    { begin : Char, end : Maybe Char, etype : EType, isVerbatim : Bool }
+    { begin : Char, end : Maybe Char, etype : EType, isVerbatim : Bool, markPosition : MarkPosition }
 
 
 type EType
@@ -23,6 +24,11 @@ type EType
     | CodeType
     | InlineMathType
     | QuotedType
+
+
+type MarkPosition
+    = AtBeginning
+    | Anywhere
 
 
 name : EType -> String
@@ -53,6 +59,7 @@ type alias Configuration =
     { beginChars : List Char
     , endChars : List Char
     , delimiters : List Char
+    , interiorDelimiters : List Char
     , verbatimChars : List Char
     , expectationsDict : ExpectationsDict
     }
@@ -71,18 +78,31 @@ configure configDef =
 
         endChars =
             List.map .end configDef |> List.map (\e -> Maybe.withDefault '0' e) |> List.filter (\c -> c /= '0')
+
+        interiorBeginChars =
+            List.map .begin (List.filter (\e -> e.markPosition == Anywhere) configDef)
+
+        interiorEndChars =
+            List.map .end (List.filter (\e -> e.markPosition == Anywhere) configDef)
+                |> List.map (\e -> Maybe.withDefault '0' e)
+                |> List.filter (\c -> c /= '0')
     in
     { beginChars = beginChars
     , endChars = endChars
-    , delimiters = beginChars ++ endChars |> List.Extra.unique
+    , delimiters = beginChars |> List.Extra.unique
+    , interiorDelimiters = interiorBeginChars ++ interiorEndChars |> List.Extra.unique
     , verbatimChars = List.filter (\def -> def.isVerbatim) configDef |> List.map .begin |> List.Extra.unique
     , expectationsDict = Dict.fromList (List.map (\e -> ( e.begin, e )) configDef)
     }
 
 
-notDelimiter : Configuration -> Char -> Bool
-notDelimiter config c =
-    not (List.member c config.delimiters)
+notDelimiter : Configuration -> Int -> Char -> Bool
+notDelimiter config position c =
+    if position == 0 then
+        not (List.member c config.delimiters)
+
+    else
+        not (List.member c config.interiorDelimiters)
 
 
 isBeginChar : Configuration -> Char -> Bool
