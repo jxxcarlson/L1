@@ -174,7 +174,7 @@ code renderArgs _ _ body =
             ]
         , Font.color codeColor
         ]
-        (text (getText2 body))
+        (text (getText body |> Maybe.withDefault ""))
 
 
 fontRGB : FRender msg

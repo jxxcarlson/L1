@@ -1,6 +1,7 @@
-module Parser.Utility exposing (getText, joinText)
+module Parser.Utility exposing (getText, joinText, makeRaw, mapRaw)
 
 import Parser.AST exposing (Element(..))
+import Parser.MetaData as MetaData
 
 
 getText : Element -> String
@@ -11,6 +12,21 @@ getText element =
 
         _ ->
             ""
+
+
+makeRaw : String -> Element
+makeRaw str =
+    Raw str MetaData.dummy
+
+
+mapRaw : (String -> String) -> Element -> Element
+mapRaw f element =
+    case element of
+        Raw s meta ->
+            Raw (f s) meta
+
+        _ ->
+            element
 
 
 joinText : List Element -> String

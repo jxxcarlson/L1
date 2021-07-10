@@ -1,11 +1,11 @@
-module Parser.Loop exposing (Packet, advance, advanceVerbatim, parseLoop)
+module Parser.Loop exposing (Packet, advance, parseLoop)
 
 import Parser.AST as AST exposing (Element(..), Name(..))
 import Parser.Advanced as Parser exposing ((|.), (|=))
 import Parser.Config exposing (Configuration, EType(..))
 import Parser.Error exposing (Context, Problem)
 import Parser.MetaData as MetaData
-import Parser.TextCursor as TextCursor exposing (TextCursor)
+import Parser.TextCursor as TextCursor exposing (ScannerType(..), TextCursor)
 import Utility.ParserTools as ParserTools
 import Utility.Utility as Utility
 
@@ -65,6 +65,9 @@ nextCursor packet cursor =
             Debug.log (String.fromInt cursor.count) "-----------------------------"
 
         _ =
+            Debug.log "SCANR" cursor.scannerType
+
+        _ =
             Debug.log " TEXT" cursor.text
 
         _ =
@@ -89,10 +92,15 @@ nextCursor packet cursor =
             chompedText =
                 -- get some more text
                 -- this means text from one mark to the next
-                advance configuration remaining
+                case cursor.scannerType of
+                    NormalScan ->
+                        advance configuration remaining
+
+                    VerbatimScan c ->
+                        advanceVerbatim2 c remaining
         in
         if chompedText.finish - chompedText.start > 0 then
-            -- the chompedText is non-void; add it it to the cursor
+            -- the chompedText is non-void; add it to the cursor
             ParserTools.Loop <| TextCursor.add chompedText.content cursor
 
         else
@@ -106,28 +114,30 @@ nextCursor packet cursor =
                     handleCharacterAtCursor packet c cursor
 
 
+handleCharacterAtCursor : Packet Element -> Char -> TextCursor -> ParserTools.Step TextCursor TextCursor
 handleCharacterAtCursor packet c tc =
-    if Parser.Config.isBeginChar configuration c then
+    if Just c == (List.head tc.stack |> Maybe.andThen (.expect >> .end)) then
+        ParserTools.Loop <| TextCursor.pop packet.parser tc
+        --else
+
+    else if Parser.Config.isBeginChar configuration c then
         case Parser.Config.lookup configuration c of
             Nothing ->
                 ParserTools.Done tc
 
             Just expectation ->
-                case expectation.etype of
-                    CodeType ->
-                        handleVerbatim CodeType c tc
+                let
+                    scannerType =
+                        if List.member expectation.etype [ CodeType, InlineMathType, QuotedType ] then
+                            VerbatimScan c
 
-                    InlineMathType ->
-                        handleVerbatim InlineMathType c tc
-
-                    QuotedType ->
-                        handleQuoted c tc
-
-                    _ ->
-                        ParserTools.Loop <| TextCursor.push packet.parser expectation tc
+                        else
+                            NormalScan
+                in
+                ParserTools.Loop <| TextCursor.push packet.parser expectation { tc | scannerType = scannerType }
 
     else if Parser.Config.isEndChar configuration c then
-        ParserTools.Loop <| TextCursor.pop packet.parser tc
+        ParserTools.Loop <| TextCursor.pop packet.parser { tc | scannerType = NormalScan }
 
     else
         ParserTools.Done tc
@@ -221,23 +231,24 @@ advance config str =
             { content = "", finish = 0, start = 0 }
 
 
-advanceVerbatim : Configuration -> String -> ParserTools.StringData
-advanceVerbatim config str =
-    let
-        verbatimChars =
-            config.verbatimChars
 
-        predicate =
-            \c -> not (List.member c verbatimChars)
-    in
-    (case Parser.run (ParserTools.text predicate predicate) str of
-        Ok stringData ->
-            stringData |> Debug.log "!!! ADVANCE VERBATIM"
-
-        Err _ ->
-            { content = "", finish = 0, start = 0 }
-    )
-        |> Debug.log "ADVANCE VERBATIM"
+--advanceVerbatim : Configuration -> String -> ParserTools.StringData
+--advanceVerbatim config str =
+--    let
+--        verbatimChars =
+--            config.verbatimChars
+--
+--        predicate =
+--            \c -> not (List.member c verbatimChars)
+--    in
+--    (case Parser.run (ParserTools.text predicate predicate) str of
+--        Ok stringData ->
+--            stringData |> Debug.log "!!! ADVANCE VERBATIM"
+--
+--        Err _ ->
+--            { content = "", finish = 0, start = 0 }
+--    )
+--        |> Debug.log "ADVANCE VERBATIM"
 
 
 advanceVerbatim2 : Char -> String -> ParserTools.StringData

@@ -1,6 +1,8 @@
 module Utility.Utility exposing
-    ( commaSeparatedToList
+    ( clipEnds
+    , commaSeparatedToList
     , entities
+    , ifApply
     , keyValueDict
     , liftToMaybe
     , mapTriple
@@ -10,6 +12,20 @@ module Utility.Utility exposing
 
 import Dict exposing (Dict)
 import Maybe.Extra
+
+
+ifApply : Bool -> (a -> b) -> (a -> b) -> (a -> b)
+ifApply condition f g =
+    if condition then
+        f
+
+    else
+        g
+
+
+clipEnds : String -> String
+clipEnds str =
+    str |> String.dropLeft 1 |> String.dropRight 1
 
 
 unquote : String -> String

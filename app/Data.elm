@@ -10,6 +10,7 @@ initialText =
 
 
 
+
 [image caption:Camperdown https://upload.wikimedia.org/wikipedia/commons/2/20/Camperdown_Elm_Prospect_Park_Brooklyn.jpg]
 
 # Fault-Tolerant Parsing
@@ -35,7 +36,7 @@ These are rendered as
 
 ## The Main Idea
 
-In its simplest form, sentences in [b L1] consist [i elements]
+In its simplest form, sentences in [b L1] consist  of [i elements]
 such as `[i this is italic]` interspersed with ordinary "unmarked"
 text, e.g. `[i this is italic] but that is not.` An AST that
 can express such sentences is
@@ -50,6 +51,8 @@ All parsers do their work by scanning from left to right.
 
 
 [link "Error recovery with parser combinators"  https://eyalkalderon.com/blog/nom-error-recovery/]
+
+
 
 
 

@@ -1,6 +1,6 @@
 module Parser.TextCursor exposing
     ( TextCursor, init
-    , ErrorStatus(..), ParseError, add, commit, empty, parseResult, pop, push, simpleStackItem
+    , ErrorStatus(..), ParseError, ScannerType(..), add, commit, empty, parseResult, pop, push, simpleStackItem
     )
 
 {-| TextCursor is the data structure used by Parser.parseLoop.
@@ -11,10 +11,12 @@ module Parser.TextCursor exposing
 
 import Html exposing (a)
 import List.Extra
-import Parser.AST as AST exposing (Element(..))
-import Parser.Config exposing (Expectation)
+import Parser.AST as AST exposing (Element(..), Name(..))
+import Parser.Config exposing (EType(..), Expectation)
 import Parser.MetaData as MetaData exposing (MetaData)
 import Parser.Parser as Parser
+import Parser.Utility
+import Utility.Utility
 
 
 {-| TODO: give an account of what these fields do
@@ -32,7 +34,13 @@ type alias TextCursor =
     , parsed : List Element
     , complete : List Element
     , stack : List StackItem
+    , scannerType : ScannerType
     }
+
+
+type ScannerType
+    = NormalScan
+    | VerbatimScan Char
 
 
 type alias StackItem =
@@ -70,6 +78,7 @@ empty =
     , parsed = []
     , complete = []
     , stack = []
+    , scannerType = NormalScan
     }
 
 
@@ -89,6 +98,7 @@ init generation source =
     , parsed = []
     , complete = []
     , stack = []
+    , scannerType = NormalScan
     }
 
 
@@ -183,7 +193,7 @@ pop parse tc =
     in
     case List.head tc.stack of
         Nothing ->
-            { tc | count = tc.count + 1, offset = tc.offset + 1 }
+            { tc | count = tc.count + 1, offset = tc.offset + 1, scannerType = NormalScan }
 
         Just stackTop ->
             if tc.text /= "" then
@@ -199,8 +209,35 @@ handleNonEmptyText parse stackTop tc =
     -- is the item on the top of the stack.
     -- (a)
     let
+        _ =
+            Debug.log "XXX @ stackTop.data" stackTop.data
+
+        _ =
+            Debug.log "XXX @ tc.text" tc.text
+
         parsed =
-            getParsed parse stackTop tc
+            let
+                parsed_ : List Element
+                parsed_ =
+                    getParsed parse stackTop tc |> Debug.log "HNET, PARSED"
+            in
+            case stackTop.expect.etype of
+                InlineMathType ->
+                    Element
+                        (Name "math")
+                        (EList (List.map (Parser.Utility.mapRaw Utility.Utility.clipEnds) parsed_) MetaData.dummy)
+                        MetaData.dummy
+                        |> (\x -> [ x ])
+
+                CodeType ->
+                    Element
+                        (Name "code")
+                        (EList (List.map (Parser.Utility.mapRaw Utility.Utility.clipEnds) parsed_) MetaData.dummy)
+                        MetaData.dummy
+                        |> (\x -> [ x ])
+
+                _ ->
+                    parsed_
 
         stack =
             List.drop 1 tc.stack
@@ -213,6 +250,7 @@ handleNonEmptyText parse stackTop tc =
             , stack = []
             , complete = parsed ++ tc.complete
             , text = ""
+            , scannerType = NormalScan
         }
 
     else
@@ -222,6 +260,7 @@ handleNonEmptyText parse stackTop tc =
             , parsed = parsed
             , stack = stack
             , text = ""
+            , scannerType = NormalScan
         }
 
 
@@ -229,6 +268,9 @@ getParsed : (String -> Element) -> StackItem -> TextCursor -> List Element
 getParsed parse stackTop tc =
     if stackTop.data == "" then
         let
+            _ =
+                Debug.log "BRANCH 1" ( tc.text, tc.scannerType )
+
             txt =
                 case stackTop.expect.end of
                     Nothing ->
@@ -240,12 +282,16 @@ getParsed parse stackTop tc =
                         String.fromChar stackTop.expect.begin
                             ++ tc.text
                             ++ String.fromChar endChar
-                            |> parse
+                            |> Utility.Utility.ifApply (tc.scannerType == NormalScan) parse Parser.Utility.makeRaw
+                            |> Debug.log "PARSED (1)"
         in
         txt :: tc.parsed
 
     else
         let
+            _ =
+                Debug.log "BRANCH" 2
+
             top =
                 case stackTop.expect.end of
                     Nothing ->
@@ -290,6 +336,7 @@ handleEmptyText parse stackTop tc =
                 , offset = tc.offset + 1
                 , count = tc.count + 1
                 , text = ""
+                , scannerType = NormalScan
             }
 
 
