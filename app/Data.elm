@@ -3,6 +3,7 @@ module Data exposing (initialText)
 
 initialText =
     """
+
 [image caption:Camperdown https://upload.wikimedia.org/wikipedia/commons/2/20/Camperdown_Elm_Prospect_Park_Brooklyn.jpg]
 
 # Fault-Tolerant Parsing
@@ -23,10 +24,14 @@ These are rendered as
 
 [item (a) This [highlight is [b not] a very good] test.]
 
-[item (b) Pythagoras said that $a^2 + b^2 = c^2$. Wow! What a dude!!]
+
+[item (b) P $a^2 + b^2 = c^2$.  P $a^2 + b^2 = c^2$. ]
 
 
-## The Main Idea
+(b) P $a^2 + b^2 = c^2$.  P $a^2 + b^2 = c^2$.
+
+
+# The Main Idea
 
 Isolation
 
@@ -41,12 +46,11 @@ once again the sentence `This [highlight is [b not] a very good] test.`
 All parsers do their work by scanning from left to right.
 
 
-## References
+
+# References
 
 
 [link "Error recovery with parser combinators"  https://eyalkalderon.com/blog/nom-error-recovery/]
-
-
 
 """
 
