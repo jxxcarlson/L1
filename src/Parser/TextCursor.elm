@@ -11,9 +11,9 @@ module Parser.TextCursor exposing
 
 import Html exposing (a)
 import List.Extra
-import Parser.AST as AST exposing (Element(..), simplify)
+import Parser.AST as AST exposing (Element(..))
 import Parser.Config exposing (Expectation)
-import Parser.MetaData exposing (MetaData)
+import Parser.MetaData as MetaData exposing (MetaData)
 import Parser.Parser as Parser
 
 
@@ -138,16 +138,13 @@ push parse expectation tc =
 
                     else
                         tc.parsed ++ tc.complete
-
-                _ =
-                    tc.text |> Debug.log "TXT"
             in
             { tc
                 | count = tc.count + 1
                 , offset = tc.offset + 1
                 , stack = { expect = expectation, data = "", count = tc.count, offset = tc.offset } :: tc.stack
                 , parsed = []
-                , complete = complete |> Debug.log "PUSH, COMPLETE"
+                , complete = complete
                 , text = ""
             }
 
@@ -233,23 +230,37 @@ getParsed parse stackTop tc =
     if stackTop.data == "" then
         let
             txt =
-                String.fromChar stackTop.expect.begin
-                    ++ tc.text
-                    ++ String.fromChar stackTop.expect.end
-                    |> parse
+                case stackTop.expect.end of
+                    Nothing ->
+                        String.fromChar stackTop.expect.begin
+                            ++ tc.text
+                            |> parse
+
+                    Just endChar ->
+                        String.fromChar stackTop.expect.begin
+                            ++ tc.text
+                            ++ String.fromChar endChar
+                            |> parse
         in
         txt :: tc.parsed
 
     else
         let
             top =
-                String.fromChar stackTop.expect.begin
-                    ++ stackTop.data
-                    ++ String.fromChar stackTop.expect.end
-                    |> parse
+                case stackTop.expect.end of
+                    Nothing ->
+                        String.fromChar stackTop.expect.begin
+                            ++ stackTop.data
+                            |> parse
+
+                    Just endChar ->
+                        String.fromChar stackTop.expect.begin
+                            ++ stackTop.data
+                            ++ String.fromChar endChar
+                            |> parse
 
             txt =
-                Raw (tc.text ++ " ") Parser.MetaData.dummy
+                Raw (tc.text ++ " ") MetaData.dummy
         in
         [ AST.join top (List.reverse <| txt :: tc.parsed) ]
 
@@ -266,12 +277,12 @@ handleEmptyText parse stackTop tc =
                     stackItem.data |> String.words |> List.Extra.uncons |> Maybe.withDefault ( "fname", [] )
 
                 args =
-                    List.map (\a -> Raw (a ++ " ") Parser.MetaData.dummy) args_
+                    List.map (\a -> Raw (a ++ " ") MetaData.dummy) args_
 
                 newParsed =
                     Element (AST.Name fname)
-                        (EList (args ++ List.reverse tc.parsed) Parser.MetaData.dummy)
-                        Parser.MetaData.dummy
+                        (EList (args ++ List.reverse tc.parsed) MetaData.dummy)
+                        MetaData.dummy
             in
             { tc
                 | parsed = [ newParsed ]
@@ -295,7 +306,7 @@ commit_ tc =
                 tc.parsed
 
             else
-                AST.Raw tc.text Parser.MetaData.dummy :: tc.parsed
+                AST.Raw tc.text MetaData.dummy :: tc.parsed
 
         complete =
             parsed ++ tc.complete
@@ -306,8 +317,34 @@ commit_ tc =
 
         top :: restOfStack ->
             let
-                errorMessage =
-                    StackError top.offset tc.offset "((unmatched bracket))" (String.slice top.offset tc.offset tc.source)
+                _ =
+                    Debug.log "TOP OF STACK AT END" top
+
+                _ =
+                    Debug.log "@@ parsed" parsed
+
+                _ =
+                    Debug.log "@@ top.data" top.data
+
+                _ =
+                    Debug.log "@@ complete  " complete
+
+                complete_ =
+                    case top.expect.end of
+                        Nothing ->
+                            let
+                                parsed_ =
+                                    parsed ++ [ Raw top.data MetaData.dummy ]
+                            in
+                            List.reverse tc.complete ++ [ Element (AST.Name "heading") (EList (List.reverse parsed_) MetaData.dummy) MetaData.dummy ]
+
+                        -- Element (AST.Name "heading") (EList parsed MetaData.dummy) MetaData.dummy :: List.reverse tc.complete
+                        Just _ ->
+                            let
+                                errorMessage =
+                                    StackError top.offset tc.offset "((unmatched bracket))" (String.slice top.offset tc.offset tc.source)
+                            in
+                            List.reverse tc.complete ++ [ errorMessage ]
             in
             commit
                 { tc
@@ -315,7 +352,5 @@ commit_ tc =
                     , text = ""
                     , stack = restOfStack
                     , parsed = []
-                    , complete =
-                        List.reverse tc.complete
-                            ++ [ errorMessage ]
+                    , complete = complete_
                 }
