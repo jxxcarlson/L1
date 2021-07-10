@@ -91,7 +91,7 @@ suite =
                         [ Element_ (Name "heading") (EList_ [ Raw_ "", Raw_ " Fault-Tolerant Parsing" ]) ]
         , test "link" <|
             \_ ->
-                """"[link "Error recovery with parser combinators"  https://eyalkalderon.com/blog/nom-error-recovery/"""
+                """[link "Error recovery with parser combinators"  https://eyalkalderon.com/blog/nom-error-recovery/]"""
                     |> pl
                     |> Expect.equal
                         [ Element_ (Name "link") (EList_ [ Raw_ "\"Error recovery with parser combinators\"", Raw_ "  https://eyalkalderon.com/blog/nom-error-recovery/ " ]) ]
