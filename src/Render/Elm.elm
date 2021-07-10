@@ -1,7 +1,7 @@
 module Render.Elm exposing (convertString, render, renderList)
 
 import Dict exposing (Dict)
-import Element as E exposing (column, el, fill, paragraph, px, rgb, rgb255, row, spacing, text)
+import Element as E exposing (column, el, fill, paddingEach, paragraph, px, rgb, rgb255, row, spacing, text)
 import Element.Background as Background
 import Element.Font as Font
 import Html exposing (Html)
@@ -60,6 +60,7 @@ renderElementDict =
         , ( "link", link )
         , ( "image", image )
         , ( "heading", heading )
+        , ( "item", item )
         ]
 
 
@@ -245,6 +246,11 @@ link renderArgs name args body =
 heading : FRender msg
 heading renderArgs name args body =
     el [ Font.size 24 ] (render renderArgs body)
+
+
+item : FRender msg
+item renderArgs name args body =
+    el [ paddingEach { left = 24, right = 0, top = 0, bottom = 0 } ] (render renderArgs body)
 
 
 image : FRender msg

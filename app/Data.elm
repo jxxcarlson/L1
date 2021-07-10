@@ -3,14 +3,6 @@ module Data exposing (initialText)
 
 initialText =
     """
-
-
-
-
-
-
-
-
 [image caption:Camperdown https://upload.wikimedia.org/wikipedia/commons/2/20/Camperdown_Elm_Prospect_Park_Brooklyn.jpg]
 
 # Fault-Tolerant Parsing
@@ -21,20 +13,22 @@ To put the notion of fault-tolerance in context, recall that the task of a  pars
 
 The strategy for fault-tolerant parsing discussed here is based on Matt Griffith's project [link "mdgriffith/elm-markup" https://package.elm-lang.org/packages/mdgriffith/elm-markup/latest/], in which he introduced the notion of [i TextCursor].  Building on Griffith's work, [link "Brillant.org" https://brilliant.org] developed a configurable fault-tolerant parser, Camperdown, for its internal authoring tools.
 
-The Camperdown parser is versatile and can be configured for applications ranging from Markdown-style languages to interactive story-telling (see XXX).  Camperdown is also relatively complex.  The aim here, then, is to present the main ideas of Camperdown in a simple yet nontrivial context.  Here are a few sentences in the markup language [b L1] that we shall use for this exposition:
+The Camperdown parser can be configured for applications ranging from Markdown-style languages to a kind of mini-LaTeX to interactive story-telling (see XXX).  The aim here is to present the main ideas of Camperdown in a simple yet nontrivial context that will be helpful both on its own and as a warmup to understanding and using Camperdown. The  codebase for [b L1] is small, with the core `textCursor` module, the largest of the bunch,  weighing in at 300 lines of code. Here are a few sentences in [b L1]:
 
-(a) `This [highlight is [b not] a very good] test.`
+[item (a) `This [highlight is [b not] a very good] test.`]
 
-(b) `Pythagoras said that $a^2 + b^2 = c^2$. Wow! What a dude!!`
+[item (b) `Pythagoras said that $a^2 + b^2 = c^2$. Wow! What a dude!!`]
 
 These are rendered as
 
-(a) This [highlight is [b not] a very good] test.
+[item (a) This [highlight is [b not] a very good] test.]
 
-(b) Pythagoras said that $a^2 + b^2 = c^2$. Wow! What a dude!!
+[item (b) Pythagoras said that $a^2 + b^2 = c^2$. Wow! What a dude!!]
 
 
 ## The Main Idea
+
+Isolation
 
 In its simplest form, sentences in [b L1] consist  of [i elements]
 such as `[i this is italic]` interspersed with ordinary "unmarked"
@@ -51,9 +45,6 @@ All parsers do their work by scanning from left to right.
 
 
 [link "Error recovery with parser combinators"  https://eyalkalderon.com/blog/nom-error-recovery/]
-
-
-
 
 
 
