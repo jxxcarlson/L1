@@ -239,7 +239,7 @@ link renderArgs name args body =
     in
     E.newTabLink []
         { url = url
-        , label = el [ Font.color linkColor, Font.italic ] (text label)
+        , label = el [ Font.color linkColor, Font.italic ] (text <| Utility.unquote label)
         }
 
 
