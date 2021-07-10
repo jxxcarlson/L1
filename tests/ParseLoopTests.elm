@@ -77,10 +77,26 @@ suite =
                     |> pl
                     |> Expect.equal
                         [ Element_ (Name "fontRGB") (EList_ [ Raw_ "255 ", Raw_ "0 ", Raw_ "255 ", Element_ (Name "i") (EList_ [ Raw_ "This ", Raw_ "text ", Raw_ "is ", Raw_ "in ", Element_ (Name "b") (EList_ [ Raw_ "magenta" ]) ]) ]) ]
+        , test "image" <|
+            \_ ->
+                "[image caption:Camperdown https://upload.wikimedia.org/wikipedia/commons/2/20/Camperdown_Elm_Prospect_Park_Brooklyn.jpg]"
+                    |> pl
+                    |> Expect.equal
+                        [ Element_ (Name "image") (EList_ [ Raw_ "caption:Camperdown https://upload.wikimedia.org/wikipedia/commons/2/20/Camperdown_Elm_Prospect_Park_Brooklyn.jpg" ]) ]
+        , test "heading" <|
+            \_ ->
+                "# Fault-Tolerant Parsing"
+                    |> pl
+                    |> Expect.equal
+                        [ Element_ (Name "heading") (EList_ [ Raw_ "", Raw_ " Fault-Tolerant Parsing" ]) ]
+        , test "link" <|
+            \_ ->
+                """"[link "Error recovery with parser combinators"  https://eyalkalderon.com/blog/nom-error-recovery/"""
+                    |> pl
+                    |> Expect.equal
+                        [ Element_ (Name "link") (EList_ [ Raw_ "\"Error recovery with parser combinators\"", Raw_ "  https://eyalkalderon.com/blog/nom-error-recovery/ " ]) ]
         ]
 
 
 
--- "[fontRGB 255 0 255 [i This text is in [b magenta]]]"
--- [fontRGB 255 0 255 foo [b bar]]
--- [[Raw_ (" ghi jkl"),Element_ (Name "foo") [] (EList_ []),Raw_ ("abc def ")]
+-- [Element_ (Name "link") (EList_ [Raw_ ("\"Error recovery with parser combinators\""),Raw_ ("  https://eyalkalderon.com/blog/nom-error-recovery/ ")])]
