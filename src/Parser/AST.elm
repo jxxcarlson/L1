@@ -7,7 +7,7 @@ import Parser.MetaData exposing (MetaData)
 
 
 type Element
-    = Raw String MetaData
+    = Text String MetaData
     | Element Name Element MetaData
     | EList (List Element) MetaData
     | Problem (List ParseError) String
@@ -27,7 +27,7 @@ type Name
 {-| A simplified version of the AST for humans
 -}
 type Element_
-    = Raw_ String
+    = Text_ String
     | Element_ Name Element_
     | EList_ (List Element_)
     | Problem_ Problem String
@@ -47,7 +47,7 @@ length element =
 position : Element -> Loc.Position
 position element =
     case element of
-        Raw _ meta ->
+        Text _ meta ->
             meta.position
 
         Element _ _ meta ->
@@ -69,8 +69,8 @@ position element =
 simplify : Element -> Element_
 simplify element =
     case element of
-        Raw str _ ->
-            Raw_ str
+        Text str _ ->
+            Text_ str
 
         Element name el _ ->
             Element_ name (simplify el)
