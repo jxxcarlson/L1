@@ -5,10 +5,34 @@ module Utility.Utility exposing
     , liftToMaybe
     , mapTriple
     , roundTo
+    , unquote
     )
 
 import Dict exposing (Dict)
 import Maybe.Extra
+
+
+unquote : String -> String
+unquote str =
+    str |> unquoteLeft |> unquoteRight
+
+
+unquoteLeft : String -> String
+unquoteLeft str =
+    if String.left 1 str == "\"" then
+        String.dropLeft 1 str
+
+    else
+        str
+
+
+unquoteRight : String -> String
+unquoteRight str =
+    if String.right 1 str == "\"" then
+        String.dropRight 1 str
+
+    else
+        str
 
 
 roundTo : Int -> Float -> Float
