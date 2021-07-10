@@ -12,6 +12,7 @@ import Parser.AST exposing (Element(..), Element_(..), Name(..))
 import Parser.Advanced
 import Parser.Error exposing (Context(..), Problem(..))
 import Parser.MetaData as MetaData
+import Parser.Utility
 import Utility.Utility as Utility
 
 
@@ -50,6 +51,7 @@ renderElementDict =
         , ( "violet", violet )
         , ( "gray", gray )
         , ( "code", code )
+        , ( "quoted", quoted )
         , ( "math", renderMath )
         , ( "math2", renderMath2 )
         , ( "m", renderMath )
@@ -57,6 +59,7 @@ renderElementDict =
         , ( "mb", renderMathDisplay )
         , ( "link", link )
         , ( "image", image )
+        , ( "heading", heading )
         ]
 
 
@@ -157,6 +160,11 @@ gray renderArgs _ _ body =
     el [ Font.color (rgb 0.55 0.55 0.55) ] (render renderArgs body)
 
 
+quoted : FRender msg
+quoted renderArgs _ _ body =
+    render renderArgs body
+
+
 code : FRender msg
 code renderArgs _ _ body =
     el
@@ -207,11 +215,18 @@ fontRGB_ renderArgs args =
 link : FRender msg
 link renderArgs name args body =
     let
-        bodyText =
-            getText body |> Maybe.withDefault "missing url"
+        bodyStrings : List String
+        bodyStrings =
+            -- getText body |> Maybe.withDefault "missing url"
+            case body of
+                EList elements _ ->
+                    List.map Parser.Utility.getText elements
+
+                _ ->
+                    [ "missing", "stuff" ]
 
         ( label, url ) =
-            case String.words bodyText of
+            case bodyStrings of
                 label_ :: url_ :: rest ->
                     ( label_, url_ )
 
@@ -225,6 +240,11 @@ link renderArgs name args body =
         { url = url
         , label = el [ Font.color linkColor, Font.italic ] (text label)
         }
+
+
+heading : FRender msg
+heading renderArgs name args body =
+    el [ Font.size 24 ] (render renderArgs body)
 
 
 image : FRender msg
