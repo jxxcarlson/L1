@@ -6,12 +6,35 @@ module Utility.Utility exposing
     , keyValueDict
     , liftToMaybe
     , mapTriple
+    , normalize
     , roundTo
+    , squeeze
     , unquote
     )
 
 import Dict exposing (Dict)
 import Maybe.Extra
+import Regex
+
+
+squeeze : String -> String
+squeeze str =
+    String.replace " " "" str
+
+
+userReplace : String -> (Regex.Match -> String) -> String -> String
+userReplace userRegex replacer string =
+    case Regex.fromString userRegex of
+        Nothing ->
+            string
+
+        Just regex ->
+            Regex.replace regex replacer string
+
+
+normalize : String -> String
+normalize string =
+    userReplace " +" (\_ -> " ") string
 
 
 ifApply : Bool -> (a -> b) -> (a -> b) -> (a -> b)
