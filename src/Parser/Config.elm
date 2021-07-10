@@ -15,13 +15,14 @@ import List.Extra
 
 
 type alias Expectation =
-    { begin : Char, end : Char, etype : EType, isVerbatim : Bool }
+    { begin : Char, end : Maybe Char, etype : EType, isVerbatim : Bool }
 
 
 type EType
     = ElementType
     | CodeType
     | InlineMathType
+    | QuotedType
 
 
 name : EType -> String
@@ -35,6 +36,9 @@ name etype =
 
         InlineMathType ->
             "math2"
+
+        QuotedType ->
+            "quoted"
 
 
 type alias ExpectationsDict =
@@ -66,7 +70,7 @@ configure configDef =
             List.map .begin configDef
 
         endChars =
-            List.map .end configDef
+            List.map .end configDef |> List.map (\e -> Maybe.withDefault '0' e) |> List.filter (\c -> c /= '0')
     in
     { beginChars = beginChars
     , endChars = endChars
