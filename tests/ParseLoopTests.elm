@@ -14,7 +14,7 @@ suite =
             \_ ->
                 "foo"
                     |> pl
-                    |> Expect.equal [ Raw_ "foo" ]
+                    |> Expect.equal [ Text_ "foo" ]
         , test "simple element" <|
             \_ ->
                 "[foo]"
@@ -24,77 +24,77 @@ suite =
             \_ ->
                 "[i foo]"
                     |> pl
-                    |> Expect.equal [ Element_ (Name "i") (EList_ [ Raw_ "foo" ]) ]
+                    |> Expect.equal [ Element_ (Name "i") (EList_ [ Text_ "foo" ]) ]
         , test "nested elements" <|
             \_ ->
                 "[i [b foo]]"
                     |> pl
                     --|> Expect.equal [Element_ (Name ("i ")) [] (Element_ (Name "b") [] (EList_ [Raw_ "foo"]))]
-                    |> Expect.equal [ Element_ (Name "i") (EList_ [ Element_ (Name "b") (EList_ [ Raw_ "foo" ]) ]) ]
+                    |> Expect.equal [ Element_ (Name "i") (EList_ [ Element_ (Name "b") (EList_ [ Text_ "foo" ]) ]) ]
         , test "simple element preceded by text" <|
             \_ ->
                 "abc [foo]"
                     |> pl
-                    |> Expect.equal [ Raw_ "abc ", Element_ (Name "foo") (EList_ []) ]
+                    |> Expect.equal [ Text_ "abc ", Element_ (Name "foo") (EList_ []) ]
         , test "simple element preceded and followed by text" <|
             \_ ->
                 "abc [foo] def"
                     |> pl
-                    |> Expect.equal [ Raw_ "abc ", Element_ (Name "foo") (EList_ []), Raw_ " def" ]
+                    |> Expect.equal [ Text_ "abc ", Element_ (Name "foo") (EList_ []), Text_ " def" ]
         , test "simple element preceded and followed by text (2)" <|
             \_ ->
                 "abc def [foo] ghi jkl [bar] mno pqr"
                     |> pl
                     |> Expect.equal
-                        [ Raw_ "abc def ", Element_ (Name "foo") (EList_ []), Raw_ " ghi jkl ", Element_ (Name "bar") (EList_ []), Raw_ " mno pqr" ]
+                        [ Text_ "abc def ", Element_ (Name "foo") (EList_ []), Text_ " ghi jkl ", Element_ (Name "bar") (EList_ []), Text_ " mno pqr" ]
         , test "like a list" <|
             \_ ->
                 "[x [i a] [j b]]"
                     |> pl
                     |> Expect.equal
-                        [ Element_ (Name "x") (EList_ [ Element_ (Name "i") (EList_ [ Raw_ "a" ]), Element_ (Name "j") (EList_ [ Raw_ "b" ]) ]) ]
+                        [ Element_ (Name "x") (EList_ [ Element_ (Name "i") (EList_ [ Text_ "a" ]), Element_ (Name "j") (EList_ [ Text_ "b" ]) ]) ]
         , test "like a list, but with preceding and following text" <|
             \_ ->
                 "abc [x [i a] [j b]] def"
                     |> pl
                     |> Expect.equal
-                        [ Raw_ "abc ", Element_ (Name "x") (EList_ [ Element_ (Name "i") (EList_ [ Raw_ "a" ]), Element_ (Name "j") (EList_ [ Raw_ "b" ]) ]), Raw_ " def" ]
+                        [ Text_ "abc ", Element_ (Name "x") (EList_ [ Element_ (Name "i") (EList_ [ Text_ "a" ]), Element_ (Name "j") (EList_ [ Text_ "b" ]) ]), Text_ " def" ]
         , test "like a list, but with preceding and following text, including newlines" <|
             \_ ->
                 "abc\n [x [i a] [j b]] \n\ndef"
                     |> pl
                     |> Expect.equal
-                        [ Raw_ "abc\n ", Element_ (Name "x") (EList_ [ Element_ (Name "i") (EList_ [ Raw_ "a" ]), Element_ (Name "j") (EList_ [ Raw_ "b" ]) ]), Raw_ " \n\ndef" ]
+                        [ Text_ "abc\n ", Element_ (Name "x") (EList_ [ Element_ (Name "i") (EList_ [ Text_ "a" ]), Element_ (Name "j") (EList_ [ Text_ "b" ]) ]), Text_ " \n\ndef" ]
         , test "fontRGB" <|
             \_ ->
                 "[fontRGB 255 0 255 foo [b bar]]"
                     |> pl
                     |> Expect.equal
-                        [ Element_ (Name "fontRGB") (EList_ [ Raw_ "255 ", Raw_ "0 ", Raw_ "255 ", Raw_ "foo ", Element_ (Name "b") (EList_ [ Raw_ "bar" ]) ]) ]
+                        [ Element_ (Name "fontRGB") (EList_ [ Text_ "255 ", Text_ "0 ", Text_ "255 ", Text_ "foo ", Element_ (Name "b") (EList_ [ Text_ "bar" ]) ]) ]
         , test "fontRGB (2)" <|
             \_ ->
                 "[fontRGB 255 0 255 [i This text is in [b magenta]]]"
                     |> pl
                     |> Expect.equal
-                        [ Element_ (Name "fontRGB") (EList_ [ Raw_ "255 ", Raw_ "0 ", Raw_ "255 ", Element_ (Name "i") (EList_ [ Raw_ "This ", Raw_ "text ", Raw_ "is ", Raw_ "in ", Element_ (Name "b") (EList_ [ Raw_ "magenta" ]) ]) ]) ]
+                        [ Element_ (Name "fontRGB") (EList_ [ Text_ "255 ", Text_ "0 ", Text_ "255 ", Element_ (Name "i") (EList_ [ Text_ "This ", Text_ "text ", Text_ "is ", Text_ "in ", Element_ (Name "b") (EList_ [ Text_ "magenta" ]) ]) ]) ]
         , test "image" <|
             \_ ->
                 "[image caption:Camperdown https://upload.wikimedia.org/wikipedia/commons/2/20/Camperdown_Elm_Prospect_Park_Brooklyn.jpg]"
                     |> pl
                     |> Expect.equal
-                        [ Element_ (Name "image") (EList_ [ Raw_ "caption:Camperdown https://upload.wikimedia.org/wikipedia/commons/2/20/Camperdown_Elm_Prospect_Park_Brooklyn.jpg" ]) ]
+                        [ Element_ (Name "image") (EList_ [ Text_ "caption:Camperdown https://upload.wikimedia.org/wikipedia/commons/2/20/Camperdown_Elm_Prospect_Park_Brooklyn.jpg" ]) ]
         , test "heading" <|
             \_ ->
                 "# Fault-Tolerant Parsing"
                     |> pl
                     |> Expect.equal
-                        [ Element_ (Name "heading") (EList_ [ Raw_ "", Raw_ " Fault-Tolerant Parsing" ]) ]
+                        [ Element_ (Name "heading") (EList_ [ Text_ "", Text_ " Fault-Tolerant Parsing" ]) ]
         , test "link" <|
             \_ ->
                 """[link "Error recovery with parser combinators"  https://eyalkalderon.com/blog/nom-error-recovery/]"""
                     |> pl
                     |> Expect.equal
-                        [ Element_ (Name "link") (EList_ [ Raw_ "\"Error recovery with parser combinators\"", Raw_ "  https://eyalkalderon.com/blog/nom-error-recovery/ " ]) ]
+                        [ Element_ (Name "link") (EList_ [ Text_ "\"Error recovery with parser combinators\"", Text_ "  https://eyalkalderon.com/blog/nom-error-recovery/ " ]) ]
         ]
 
 
