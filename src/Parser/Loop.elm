@@ -53,21 +53,6 @@ when the offset comes to the end of the source.
 nextCursor : Packet Element -> TextCursor -> ParserTools.Step TextCursor TextCursor
 nextCursor packet cursor =
     let
-        --
-        --_ =
-        --    Debug.log "SCANR" cursor.scannerType
-        --
-        --_ =
-        --    Debug.log " TEXT" cursor.text
-        --
-        --_ =
-        --    Debug.log "STACK" cursor.stack
-        --
-        --_ =
-        --    Debug.log "PARSD" cursor.parsed |> List.map AST.simplify
-        --
-        --_ =
-        --    Debug.log "COMPL" cursor.complete |> List.map AST.simplify
         _ =
             Debug.log " " (TextCursor.print cursor)
     in
@@ -107,7 +92,7 @@ nextCursor packet cursor =
 
 handleCharacterAtCursor : Packet Element -> Char -> TextCursor -> ParserTools.Step TextCursor TextCursor
 handleCharacterAtCursor packet c tc =
-    if Just c == (List.head tc.stack |> Maybe.andThen (.expect >> .end)) then
+    if Just c == (List.head tc.stack |> Maybe.andThen (.expect >> .expectedEndChar)) then
         ParserTools.Loop <| TextCursor.pop packet.parser tc
         --else
 

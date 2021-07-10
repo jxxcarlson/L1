@@ -16,7 +16,7 @@ import List.Extra
 
 
 type alias Expectation =
-    { begin : Char, end : Maybe Char, etype : EType, isVerbatim : Bool, markPosition : MarkPosition }
+    { beginChar : Char, expectedEndChar : Maybe Char, etype : EType, isVerbatim : Bool, markPosition : MarkPosition }
 
 
 type EType
@@ -74,16 +74,16 @@ configure : ConfigurationDefinition -> Configuration
 configure configDef =
     let
         beginChars =
-            List.map .begin configDef
+            List.map .beginChar configDef
 
         endChars =
-            List.map .end configDef |> List.map (\e -> Maybe.withDefault '0' e) |> List.filter (\c -> c /= '0')
+            List.map .expectedEndChar configDef |> List.map (\e -> Maybe.withDefault '0' e) |> List.filter (\c -> c /= '0')
 
         interiorBeginChars =
-            List.map .begin (List.filter (\e -> e.markPosition == Anywhere) configDef)
+            List.map .beginChar (List.filter (\e -> e.markPosition == Anywhere) configDef)
 
         interiorEndChars =
-            List.map .end (List.filter (\e -> e.markPosition == Anywhere) configDef)
+            List.map .expectedEndChar (List.filter (\e -> e.markPosition == Anywhere) configDef)
                 |> List.map (\e -> Maybe.withDefault '0' e)
                 |> List.filter (\c -> c /= '0')
     in
@@ -91,8 +91,8 @@ configure configDef =
     , endChars = endChars
     , delimiters = beginChars |> List.Extra.unique
     , interiorDelimiters = interiorBeginChars ++ interiorEndChars |> List.Extra.unique
-    , verbatimChars = List.filter (\def -> def.isVerbatim) configDef |> List.map .begin |> List.Extra.unique
-    , expectationsDict = Dict.fromList (List.map (\e -> ( e.begin, e )) configDef)
+    , verbatimChars = List.filter (\def -> def.isVerbatim) configDef |> List.map .beginChar |> List.Extra.unique
+    , expectationsDict = Dict.fromList (List.map (\e -> ( e.beginChar, e )) configDef)
     }
 
 

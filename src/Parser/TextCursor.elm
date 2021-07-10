@@ -265,14 +265,14 @@ getParsed parse stackTop tc =
     if stackTop.data == "" then
         let
             txt =
-                case stackTop.expect.end of
+                case stackTop.expect.expectedEndChar of
                     Nothing ->
-                        String.fromChar stackTop.expect.begin
+                        String.fromChar stackTop.expect.beginChar
                             ++ tc.text
                             |> parse
 
                     Just endChar ->
-                        String.fromChar stackTop.expect.begin
+                        String.fromChar stackTop.expect.beginChar
                             ++ tc.text
                             ++ String.fromChar endChar
                             |> Utility.Utility.ifApply (tc.scannerType == NormalScan) parse Parser.Utility.makeRaw
@@ -285,14 +285,14 @@ getParsed parse stackTop tc =
                 Debug.log "BRANCH" 2
 
             top =
-                case stackTop.expect.end of
+                case stackTop.expect.expectedEndChar of
                     Nothing ->
-                        String.fromChar stackTop.expect.begin
+                        String.fromChar stackTop.expect.beginChar
                             ++ stackTop.data
                             |> parse
 
                     Just endChar ->
-                        String.fromChar stackTop.expect.begin
+                        String.fromChar stackTop.expect.beginChar
                             ++ stackTop.data
                             ++ String.fromChar endChar
                             |> parse
@@ -369,7 +369,7 @@ commit_ tc =
                     Debug.log "@@ complete  " complete
 
                 complete_ =
-                    case top.expect.end of
+                    case top.expect.expectedEndChar of
                         Nothing ->
                             let
                                 parsed_ =
@@ -447,7 +447,7 @@ printComplete cursor =
 
 printStackItem : StackItem -> String
 printStackItem item =
-    String.fromChar item.expect.begin
+    String.fromChar item.expect.beginChar
         ++ String.trim item.data
 
 
