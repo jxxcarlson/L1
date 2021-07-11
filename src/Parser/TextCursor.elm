@@ -118,30 +118,32 @@ simpleStackItem { content, offset } =
 -}
 add : String -> TextCursor -> TextCursor
 add str tc =
-    let
-        ( stringToAdd, newStack ) =
-            addContentToStack str tc.stack
-    in
     { tc
         | count = tc.count + 1
-        , text = stringToAdd ++ tc.text
-        , stack = newStack
+        , text =
+            case List.head tc.stack of
+                Nothing ->
+                    str ++ tc.text
+
+                Just top ->
+                    if top.content == "" then
+                        tc.text
+
+                    else
+                        str ++ tc.text
+        , stack =
+            case List.head tc.stack of
+                Nothing ->
+                    tc.stack
+
+                Just top ->
+                    if top.content == "" then
+                        { top | content = str } :: List.drop 1 tc.stack
+
+                    else
+                        tc.stack
         , offset = tc.offset + String.length str
     }
-
-
-addContentToStack : String -> List StackItem -> ( String, List StackItem )
-addContentToStack str stack =
-    case List.head stack of
-        Nothing ->
-            ( str, stack )
-
-        Just top ->
-            if top.content == "" then
-                ( "", { top | content = str } :: List.drop 1 stack )
-
-            else
-                ( str, stack )
 
 
 {-| A
