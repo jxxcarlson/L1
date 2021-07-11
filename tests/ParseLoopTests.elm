@@ -89,7 +89,13 @@ suite =
                     |> pl
                     |> Expect.equal
                         [ Element_ (Name "heading") (EList_ [ Text_ " Fault-Tolerant Parsing" ]) ]
-        , test "link" <|
+        , test "link (1)" <|
+            \_ ->
+                "[link NYT https://nytimes.com]"
+                    |> pl
+                    |> Expect.equal
+                        [ Element_ (Name "link") (EList_ [ Text_ "NYT", Text_ "https://nytimes.com" ]) ]
+        , test "link (2)" <|
             \_ ->
                 """[link "Error recovery with parser combinators"  https://eyalkalderon.com/blog/nom-error-recovery/]"""
                     |> pl
@@ -101,9 +107,14 @@ suite =
                     |> pl
                     |> Expect.equal
                         [ Element_ (Name "x") (EList_ [ Element_ (Name "i") (EList_ [ Text_ "a" ]), Element_ (Name "j") (EList_ [ Text_ "b" ]) ]) ]
+        , test "code" <|
+            \_ ->
+                "`a[0] = 1`"
+                    |> pl
+                    |> Expect.equal
+                        [ Element_ (Name "code") (Text_ "a[0] = 1") ]
         ]
 
 
 
--- "[x [i a] [j b]]"
--- [Element_ (Name "x") (EList_ [Element_ (Name "i") (EList_ [Text_ "a"]),Element_ (Name "j") (EList_ [Text_ "b"])])]
+-- [Element_ (Name "code") (Text_ ("a[0] = 1"))]

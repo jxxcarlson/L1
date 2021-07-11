@@ -340,6 +340,9 @@ handleEmptyText parse stackTop tc =
 
         Just stackItem ->
             let
+                _ =
+                    Debug.log (magenta "ETYPE") stackItem.expect.etype
+
                 ( fname, args_ ) =
                     stackItem.content
                         |> String.words
@@ -351,22 +354,18 @@ handleEmptyText parse stackTop tc =
                     List.map (\a -> Text a MetaData.dummy) args_
 
                 parsed =
-                    if fname == "" then
-                        let
-                            data =
-                                args ++ List.reverse tc.parsed
-                        in
-                        if data == [] then
-                            []
+                    case stackTop.expect.etype of
+                        ElementType ->
+                            handleFunction tc fname args
 
-                        else
-                            [ EList (args ++ List.reverse tc.parsed) MetaData.dummy ]
+                        CodeType ->
+                            [ Element (Name "code") (Text stackTop.content MetaData.dummy) MetaData.dummy ]
 
-                    else
-                        [ Element (AST.Name fname)
-                            (EList (args ++ List.reverse tc.parsed) MetaData.dummy)
-                            MetaData.dummy
-                        ]
+                        InlineMathType ->
+                            [ Element (Name "math") (Text stackTop.content MetaData.dummy) MetaData.dummy ]
+
+                        QuotedType ->
+                            [ Text (Utility.Utility.unquote stackTop.content) MetaData.dummy ]
             in
             { tc
                 | parsed = parsed
@@ -378,6 +377,26 @@ handleEmptyText parse stackTop tc =
                 , text = ""
                 , scannerType = NormalScan
             }
+
+
+handleFunction : TextCursor -> String -> List Element -> List Element
+handleFunction tc fname args =
+    if fname == "" then
+        let
+            data =
+                args ++ List.reverse tc.parsed
+        in
+        if data == [] then
+            []
+
+        else
+            [ EList (args ++ List.reverse tc.parsed) MetaData.dummy ]
+
+    else
+        [ Element (AST.Name fname)
+            (EList (args ++ List.reverse tc.parsed) MetaData.dummy)
+            MetaData.dummy
+        ]
 
 
 commit : TextCursor -> TextCursor
@@ -463,7 +482,11 @@ print cursor =
 
 
 printMessage cursor =
-    (String.fromInt cursor.count |> String.padLeft 2 '.') ++ (cursor.message |> String.padLeft 5 '.') ++ " :: "
+    (String.fromInt cursor.count |> String.padLeft 2 '.')
+        ++ (cursor.message |> String.padLeft 5 '.')
+        ++ " :: "
+        ++ (Debug.toString cursor.scannerType |> String.padLeft 12 '.')
+        ++ " :: "
 
 
 printCaret =
