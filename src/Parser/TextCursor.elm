@@ -149,14 +149,21 @@ addContentToStack str stack =
 push : (String -> Element) -> Expectation -> TextCursor -> TextCursor
 push parse expectation tc =
     let
-        ( complete, stack ) =
+        ( parsed_, stack ) =
             updateForPush parse tc expectation
+
+        ( parsed, complete ) =
+            if tc.stack == [] then
+                ( [], parsed_ )
+
+            else
+                ( parsed_, tc.complete )
     in
     { tc
         | count = tc.count + 1
         , offset = tc.offset + 1
         , stack = stack
-        , parsed = []
+        , parsed = parsed
         , complete = complete
         , text = ""
     }
