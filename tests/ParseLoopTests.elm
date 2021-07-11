@@ -103,10 +103,10 @@ suite =
                         [ Element_ (Name "link") (EList_ [ Text_ "NYT", Text_ "https://nytimes.com" ]) ]
         , test "link (2)" <|
             \_ ->
-                """[link "Error recovery with parser combinators"  https://eyalkalderon.com/blog/nom-error-recovery/]"""
+                """[link "Error recovery with parser combinators"  "https://eyalkalderon.com/blog/nom-error-recovery/"]"""
                     |> pl
                     |> Expect.equal
-                        [ Element_ (Name "link") (EList_ [ Text_ "\"Error recovery with parser combinators\"", Text_ "  https://eyalkalderon.com/blog/nom-error-recovery/ " ]) ]
+                        [ Element_ (Name "link") (EList_ [ Text_ "Error recovery with parser combinators", Text_ "https://eyalkalderon.com/blog/nom-error-recovery/" ]) ]
         , test "[x [i a] [j b]]" <|
             \_ ->
                 "[x [i a] [j b]]"

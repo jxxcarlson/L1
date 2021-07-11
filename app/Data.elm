@@ -1,8 +1,9 @@
 module Data exposing (initialText)
 
 
-stuff =
+initialText =
     """
+
 
 [image caption:Camperdown https://upload.wikimedia.org/wikipedia/commons/2/20/Camperdown_Elm_Prospect_Park_Brooklyn.jpg]
 
@@ -31,6 +32,7 @@ These are rendered as
 (b) P $a^2 + b^2 = c^2$.  P $a^2 + b^2 = c^2$.
 
 
+
 # The Main Idea
 
 Isolation
@@ -50,12 +52,13 @@ All parsers do their work by scanning from left to right.
 # References
 
 
-[link "Error recovery with parser combinators"  https://eyalkalderon.com/blog/nom-error-recovery/]
+[link "Error recovery with parser combinators"  "https://eyalkalderon.com/blog/nom-error-recovery/"]
+
 
 """
 
 
-initialText =
+stuff =
     """
 
 # Introduction to [red Chemistry] and Physics
@@ -78,13 +81,11 @@ This [i is] a [b real test! Lorem ipsum dolor sit amet, consectetur adipiscing e
 
 This [i is] a [b real] test of [strike this], [underline that], and the [violet other stuff].
 
-[red THE FOLLOWING IS MESSED UP:] This [i is] a [b real] test of [b [strike this], [underline that], and the [violet other stuff]].
+[red EXAMPLE:] This [i is] a [b real] test of [b [strike this], [underline that], and the [violet other stuff]].
 
 This is code: `a[i] = b[i] + 1`.
 
 This is [red red meat].  [gray (We shouldn't eat so much of it.)]
-
-Pythagoras said that [math a^2 + b^2 = c^2].
 
 Pythagoras said that $a^2 + b^2 = c^2$. Wow! What a dude!!
 

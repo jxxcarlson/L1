@@ -52,7 +52,6 @@ renderElementDict =
         , ( "gray", gray )
         , ( "code", code )
         , ( "quoted", quoted )
-        , ( "math", renderMath )
         , ( "math2", renderMath2 )
         , ( "m", renderMath )
         , ( "mathblock", mathblock )

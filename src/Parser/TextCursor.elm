@@ -381,7 +381,7 @@ handleEmptyText parse stackTop tc =
         Just stackTop_ ->
             let
                 _ =
-                    Debug.log (magenta "stackTop.expect.etyp") stackTop.expect.etype
+                    Debug.log (magenta "stackTop.expect.etype   ") stackTop.expect.etype
 
                 ( fname, args_ ) =
                     stackTop_.content
@@ -399,13 +399,13 @@ handleEmptyText parse stackTop tc =
                             handleFunction parse tc stackTop_ fname args
 
                         CodeType ->
-                            [ Element (Name "code") (Text stackTop.content MetaData.dummy) MetaData.dummy ]
+                            [ Element (Name "code") (Text stackTop.content MetaData.dummy) MetaData.dummy ] ++ tc.parsed
 
                         InlineMathType ->
-                            [ Element (Name "math2") (Text stackTop.content MetaData.dummy) MetaData.dummy ]
+                            [ Element (Name "math2") (Text stackTop.content MetaData.dummy) MetaData.dummy ] ++ tc.parsed
 
                         QuotedType ->
-                            [ Text (Utility.Utility.unquote stackTop.content) MetaData.dummy ]
+                            [ Text (Utility.Utility.unquote stackTop.content) MetaData.dummy ] ++ tc.parsed
             in
             { tc
                 | parsed = parsed |> Debug.log (magenta "handleEmptyText, parsed")
