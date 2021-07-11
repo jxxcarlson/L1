@@ -82,13 +82,13 @@ suite =
                 "[image caption:Camperdown https://upload.wikimedia.org/wikipedia/commons/2/20/Camperdown_Elm_Prospect_Park_Brooklyn.jpg]"
                     |> pl
                     |> Expect.equal
-                        [ Element_ (Name "image") (EList_ [ Text_ "caption:Camperdown https://upload.wikimedia.org/wikipedia/commons/2/20/Camperdown_Elm_Prospect_Park_Brooklyn.jpg" ]) ]
+                        [ Element_ (Name "image") (EList_ [ Text_ "caption:Camperdown", Text_ "https://upload.wikimedia.org/wikipedia/commons/2/20/Camperdown_Elm_Prospect_Park_Brooklyn.jpg" ]) ]
         , test "heading" <|
             \_ ->
                 "# Fault-Tolerant Parsing"
                     |> pl
                     |> Expect.equal
-                        [ Element_ (Name "heading") (EList_ [ Text_ "", Text_ " Fault-Tolerant Parsing" ]) ]
+                        [ Element_ (Name "heading") (EList_ [ Text_ " Fault-Tolerant Parsing" ]) ]
         , test "link" <|
             \_ ->
                 """[link "Error recovery with parser combinators"  https://eyalkalderon.com/blog/nom-error-recovery/]"""

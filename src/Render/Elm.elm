@@ -257,7 +257,7 @@ image : FRender msg
 image renderArgs name _ body =
     let
         args_ =
-            getText body |> Maybe.withDefault "" |> String.words
+            getText2 body |> String.words
 
         args =
             List.take (List.length args_ - 1) args_
@@ -461,6 +461,9 @@ getText2 element =
     case element of
         Text s _ ->
             s
+
+        EList list _ ->
+            List.map getText2 list |> String.join " "
 
         _ ->
             ""
