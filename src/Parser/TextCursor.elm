@@ -287,7 +287,7 @@ handleNonEmptyText parse stackTop tc =
                         |> (\x -> [ x ])
 
                 QuotedType ->
-                    parsed_ |> Debug.log (magenta "QuotedType")
+                    parsed_ |> Debug.log (magenta "handleNonEmptyText, QuotedType")
 
                 _ ->
                     parsed_
@@ -372,7 +372,7 @@ handleEmptyText : (String -> Element) -> StackItem -> TextCursor -> TextCursor
 handleEmptyText parse stackTop tc =
     let
         _ =
-            Debug.log (magenta "handleEMPTYText") "!!!"
+            Debug.log (magenta "handleEMPTYText") tc.scannerType
     in
     case List.head tc.stack of
         Nothing ->
@@ -380,6 +380,9 @@ handleEmptyText parse stackTop tc =
 
         Just stackTop_ ->
             let
+                _ =
+                    Debug.log (magenta "stackTop.expect.etyp") stackTop.expect.etype
+
                 ( fname, args_ ) =
                     stackTop_.content
                         |> String.words
@@ -405,7 +408,7 @@ handleEmptyText parse stackTop tc =
                             [ Text (Utility.Utility.unquote stackTop.content) MetaData.dummy ]
             in
             { tc
-                | parsed = parsed
+                | parsed = parsed |> Debug.log (magenta "handleEmptyText, parsed")
 
                 --, complete = complete
                 , stack = List.drop 1 tc.stack
