@@ -378,10 +378,10 @@ handleEmptyText parse stackTop tc =
         Nothing ->
             { tc | count = tc.count + 1, offset = tc.offset + 1 }
 
-        Just stackItem ->
+        Just stackTop_ ->
             let
                 ( fname, args_ ) =
-                    stackItem.content
+                    stackTop_.content
                         |> String.words
                         |> List.Extra.uncons
                         |> Maybe.withDefault ( "fname", [] )
@@ -393,7 +393,7 @@ handleEmptyText parse stackTop tc =
                 parsed =
                     case stackTop.expect.etype of
                         ElementType ->
-                            handleFunction parse tc stackItem fname args
+                            handleFunction parse tc stackTop_ fname args
 
                         CodeType ->
                             [ Element (Name "code") (Text stackTop.content MetaData.dummy) MetaData.dummy ]
@@ -445,12 +445,20 @@ handleFunction parse tc stackTop fname args =
                 Debug.log (magenta "handleFunction") "B"
         in
         if stackTop.precedingText /= [] then
+            let
+                _ =
+                    Debug.log (magenta "handleFunction") "B1"
+            in
             [ Element (AST.Name fname) (EList args MetaData.dummy) MetaData.dummy ]
                 ++ List.map parse (List.filter (\s -> s /= "") stackTop.precedingText)
                 ++ tc.parsed
 
         else
-            [ Element (AST.Name fname) (EList args MetaData.dummy) MetaData.dummy ] ++ tc.parsed
+            let
+                _ =
+                    Debug.log (magenta "handleFunction") "B2"
+            in
+            [ AST.join (Element (AST.Name fname) (EList args MetaData.dummy) MetaData.dummy) tc.parsed ]
 
 
 commit : TextCursor -> TextCursor
