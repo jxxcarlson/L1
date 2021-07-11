@@ -275,14 +275,14 @@ handleNonEmptyText parse stackTop tc =
                 InlineMathType ->
                     Element
                         (Name "math")
-                        (EList (List.map (Parser.Utility.mapElement Utility.Utility.clipEnds) parsed_) MetaData.dummy)
+                        (EList (List.map (AST.map Utility.Utility.clipEnds) parsed_) MetaData.dummy)
                         MetaData.dummy
                         |> (\x -> [ x ])
 
                 CodeType ->
                     Element
                         (Name "code")
-                        (EList (List.map (Parser.Utility.mapElement Utility.Utility.clipEnds) parsed_) MetaData.dummy)
+                        (EList (List.map (AST.map Utility.Utility.clipEnds) parsed_) MetaData.dummy)
                         MetaData.dummy
                         |> (\x -> [ x ])
 

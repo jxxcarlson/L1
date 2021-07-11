@@ -1,4 +1,4 @@
-module Render.Elm exposing (convertString, render, renderList)
+module Render.Elm exposing (convertRGB, render, renderList)
 
 import Dict exposing (Dict)
 import Element as E exposing (column, el, fill, paddingEach, paragraph, px, rgb, rgb255, row, spacing, text)
@@ -8,7 +8,7 @@ import Html exposing (Html)
 import Html.Attributes as HA
 import Html.Keyed
 import Json.Encode
-import Parser.AST exposing (Element(..), Element_(..), Name(..))
+import Parser.AST as AST exposing (Element(..), Element_(..), Name(..))
 import Parser.Advanced
 import Parser.Error exposing (Context(..), Problem(..))
 import Parser.MetaData as MetaData
@@ -82,7 +82,7 @@ render renderArgs element =
             E.el [] (text <| "Undefined element")
 
         EList elements _ ->
-            E.paragraph [] (List.map (Parser.Utility.mapElement (\s -> " " ++ s) >> render renderArgs) elements)
+            E.paragraph [] (List.map (AST.map (\s -> " " ++ s) >> render renderArgs) elements)
 
         Problem _ str ->
             el [] (text <| "PROBLEM: " ++ str)
@@ -175,41 +175,24 @@ code renderArgs _ _ body =
             ]
         , Font.color codeColor
         ]
-        (text (getText body |> Maybe.withDefault ""))
+        (text <| " " ++ AST.getText body)
 
 
 fontRGB : FRender msg
 fontRGB renderArgs _ _ body =
     let
-        args2_ =
-            args2 body
+        colorArgs =
+            List.take 3 (AST.toStringList body)
 
-        args1_ =
-            convertString (getText body |> Maybe.withDefault "none")
-
-        _ =
-            Debug.log "(args1, args2)" ( args1_, args2_ )
+        textArgs =
+            List.drop 3 (AST.toList body) |> List.map (AST.map (\x -> " " ++ x))
     in
-    case ( args1_, args2_ ) of
-        ( Nothing, Nothing ) ->
-            el [ Font.color redColor ] (text "Error: bad or too few arguments to fontRGB")
+    case convertRGB colorArgs of
+        Nothing ->
+            el [ Font.color redColor ] (text "Bad RGB args")
 
-        ( Just args, Nothing ) ->
-            fontRGB_ renderArgs args
-
-        ( Nothing, Just args ) ->
-            fontRGB_ renderArgs args
-
-        ( Just _, Just _ ) ->
-            el [ Font.color redColor ] (text "Error: I can't explain this one.")
-
-
-fontRGB_ renderArgs args =
-    let
-        _ =
-            Debug.log "fontRGB_ args" args
-    in
-    paragraph [ Font.color (E.rgb255 args.r args.g args.b), E.paddingXY 4 2 ] (List.map (render renderArgs) (Debug.log "REST!!" args.rest))
+        Just { r, b, g } ->
+            paragraph [ Font.color (E.rgb255 r g b), E.paddingXY 4 2 ] (List.map (render renderArgs) textArgs)
 
 
 link : FRender msg
@@ -220,7 +203,7 @@ link renderArgs name args body =
             -- getText body |> Maybe.withDefault "missing url"
             case body of
                 EList elements _ ->
-                    List.map Parser.Utility.getText elements
+                    List.map AST.getText elements
 
                 _ ->
                     [ "missing", "stuff" ]
@@ -389,56 +372,14 @@ isDisplayMathMode displayMode =
 -- HELPERS
 
 
-args2 : Element -> Maybe { r : Int, g : Int, b : Int, rest : List Element }
-args2 body =
-    let
-        _ =
-            body |> Parser.AST.simplify |> Debug.log "ARGS2, BODY"
-    in
-    case body of
-        EList list _ ->
-            case list of
-                (Text r_ _) :: (Text g_ _) :: (Text b_ _) :: rest_ ->
-                    Just { r = toInt r_, g = toInt g_, b = toInt b_, rest = rest_ }
-
-                ((Text str _) as raw) :: ((Element _ _ _) as elt) :: rest ->
-                    let
-                        aa =
-                            convertString str
-
-                        phrase =
-                            String.words str |> List.drop 3 |> String.join " "
-                    in
-                    case aa of
-                        Just a ->
-                            Just
-                                { r = a.r
-                                , g = a.g
-                                , b = a.b
-                                , rest = Text phrase MetaData.dummy :: elt :: rest
-
-                                --, rest = elt :: rest
-                                }
-
-                        Nothing ->
-                            Nothing
-
-                _ ->
-                    Nothing
-
-        _ ->
-            Nothing
-
-
-convertString : String -> Maybe { r : Int, g : Int, b : Int, rest : List Element }
-convertString str =
-    case String.words str of
-        r :: g :: b :: rest ->
+convertRGB : List String -> Maybe { r : Int, g : Int, b : Int }
+convertRGB data =
+    case data of
+        r :: g :: b :: [] ->
             Just
                 { r = String.toInt r |> Maybe.withDefault 0
                 , g = String.toInt g |> Maybe.withDefault 0
                 , b = String.toInt b |> Maybe.withDefault 0
-                , rest = [ Text (String.join " " rest) MetaData.dummy ]
                 }
 
         _ ->

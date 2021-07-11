@@ -1,4 +1,4 @@
-module Parser.Driver exposing (parse, parseLoop, pl)
+module Parser.Driver exposing (parse, parseLoop, pl, pl1)
 
 import Parser.AST as AST exposing (Element(..))
 import Parser.Advanced as PA
@@ -39,6 +39,15 @@ pl str =
             parseLoop 0 str
     in
     tc |> .complete |> List.map AST.simplify
+
+
+pl1 : String -> List AST.Element
+pl1 str =
+    let
+        tc =
+            parseLoop 0 str
+    in
+    tc |> .complete
 
 
 

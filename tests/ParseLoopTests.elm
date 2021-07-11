@@ -65,13 +65,19 @@ suite =
                     |> pl
                     |> Expect.equal
                         [ Text_ "abc\n ", Element_ (Name "x") (EList_ [ Element_ (Name "i") (EList_ [ Text_ "a" ]), Element_ (Name "j") (EList_ [ Text_ "b" ]) ]), Text_ " \n\ndef" ]
-        , test "fontRGB" <|
+        , test "fontRGB (1)" <|
+            \_ ->
+                "[fontRGB 255 0 255 foo bar]"
+                    |> pl
+                    |> Expect.equal
+                        [ Element_ (Name "fontRGB") (EList_ [ Text_ "255", Text_ "0", Text_ "255", Text_ "foo", Text_ "bar" ]) ]
+        , test "fontRGB (2)" <|
             \_ ->
                 "[fontRGB 255 0 255 foo [b bar]]"
                     |> pl
                     |> Expect.equal
                         [ Element_ (Name "fontRGB") (EList_ [ Text_ "255", Text_ "0", Text_ "255", Text_ "foo", Element_ (Name "b") (EList_ [ Text_ "bar" ]) ]) ]
-        , test "fontRGB (2)" <|
+        , test "fontRGB (3)" <|
             \_ ->
                 "[fontRGB 255 0 255 [i This text is in [b magenta]]]"
                     |> pl

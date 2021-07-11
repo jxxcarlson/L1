@@ -1,4 +1,19 @@
-module Parser.AST exposing (Element(..), Element_(..), Name(..), body, body_, join, length, position, simplify)
+module Parser.AST exposing
+    ( Element(..)
+    , Element_(..)
+    , Name(..)
+    , body
+    , body_
+    , getText
+    , join
+    , joinText
+    , length
+    , map
+    , position
+    , simplify
+    , toList
+    , toStringList
+    )
 
 import Parser.Advanced as Parser
 import Parser.Error exposing (..)
@@ -13,6 +28,60 @@ type Element
     | Problem (List ParseError) String
     | StackError Int Int String String --- errorTextStart errorTextEnd message errorText
     | Empty
+
+
+toStringList : Element -> List String
+toStringList element =
+    case element of
+        Text str _ ->
+            [ str ]
+
+        Element _ body__ _ ->
+            toStringList body__
+
+        EList elements _ ->
+            List.map getText elements
+
+        Problem _ _ ->
+            [ "problems" ]
+
+        StackError _ _ a b ->
+            [ a, b ]
+
+        Empty ->
+            [ "empty" ]
+
+
+toList : Element -> List Element
+toList element =
+    case element of
+        Text str _ ->
+            [ element ]
+
+        Element _ body__ _ ->
+            toList body__
+
+        EList elements _ ->
+            elements
+
+        Problem _ _ ->
+            [ element ]
+
+        StackError _ _ a b ->
+            [ element ]
+
+        Empty ->
+            [ element ]
+
+
+getText : Element -> String
+getText element =
+    case element of
+        Text s _ ->
+            s
+
+        _ ->
+            ""
 
 
 type alias ParseError =
@@ -120,3 +189,18 @@ body_ element =
 
         _ ->
             []
+
+
+map : (String -> String) -> Element -> Element
+map f element =
+    case element of
+        Text s meta ->
+            Text (f s) meta
+
+        _ ->
+            element
+
+
+joinText : List Element -> String
+joinText elements =
+    List.map getText elements |> String.join " "
