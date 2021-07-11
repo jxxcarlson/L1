@@ -33,13 +33,21 @@ the AST of the processed source.
 -}
 parseLoop : Packet Element -> Int -> String -> TextCursor
 parseLoop packet generation str =
-    ParserTools.loop (TextCursor.init generation str) (nextCursor packet)
-        |> TextCursor.commit
+    let
+        result =
+            ParserTools.loop (TextCursor.init generation str) (nextCursor packet)
+                |> TextCursor.commit
+                |> (\tc_ -> { tc_ | message = "COMM" })
+
+        _ =
+            Debug.log (TextCursor.print result) "-"
+    in
+    result
 
 
 {-| nextCursor operates by advancing from one syntactic mark to another, e.g.,
 '[' or ']' in the case of language L1. On each move it updates the cursor
-with one of four TextCursor functions: `add`, `push`, `pop`, 'commit'.
+with one of four TextCursor functions: `add`, `push`, `pop`, 'push'.
 
 The offset field of the text cursor points the character in source
 field that is currently being scanned. As a convenience, tc.remaining
@@ -54,7 +62,7 @@ nextCursor : Packet Element -> TextCursor -> ParserTools.Step TextCursor TextCur
 nextCursor packet cursor =
     let
         _ =
-            Debug.log " " (TextCursor.print cursor)
+            Debug.log (TextCursor.print cursor) ""
     in
     if cursor.offset >= cursor.length then
         ParserTools.Done cursor
@@ -77,7 +85,7 @@ nextCursor packet cursor =
         in
         if chompedText.finish - chompedText.start > 0 then
             -- the chompedText is non-void; add it to the cursor
-            ParserTools.Loop <| TextCursor.add chompedText.content cursor
+            ParserTools.Loop <| TextCursor.add chompedText.content { cursor | message = "ADD" }
 
         else
             -- We are at a mark, and so must decide whether to push, pop, or call it quits
@@ -93,7 +101,7 @@ nextCursor packet cursor =
 handleCharacterAtCursor : Packet Element -> Char -> TextCursor -> ParserTools.Step TextCursor TextCursor
 handleCharacterAtCursor packet c tc =
     if TextCursor.canPop tc c then
-        ParserTools.Loop <| TextCursor.pop packet.parser tc
+        ParserTools.Loop <| TextCursor.pop packet.parser { tc | message = "POP" }
         --else
 
     else if Parser.Config.isBeginChar configuration tc.offset c then
@@ -110,14 +118,13 @@ handleCharacterAtCursor packet c tc =
                         else
                             NormalScan
                 in
-                ParserTools.Loop <| TextCursor.push packet.parser expectation { tc | scannerType = scannerType }
+                ParserTools.Loop <| TextCursor.push packet.parser expectation { tc | message = "PUSH", scannerType = scannerType }
 
     else if Just c == (List.head tc.stack |> Maybe.andThen (.expect >> .expectedEndChar)) then
-        ParserTools.Loop <| TextCursor.pop packet.parser { tc | scannerType = NormalScan }
+        ParserTools.Loop <| TextCursor.pop packet.parser { tc | message = "POP", scannerType = NormalScan }
 
     else
         -- TODO: add error message for unexpected end char
-        -- TODO: add error message for unexpected end charF
         ParserTools.Done tc
 
 
@@ -155,9 +162,6 @@ handleVerbatim etype verbatimChar tc =
 handleQuoted : Char -> TextCursor -> ParserTools.Step TextCursor TextCursor
 handleQuoted verbatimChar tc =
     let
-        _ =
-            Debug.log "PUSH" "handleQuote"
-
         newStack =
             case List.head tc.stack of
                 Nothing ->
@@ -170,19 +174,16 @@ handleQuoted verbatimChar tc =
             String.dropLeft (tc.offset + 1) tc.remainingSource
 
         verbatimText =
-            advanceVerbatim2 verbatimChar remaining_ |> Debug.log "VERBATIM TEXT"
+            advanceVerbatim2 verbatimChar remaining_
 
         verbatimTextLength =
-            verbatimText.finish - verbatimText.start |> Debug.log "VERBATIM TEXT LENGTH"
-
-        _ =
-            Debug.log "QUOTED parsed" tc.parsed
+            verbatimText.finish - verbatimText.start
 
         preceding =
-            Text tc.text MetaData.dummy |> Debug.log "QUOTED preceding"
+            Text tc.text MetaData.dummy
 
         newElement =
-            Text (Utility.unquote verbatimText.content) MetaData.dummy |> Debug.log "QUOTED newElement"
+            Text (Utility.unquote verbatimText.content) MetaData.dummy
 
         newTC =
             { tc

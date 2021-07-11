@@ -31,32 +31,28 @@ suite =
                     |> pl
                     --|> Expect.equal [Element_ (Name ("i ")) [] (Element_ (Name "b") [] (EList_ [Raw_ "foo"]))]
                     |> Expect.equal [ Element_ (Name "i") (EList_ [ Element_ (Name "b") (EList_ [ Text_ "foo" ]) ]) ]
-        , skip <|
-            test "simple element preceded by text" <|
-                \_ ->
-                    "abc [foo]"
-                        |> pl
-                        |> Expect.equal [ Text_ "abc ", Element_ (Name "foo") (EList_ []) ]
-        , skip <|
-            test "simple element preceded and followed by text" <|
-                \_ ->
-                    "abc [foo] def"
-                        |> pl
-                        |> Expect.equal [ Text_ "abc ", Element_ (Name "foo") (EList_ []), Text_ " def" ]
-        , skip <|
-            test "simple element preceded and followed by text (2)" <|
-                \_ ->
-                    "abc def [foo] ghi jkl [bar] mno pqr"
-                        |> pl
-                        |> Expect.equal
-                            [ Text_ "abc def ", Element_ (Name "foo") (EList_ []), Text_ " ghi jkl ", Element_ (Name "bar") (EList_ []), Text_ " mno pqr" ]
-        , skip <|
-            test "like a list" <|
-                \_ ->
-                    "[x [i a] [j b]]"
-                        |> pl
-                        |> Expect.equal
-                            [ Element_ (Name "x") (EList_ [ Element_ (Name "i") (EList_ [ Text_ "a" ]), Element_ (Name "j") (EList_ [ Text_ "b" ]) ]) ]
+        , test "simple element preceded by text" <|
+            \_ ->
+                "abc [foo]"
+                    |> pl
+                    |> Expect.equal [ Text_ "abc ", Element_ (Name "foo") (EList_ []) ]
+        , test "simple element preceded and followed by text" <|
+            \_ ->
+                "abc [foo] def"
+                    |> pl
+                    |> Expect.equal [ Text_ "abc ", Element_ (Name "foo") (EList_ []), Text_ " def" ]
+        , test "simple element preceded and followed by text (2)" <|
+            \_ ->
+                "abc def [foo] ghi jkl [bar] mno pqr"
+                    |> pl
+                    |> Expect.equal
+                        [ Text_ "abc def ", Element_ (Name "foo") (EList_ []), Text_ " ghi jkl ", Element_ (Name "bar") (EList_ []), Text_ " mno pqr" ]
+        , test "like a list" <|
+            \_ ->
+                "[x [i a] [j b]]"
+                    |> pl
+                    |> Expect.equal
+                        [ Element_ (Name "x") (EList_ [ Element_ (Name "i") (EList_ [ Text_ "a" ]), Element_ (Name "j") (EList_ [ Text_ "b" ]) ]) ]
         , skip <|
             test "like a list, but with preceding and following text" <|
                 \_ ->
@@ -106,8 +102,15 @@ suite =
                         |> pl
                         |> Expect.equal
                             [ Element_ (Name "link") (EList_ [ Text_ "\"Error recovery with parser combinators\"", Text_ "  https://eyalkalderon.com/blog/nom-error-recovery/ " ]) ]
+        , test "[x [i a] [j b]]" <|
+            \_ ->
+                "[x [i a] [j b]]"
+                    |> pl
+                    |> Expect.equal
+                        [ Element_ (Name "x") (EList_ [ Element_ (Name "i") (EList_ [ Text_ "a" ]), Element_ (Name "j") (EList_ [ Text_ "b" ]) ]) ]
         ]
 
 
 
--- [Element_ (Name "link") (EList_ [Raw_ ("\"Error recovery with parser combinators\""),Raw_ ("  https://eyalkalderon.com/blog/nom-error-recovery/ ")])]
+-- "[x [i a] [j b]]"
+-- [Element_ (Name "x") (EList_ [Element_ (Name "i") (EList_ [Text_ "a"]),Element_ (Name "j") (EList_ [Text_ "b"])])]
