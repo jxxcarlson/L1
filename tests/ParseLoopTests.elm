@@ -113,8 +113,10 @@ suite =
                     |> pl
                     |> Expect.equal
                         [ Element_ (Name "code") (Text_ "a[0] = 1") ]
+        , test "math" <|
+            \_ ->
+                "Pythagoras sez $a^2 + b^2 = c^2$."
+                    |> pl
+                    |> Expect.equal
+                        [ Text_ "Pythagoras sez ", Element_ (Name "math2") (Text_ "a^2 + b^2 = c^2"), Text_ "." ]
         ]
-
-
-
--- [Element_ (Name "code") (Text_ ("a[0] = 1"))]

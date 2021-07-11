@@ -1,7 +1,7 @@
 module Data exposing (initialText)
 
 
-initialText =
+stuff =
     """
 
 [image caption:Camperdown https://upload.wikimedia.org/wikipedia/commons/2/20/Camperdown_Elm_Prospect_Park_Brooklyn.jpg]
@@ -55,7 +55,7 @@ All parsers do their work by scanning from left to right.
 """
 
 
-stuff =
+initialText =
     """
 
 # Introduction to [red Chemistry] and Physics

@@ -362,7 +362,7 @@ handleEmptyText parse stackTop tc =
                             [ Element (Name "code") (Text stackTop.content MetaData.dummy) MetaData.dummy ]
 
                         InlineMathType ->
-                            [ Element (Name "math") (Text stackTop.content MetaData.dummy) MetaData.dummy ]
+                            [ Element (Name "math2") (Text stackTop.content MetaData.dummy) MetaData.dummy ]
 
                         QuotedType ->
                             [ Text (Utility.Utility.unquote stackTop.content) MetaData.dummy ]
