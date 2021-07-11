@@ -393,7 +393,7 @@ handleEmptyText parse stackTop tc =
                 parsed =
                     case stackTop.expect.etype of
                         ElementType ->
-                            handleFunction tc fname args
+                            handleFunction parse tc stackItem fname args
 
                         CodeType ->
                             [ Element (Name "code") (Text stackTop.content MetaData.dummy) MetaData.dummy ]
@@ -416,8 +416,8 @@ handleEmptyText parse stackTop tc =
             }
 
 
-handleFunction : TextCursor -> String -> List Element -> List Element
-handleFunction tc fname args =
+handleFunction : (String -> Element) -> TextCursor -> StackItem -> String -> List Element -> List Element
+handleFunction parse tc stackTop fname args =
     if fname == "" then
         let
             data =
@@ -430,13 +430,27 @@ handleFunction tc fname args =
             [ EList (args ++ List.reverse tc.parsed) MetaData.dummy ]
 
     else if args == [] then
+        let
+            _ =
+                Debug.log (magenta "handleFunction") "A"
+        in
         [ Element (AST.Name fname)
             (EList (List.reverse tc.parsed) MetaData.dummy)
             MetaData.dummy
         ]
 
     else
-        [ Element (AST.Name fname) (EList args MetaData.dummy) MetaData.dummy ] ++ tc.parsed
+        let
+            _ =
+                Debug.log (magenta "handleFunction") "B"
+        in
+        if stackTop.precedingText /= [] then
+            [ Element (AST.Name fname) (EList args MetaData.dummy) MetaData.dummy ]
+                ++ List.map parse (List.filter (\s -> s /= "") stackTop.precedingText)
+                ++ tc.parsed
+
+        else
+            [ Element (AST.Name fname) (EList args MetaData.dummy) MetaData.dummy ] ++ tc.parsed
 
 
 commit : TextCursor -> TextCursor

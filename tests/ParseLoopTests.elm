@@ -52,19 +52,19 @@ suite =
                 "[x [i a] [j b]]"
                     |> pl
                     |> Expect.equal
-                        [ Element_ (Name "x") (EList_ [ Element_ (Name "i") (EList_ [ Text_ "a" ]), Element_ (Name "j") (EList_ [ Text_ "b" ]) ]) ]
+                        [ Element_ (Name "x") (EList_ [ Element_ (Name "i") (EList_ [ Text_ "a" ]), Text_ " ", Element_ (Name "j") (EList_ [ Text_ "b" ]) ]) ]
         , test "like a list, but with preceding and following text" <|
             \_ ->
                 "abc [x [i a] [j b]] def"
                     |> pl
                     |> Expect.equal
-                        [ Text_ "abc ", Element_ (Name "x") (EList_ [ Element_ (Name "i") (EList_ [ Text_ "a" ]), Element_ (Name "j") (EList_ [ Text_ "b" ]) ]), Text_ " def" ]
+                        [ Text_ "abc ", Element_ (Name "x") (EList_ [ Element_ (Name "i") (EList_ [ Text_ "a" ]), Text_ " ", Element_ (Name "j") (EList_ [ Text_ "b" ]) ]), Text_ " def" ]
         , test "like a list, but with preceding and following text, including newlines" <|
             \_ ->
                 "abc\n [x [i a] [j b]] \n\ndef"
                     |> pl
                     |> Expect.equal
-                        [ Text_ "abc\n ", Element_ (Name "x") (EList_ [ Element_ (Name "i") (EList_ [ Text_ "a" ]), Element_ (Name "j") (EList_ [ Text_ "b" ]) ]), Text_ " \n\ndef" ]
+                        [ Text_ "abc\n ", Element_ (Name "x") (EList_ [ Element_ (Name "i") (EList_ [ Text_ "a" ]), Text_ " ", Element_ (Name "j") (EList_ [ Text_ "b" ]) ]), Text_ " \n\ndef" ]
         , test "fontRGB (1)" <|
             \_ ->
                 "[fontRGB 255 0 255 foo bar]"
