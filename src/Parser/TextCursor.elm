@@ -148,23 +148,33 @@ addContentToStack str stack =
 -}
 push : (String -> Element) -> Expectation -> TextCursor -> TextCursor
 push parse expectation tc =
-    let
-        ( parsed_, stack ) =
-            updateForPush parse tc expectation
-
-        ( parsed, complete ) =
-            if tc.stack == [] then
-                ( [], parsed_ )
-
-            else
-                ( parsed_, tc.complete )
-    in
     { tc
         | count = tc.count + 1
         , offset = tc.offset + 1
-        , stack = stack
-        , parsed = parsed
-        , complete = complete
+        , stack =
+            if tc.stack == [] then
+                { expect = expectation, content = "", precedingText = [], count = tc.count, offset = tc.offset } :: tc.stack
+
+            else
+                { expect = expectation, content = tc.text, precedingText = [], count = tc.count, offset = tc.offset } :: tc.stack
+        , parsed =
+            if tc.stack == [] then
+                []
+
+            else
+                -- parsed_ vvv NEW below
+                tc.parsed
+        , complete =
+            if tc.stack == [] then
+                if tc.text == "" then
+                    []
+
+                else
+                    Text tc.text MetaData.dummy :: [] |> Debug.log (magenta "PUSH, complete (1)")
+
+            else
+                -- Debug.log (magenta "PUSH parsed") tc.parsed ++ Debug.log (magenta "PUSH complete (2)") tc.complete
+                Debug.log (magenta "PUSH complete (2)") tc.complete
         , text = ""
     }
 
