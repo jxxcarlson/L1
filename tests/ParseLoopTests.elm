@@ -119,4 +119,15 @@ suite =
                     |> pl
                     |> Expect.equal
                         [ Text_ "Pythagoras sez ", Element_ (Name "math2") (Text_ "a^2 + b^2 = c^2"), Text_ "." ]
+        , test "chem-physics" <|
+            \_ ->
+                "# Introduction to [red Chemistry] [blue Physics]"
+                    |> pl
+                    |> Expect.equal
+                        [ Element_ (Name "heading") (EList_ [ Text_ " Introduction to ", Element_ (Name "red") (EList_ [ Text_ "Chemistry" ]), Element_ (Name "blue") (EList_ [ Text_ "Physics" ]) ]) ]
         ]
+
+
+
+--  "# Introduction to [red Chemistry] [blue Physics]"
+-- [Element_ (Name "heading") (EList_ [Text_ (" Introduction to "),Element_ (Name "red") (EList_ [Text_ "Chemistry"]),Element_ (Name "blue") (EList_ [Text_ "Physics"])])]

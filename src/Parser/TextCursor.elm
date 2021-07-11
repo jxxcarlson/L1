@@ -116,8 +116,8 @@ simpleStackItem { content, offset } =
 
 {-| Add text to the .text field
 -}
-add : String -> TextCursor -> TextCursor
-add str tc =
+add1 : String -> TextCursor -> TextCursor
+add1 str tc =
     { tc
         | count = tc.count + 1
         , text =
@@ -144,6 +144,42 @@ add str tc =
                         tc.stack
         , offset = tc.offset + String.length str
     }
+
+
+
+---- XXXX
+
+
+add : String -> TextCursor -> TextCursor
+add str tc =
+    let
+        ( stringToAdd, newStack ) =
+            addContentToStack str tc.stack
+    in
+    { tc
+        | count = tc.count + 1
+        , text = stringToAdd ++ tc.text
+        , stack = newStack
+        , offset = tc.offset + String.length str
+    }
+
+
+addContentToStack : String -> List StackItem -> ( String, List StackItem )
+addContentToStack str stack =
+    case List.head stack of
+        Nothing ->
+            ( str, stack )
+
+        Just top ->
+            if top.content == "" then
+                ( "", { top | content = str } :: List.drop 1 stack )
+
+            else
+                ( str, stack )
+
+
+
+---- XXXX
 
 
 {-| A
@@ -393,11 +429,14 @@ handleFunction tc fname args =
         else
             [ EList (args ++ List.reverse tc.parsed) MetaData.dummy ]
 
-    else
+    else if args == [] then
         [ Element (AST.Name fname)
-            (EList (args ++ List.reverse tc.parsed) MetaData.dummy)
+            (EList (List.reverse tc.parsed) MetaData.dummy)
             MetaData.dummy
         ]
+
+    else
+        [ Element (AST.Name fname) (EList args MetaData.dummy) MetaData.dummy ] ++ tc.parsed
 
 
 commit : TextCursor -> TextCursor
