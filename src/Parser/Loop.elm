@@ -117,6 +117,7 @@ handleCharacterAtCursor packet c tc =
 
     else
         -- TODO: add error message for unexpected end char
+        -- TODO: add error message for unexpected end charF
         ParserTools.Done tc
 
 
@@ -130,11 +131,10 @@ handleVerbatim etype verbatimChar tc =
             String.dropLeft (tc.offset + 1) tc.remainingSource
 
         verbatimText =
-            -- advanceVerbatim configuration remaining_ |> Debug.log "VERBATIM TEXT"
-            advanceVerbatim2 verbatimChar remaining_ |> Debug.log "VERBATIM TEXT"
+            advanceVerbatim2 verbatimChar remaining_
 
         verbatimTextLength =
-            verbatimText.finish - verbatimText.start |> Debug.log "VERBATIM TEXT LENGTH"
+            verbatimText.finish - verbatimText.start
 
         preceding =
             Text tc.text MetaData.dummy

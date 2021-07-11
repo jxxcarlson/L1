@@ -117,13 +117,34 @@ add : String -> TextCursor -> TextCursor
 add str tc =
     let
         _ =
-            Debug.log (String.fromInt tc.count) "ADD ----------------------------------------"
+            Debug.log (String.fromInt (tc.count + 1)) "ADD ----------------------------------------"
+
+        _ =
+            Debug.log (Console.cyan "in add, stack") tc.stack
+
+        ( stringToAdd, newStack ) =
+            addContentToStack str tc.stack
     in
     { tc
         | count = tc.count + 1
-        , text = str ++ tc.text
+        , text = stringToAdd ++ tc.text
+        , stack = newStack
         , offset = tc.offset + String.length str
     }
+
+
+addContentToStack : String -> List StackItem -> ( String, List StackItem )
+addContentToStack str stack =
+    case List.head stack of
+        Nothing ->
+            ( str, stack )
+
+        Just top ->
+            if top.content == "" then
+                ( "", { top | content = str } :: List.drop 1 stack )
+
+            else
+                ( str, stack )
 
 
 {-| A
@@ -132,54 +153,16 @@ push : (String -> Element) -> Expectation -> TextCursor -> TextCursor
 push parse expectation tc =
     let
         _ =
-            Debug.log (String.fromInt tc.count) "PUSH ----------------------------------------"
+            Debug.log (String.fromInt (tc.count + 1)) "PUSH ----------------------------------------"
     in
-    case tc.stack of
-        [] ->
-            -- The stack is empty, so we prepare for a new element:
-            -- (a) parse tc.text, prepend it to tc.parsed and tc.complete
-            -- (b) clear tc.text and tc.text
-            -- (c) push a stackItem onto the stack, recording the start
-            --     character, the expected end character if any, and
-            --     the string data, which in this case is empty
-            -- (d) increment the offset
-            let
-                complete =
-                    if tc.text /= "" then
-                        parse tc.text :: tc.parsed ++ tc.complete
-
-                    else
-                        tc.parsed ++ tc.complete
-            in
-            { tc
-                | count = tc.count + 1
-                , offset = tc.offset + 1
-                , stack = { expect = expectation, content = "", precedingText = tc.text :: [], count = tc.count, offset = tc.offset } :: tc.stack
-                , parsed = []
-                , complete = complete
-                , text = ""
-            }
-
-        top :: rest ->
-            -- The stack has at least one element, 'top'
-            -- (a) if the cursor holds text, put in the data field of 'top'
-            -- (b) set the text field to empty
-            -- (c) push an empty stackItem
-            -- (d) increment the offset
-            let
-                top_ =
-                    if String.trim tc.text == "" then
-                        top
-
-                    else
-                        { top | content = tc.text }
-            in
-            { tc
-                | count = tc.count + 1
-                , offset = tc.offset + 1
-                , stack = { expect = expectation, content = "", precedingText = tc.text :: top.precedingText, count = tc.count, offset = tc.offset } :: top_ :: rest
-                , text = ""
-            }
+    { tc
+        | count = tc.count + 1
+        , offset = tc.offset + 1
+        , stack = { expect = expectation, content = tc.text, precedingText = [], count = tc.count, offset = tc.offset } :: tc.stack
+        , parsed = []
+        , complete = tc.parsed ++ tc.complete
+        , text = ""
+    }
 
 
 pop : (String -> Element) -> TextCursor -> TextCursor
@@ -191,7 +174,7 @@ pop parse tc =
     -- two case, depending on whether cursor.text is empty.
     let
         _ =
-            Debug.log (String.fromInt tc.count) "POP ----------------------------------------"
+            Debug.log (String.fromInt (tc.count + 1)) "POP ----------------------------------------"
     in
     case List.head tc.stack of
         Nothing ->
@@ -211,6 +194,10 @@ handleNonEmptyText parse stackTop tc =
     -- is the item on the top of the stack.
     -- (a)
     let
+        _ =
+            Debug.log (magenta "handleNonEmptyText") "-"
+
+        parsed : List Element
         parsed =
             let
                 parsed_ : List Element
@@ -235,25 +222,37 @@ handleNonEmptyText parse stackTop tc =
                 _ ->
                     parsed_
 
+        _ =
+            Debug.log (magenta "in pop, handle non-empty, parsed") (parsed |> List.map AST.simplify)
+
         stack =
             List.drop 1 tc.stack
     in
     if stack == [] then
+        let
+            _ =
+                Debug.log (Console.magenta "stack = []") "!!!"
+        in
         { tc
             | offset = tc.offset + 1
             , count = tc.count + 1
             , parsed = []
             , stack = []
-            , complete = parsed ++ tc.complete
+            , complete = parsed
             , text = ""
             , scannerType = NormalScan
         }
 
     else
+        let
+            _ =
+                Debug.log (Console.magenta "stack /= []") "!!!"
+        in
         { tc
             | offset = tc.offset + 1
             , count = tc.count + 1
-            , parsed = parsed
+            , parsed = []
+            , complete = parsed -- ++ List.map parse stackTop.precedingText
             , stack = stack
             , text = ""
             , scannerType = NormalScan
@@ -264,6 +263,9 @@ getParsed : (String -> Element) -> StackItem -> TextCursor -> List Element
 getParsed parse stackTop tc =
     if stackTop.content == "" then
         let
+            _ =
+                Debug.log (magenta "getParsed BRANCH ONE, stackTop") stackTop
+
             txt =
                 case stackTop.expect.expectedEndChar of
                     Nothing ->
@@ -282,7 +284,7 @@ getParsed parse stackTop tc =
     else
         let
             _ =
-                Debug.log "BRANCH" 2
+                Debug.log (magenta "getParsed BRANCH TWO, stackTop") stackTop
 
             top =
                 case stackTop.expect.expectedEndChar of
@@ -298,13 +300,19 @@ getParsed parse stackTop tc =
                             |> parse
 
             txt =
-                Text (tc.text ++ " ") MetaData.dummy
+                -- Text (tc.text ++ " ") MetaData.dummy
+                parse tc.text
+                    |> Debug.log (Console.yellow "txt")
         in
         [ AST.join top (List.reverse <| txt :: tc.parsed) ]
 
 
 handleEmptyText : (String -> Element) -> StackItem -> TextCursor -> TextCursor
 handleEmptyText parse stackTop tc =
+    let
+        _ =
+            Debug.log (magenta "handleEmptyText") "-"
+    in
     case List.head tc.stack of
         Nothing ->
             { tc | count = tc.count + 1, offset = tc.offset + 1 }
@@ -312,18 +320,36 @@ handleEmptyText parse stackTop tc =
         Just stackItem ->
             let
                 ( fname, args_ ) =
-                    stackItem.content |> String.words |> List.Extra.uncons |> Maybe.withDefault ( "fname", [] )
+                    stackItem.content
+                        |> String.words
+                        |> List.Extra.uncons
+                        |> Maybe.withDefault ( "fname", [] )
+                        |> Debug.log (magenta "( fname, args_ ) ")
 
                 args =
-                    List.map (\a -> Text (a ++ " ") MetaData.dummy) args_
+                    List.map (\a -> Text a MetaData.dummy) args_
 
-                newParsed =
-                    Element (AST.Name fname)
-                        (EList (args ++ List.reverse tc.parsed) MetaData.dummy)
-                        MetaData.dummy
+                parsed =
+                    if fname == "" then
+                        let
+                            data =
+                                args ++ List.reverse tc.parsed
+                        in
+                        if data == [] then
+                            []
+
+                        else
+                            [ EList (args ++ List.reverse tc.parsed) MetaData.dummy ]
+
+                    else
+                        [ Element (AST.Name fname)
+                            (EList (args ++ List.reverse tc.parsed) MetaData.dummy)
+                            MetaData.dummy
+                        ]
+                            |> Debug.log (magenta "(2) in pop, handle empty, newParsed")
             in
             { tc
-                | parsed = [ newParsed ]
+                | parsed = parsed
                 , stack = List.drop 1 tc.stack
                 , offset = tc.offset + 1
                 , count = tc.count + 1
@@ -422,9 +448,8 @@ print cursor =
         Just top ->
             printComplete cursor
                 ++ printStack cursor.stack
+                ++ ((" " ++ (String.join " " top.precedingText ++ " ")) |> magenta)
                 ++ printCursorText cursor
-                --++ String.join " " top.preceding
-                --++ " "
                 ++ printParsed cursor
                 ++ printCaret
                 ++ printRemaining cursor
@@ -447,7 +472,7 @@ printCursorText cursor =
 
 
 printParsed cursor =
-    cursor.parsed |> List.map Render.Text.print |> String.join " " |> Console.bgMagenta
+    cursor.parsed |> List.map Render.Text.print |> String.join " " |> (\x -> x ++ " ") |> Console.bgCyan
 
 
 printComplete cursor =
@@ -462,4 +487,9 @@ printStackItem item =
 
 printStack : List StackItem -> String
 printStack items =
-    List.map printStackItem (List.reverse items) |> String.join " " |> String.trim |> Console.bgWhite |> Console.black
+    List.map printStackItem (List.reverse items) |> String.join " " |> String.trim |> Console.bgMagenta |> Console.black
+
+
+magenta : String -> String
+magenta str =
+    Console.magenta str
