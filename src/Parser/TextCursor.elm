@@ -170,7 +170,7 @@ push parse expectation tc =
                     []
 
                 else
-                    Text tc.text MetaData.dummy :: [] |> Debug.log (magenta "PUSH, complete (1)")
+                    Text tc.text MetaData.dummy :: tc.parsed ++ tc.complete |> Debug.log (magenta "PUSH, complete (1)")
 
             else
                 -- Debug.log (magenta "PUSH parsed") tc.parsed ++ Debug.log (magenta "PUSH complete (2)") tc.complete
