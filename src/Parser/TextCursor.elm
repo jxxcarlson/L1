@@ -235,14 +235,14 @@ handleNonEmptyText parse stackTop tc =
                 InlineMathType ->
                     Element
                         (Name "math")
-                        (EList (List.map (Parser.Utility.mapRaw Utility.Utility.clipEnds) parsed_) MetaData.dummy)
+                        (EList (List.map (Parser.Utility.mapElement Utility.Utility.clipEnds) parsed_) MetaData.dummy)
                         MetaData.dummy
                         |> (\x -> [ x ])
 
                 CodeType ->
                     Element
                         (Name "code")
-                        (EList (List.map (Parser.Utility.mapRaw Utility.Utility.clipEnds) parsed_) MetaData.dummy)
+                        (EList (List.map (Parser.Utility.mapElement Utility.Utility.clipEnds) parsed_) MetaData.dummy)
                         MetaData.dummy
                         |> (\x -> [ x ])
 
@@ -295,7 +295,7 @@ getParsed parse stackTop tc =
                     String.fromChar stackTop.expect.beginChar
                         ++ tc.text
                         ++ String.fromChar endChar
-                        |> Utility.Utility.ifApply (tc.scannerType == NormalScan) parse Parser.Utility.makeRaw
+                        |> Utility.Utility.ifApply (tc.scannerType == NormalScan) parse Parser.Utility.makeText
     in
     txt :: tc.parsed
 

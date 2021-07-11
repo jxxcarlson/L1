@@ -82,7 +82,7 @@ render renderArgs element =
             E.el [] (text <| "Undefined element")
 
         EList elements _ ->
-            E.paragraph [] (List.map (render renderArgs) elements)
+            E.paragraph [] (List.map (Parser.Utility.mapElement (\s -> " " ++ s) >> render renderArgs) elements)
 
         Problem _ str ->
             el [] (text <| "PROBLEM: " ++ str)
