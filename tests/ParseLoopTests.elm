@@ -53,13 +53,12 @@ suite =
                     |> pl
                     |> Expect.equal
                         [ Element_ (Name "x") (EList_ [ Element_ (Name "i") (EList_ [ Text_ "a" ]), Element_ (Name "j") (EList_ [ Text_ "b" ]) ]) ]
-        , skip <|
-            test "like a list, but with preceding and following text" <|
-                \_ ->
-                    "abc [x [i a] [j b]] def"
-                        |> pl
-                        |> Expect.equal
-                            [ Text_ "abc ", Element_ (Name "x") (EList_ [ Element_ (Name "i") (EList_ [ Text_ "a" ]), Element_ (Name "j") (EList_ [ Text_ "b" ]) ]), Text_ " def" ]
+        , test "like a list, but with preceding and following text" <|
+            \_ ->
+                "abc [x [i a] [j b]] def"
+                    |> pl
+                    |> Expect.equal
+                        [ Text_ "abc ", Element_ (Name "x") (EList_ [ Element_ (Name "i") (EList_ [ Text_ "a" ]), Element_ (Name "j") (EList_ [ Text_ "b" ]) ]), Text_ " def" ]
         , skip <|
             test "like a list, but with preceding and following text, including newlines" <|
                 \_ ->
