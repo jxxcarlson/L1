@@ -152,11 +152,14 @@ push parse expectation tc =
         | count = tc.count + 1
         , offset = tc.offset + 1
         , stack =
-            if tc.stack == [] then
-                { expect = expectation, content = "", precedingText = [], count = tc.count, offset = tc.offset } :: tc.stack
+            case List.head tc.stack of
+                Nothing ->
+                    { expect = expectation, content = "", precedingText = [], count = tc.count, offset = tc.offset } :: tc.stack
 
-            else
-                { expect = expectation, content = tc.text, precedingText = [], count = tc.count, offset = tc.offset } :: tc.stack
+                Just stackTop ->
+                    -- (1) TODO: DANGER DELETING THIS !! { expect = expectation, content = tc.text, precedingText = [ tc.text ], count = tc.count, offset = tc.offset } :: tc.stack
+                    -- (2) TODO: ?? { expect = expectation, content = "", precedingText = [ tc.text ], count = tc.count, offset = tc.offset } :: tc.stack
+                    { expect = expectation, content = "", precedingText = [ tc.text ], count = tc.count, offset = tc.offset } :: tc.stack
         , parsed =
             if tc.stack == [] then
                 []
@@ -173,7 +176,6 @@ push parse expectation tc =
                     Text tc.text MetaData.dummy :: tc.parsed ++ tc.complete |> Debug.log (magenta "PUSH, complete (1)")
 
             else
-                -- Debug.log (magenta "PUSH parsed") tc.parsed ++ Debug.log (magenta "PUSH complete (2)") tc.complete
                 Debug.log (magenta "PUSH complete (2)") tc.complete
         , text = ""
     }
@@ -340,9 +342,6 @@ handleEmptyText parse stackTop tc =
 
         Just stackItem ->
             let
-                _ =
-                    Debug.log (magenta "ETYPE") stackItem.expect.etype
-
                 ( fname, args_ ) =
                     stackItem.content
                         |> String.words
@@ -472,6 +471,7 @@ print cursor =
         ++ printComplete cursor
         ++ printStack cursor.stack
         ++ printCursorText cursor
+        ++ printPreceding cursor
         ++ printParsed cursor
         ++ printCaret
         ++ printRemaining cursor
@@ -485,8 +485,21 @@ printMessage cursor =
     (String.fromInt cursor.count |> String.padLeft 2 '.')
         ++ (cursor.message |> String.padLeft 5 '.')
         ++ " :: "
-        ++ (Debug.toString cursor.scannerType |> String.padLeft 12 '.')
-        ++ " :: "
+
+
+
+--++ (Debug.toString cursor.scannerType |> String.padLeft 12 '.')
+--++ " :: "
+
+
+printPreceding : TextCursor -> String
+printPreceding cursor =
+    case List.head cursor.stack of
+        Nothing ->
+            " " |> Console.blue |> Console.bgWhite
+
+        Just stackTop ->
+            " " ++ Debug.toString stackTop.precedingText ++ " " |> Console.blue |> Console.bgWhite
 
 
 printCaret =
