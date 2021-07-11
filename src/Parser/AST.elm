@@ -11,6 +11,7 @@ module Parser.AST exposing
     , map
     , position
     , simplify
+    , stringContent
     , toList
     , toStringList
     )
@@ -50,6 +51,11 @@ toStringList element =
 
         Empty ->
             [ "empty" ]
+
+
+stringContent : Element -> String
+stringContent element =
+    element |> toStringList |> String.join " "
 
 
 toList : Element -> List Element

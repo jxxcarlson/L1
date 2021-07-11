@@ -55,8 +55,8 @@ renderElementDict =
         , ( "math", renderMath )
         , ( "math2", renderMath2 )
         , ( "m", renderMath )
-        , ( "mathblock", renderMathDisplay )
-        , ( "mb", renderMathDisplay )
+        , ( "mathblock", mathblock )
+        , ( "mb", mathblock )
         , ( "link", link )
         , ( "image", image )
         , ( "heading", heading )
@@ -316,14 +316,9 @@ renderMath2 renderArgs name args body =
     mathText renderArgs InlineMathMode (getText2 body)
 
 
-renderMathDisplay : FRender msg
-renderMathDisplay rendArgs name args body =
-    case getText body of
-        Just content ->
-            mathText rendArgs DisplayMathMode content
-
-        Nothing ->
-            el [ Font.color redColor ] (text "Error rendering math !!!")
+mathblock : FRender msg
+mathblock rendArgs name args body =
+    mathText rendArgs DisplayMathMode (Debug.log "CONTENT" (AST.stringContent body))
 
 
 renderMath : FRender msg

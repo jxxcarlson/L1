@@ -112,7 +112,7 @@ suite =
                 "[x [i a] [j b]]"
                     |> pl
                     |> Expect.equal
-                        [ Element_ (Name "x") (EList_ [ Element_ (Name "i") (EList_ [ Text_ "a" ]), Element_ (Name "j") (EList_ [ Text_ "b" ]) ]) ]
+                        [ Element_ (Name "x") (EList_ [ Element_ (Name "i") (EList_ [ Text_ "a" ]), Text_ " ", Element_ (Name "j") (EList_ [ Text_ "b" ]) ]) ]
         , test "code" <|
             \_ ->
                 "`a[0] = 1`"
@@ -130,10 +130,15 @@ suite =
                 "# Introduction to [red Chemistry] [blue Physics]"
                     |> pl
                     |> Expect.equal
-                        [ Element_ (Name "heading") (EList_ [ Text_ " Introduction to ", Element_ (Name "red") (EList_ [ Text_ "Chemistry" ]), Element_ (Name "blue") (EList_ [ Text_ "Physics" ]) ]) ]
+                        [ Element_ (Name "heading") (EList_ [ Text_ " Introduction to ", Element_ (Name "red") (EList_ [ Text_ "Chemistry" ]), Text_ " ", Element_ (Name "blue") (EList_ [ Text_ "Physics" ]) ]) ]
+        , test "mathblock" <|
+            \_ ->
+                "[mathblock \\int_0^1 x^n dx = \\frac{1}{n+1}]"
+                    |> pl
+                    |> Expect.equal
+                        [ Element_ (Name "mathblock") (EList_ [ Text_ "\\int_0^1", Text_ "x^n", Text_ "dx", Text_ "=", Text_ "\\frac{1}{n+1}" ]) ]
         ]
 
 
 
---  "# Introduction to [red Chemistry] [blue Physics]"
--- [Element_ (Name "heading") (EList_ [Text_ (" Introduction to "),Element_ (Name "red") (EList_ [Text_ "Chemistry"]),Element_ (Name "blue") (EList_ [Text_ "Physics"])])]
+--  [Element_ (Name "mathblock") (EList_ [Text_ "\\int_0^1",Text_ "x^n",Text_ "dx",Text_ "=",Text_ "\\frac{1}{n+1}"])]
