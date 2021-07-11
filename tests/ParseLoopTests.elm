@@ -70,13 +70,13 @@ suite =
                 "[fontRGB 255 0 255 foo [b bar]]"
                     |> pl
                     |> Expect.equal
-                        [ Element_ (Name "fontRGB") (EList_ [ Text_ "255 ", Text_ "0 ", Text_ "255 ", Text_ "foo ", Element_ (Name "b") (EList_ [ Text_ "bar" ]) ]) ]
+                        [ Element_ (Name "fontRGB") (EList_ [ Text_ "255", Text_ "0", Text_ "255", Text_ "foo", Element_ (Name "b") (EList_ [ Text_ "bar" ]) ]) ]
         , test "fontRGB (2)" <|
             \_ ->
                 "[fontRGB 255 0 255 [i This text is in [b magenta]]]"
                     |> pl
                     |> Expect.equal
-                        [ Element_ (Name "fontRGB") (EList_ [ Text_ "255 ", Text_ "0 ", Text_ "255 ", Element_ (Name "i") (EList_ [ Text_ "This ", Text_ "text ", Text_ "is ", Text_ "in ", Element_ (Name "b") (EList_ [ Text_ "magenta" ]) ]) ]) ]
+                        [ Element_ (Name "fontRGB") (EList_ [ Text_ "255", Text_ "0", Text_ "255", Element_ (Name "i") (EList_ [ Text_ "This", Text_ "text", Text_ "is", Text_ "in", Element_ (Name "b") (EList_ [ Text_ "magenta" ]) ]) ]) ]
         , test "image" <|
             \_ ->
                 "[image caption:Camperdown https://upload.wikimedia.org/wikipedia/commons/2/20/Camperdown_Elm_Prospect_Park_Brooklyn.jpg]"

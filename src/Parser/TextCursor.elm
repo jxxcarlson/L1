@@ -229,7 +229,7 @@ handleNonEmptyText parse stackTop tc =
             let
                 parsed_ : List Element
                 parsed_ =
-                    getParsed parse stackTop tc
+                    getParsed parse stackTop tc |> Debug.log (magenta "handleNonEmptyText, parsed_")
             in
             case stackTop.expect.etype of
                 InlineMathType ->
@@ -245,6 +245,9 @@ handleNonEmptyText parse stackTop tc =
                         (EList (List.map (Parser.Utility.mapRaw Utility.Utility.clipEnds) parsed_) MetaData.dummy)
                         MetaData.dummy
                         |> (\x -> [ x ])
+
+                QuotedType ->
+                    parsed_ |> Debug.log (magenta "QuotedType")
 
                 _ ->
                     parsed_
@@ -392,6 +395,9 @@ commit_ tc =
             else
                 AST.Text tc.text MetaData.dummy :: tc.parsed
 
+        _ =
+            Debug.log (magenta "commit_, parsed") (parsed |> List.map AST.simplify)
+
         complete =
             parsed ++ tc.complete
     in
@@ -401,18 +407,6 @@ commit_ tc =
 
         top :: restOfStack ->
             let
-                _ =
-                    Debug.log "TOP OF STACK AT END" top
-
-                _ =
-                    Debug.log "@@ parsed" parsed
-
-                _ =
-                    Debug.log "@@ top.data" top.content
-
-                _ =
-                    Debug.log "@@ complete  " complete
-
                 complete_ =
                     case top.expect.expectedEndChar of
                         Nothing ->

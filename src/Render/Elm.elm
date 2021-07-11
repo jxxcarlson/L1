@@ -200,7 +200,6 @@ fontRGB renderArgs _ _ body =
         ( Nothing, Just args ) ->
             fontRGB_ renderArgs args
 
-        -- el [ Font.color redColor ] (text "Error: I can't explain this one.")
         ( Just _, Just _ ) ->
             el [ Font.color redColor ] (text "Error: I can't explain this one.")
 
