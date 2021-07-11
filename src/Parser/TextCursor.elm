@@ -330,8 +330,7 @@ handleEmptyText parse stackTop tc =
                 args =
                     List.map (\a -> Text a MetaData.dummy) args_
 
-                complete =
-                    --parsed =
+                parsed =
                     if fname == "" then
                         let
                             data =
@@ -345,13 +344,14 @@ handleEmptyText parse stackTop tc =
 
                     else
                         [ Element (AST.Name fname)
-                            (EList (args ++ List.reverse tc.complete ++ List.reverse tc.parsed) MetaData.dummy)
+                            (EList (args ++ List.reverse tc.parsed) MetaData.dummy)
                             MetaData.dummy
                         ]
             in
             { tc
-                | parsed = []
-                , complete = complete
+                | parsed = parsed
+
+                --, complete = complete
                 , stack = List.drop 1 tc.stack
                 , offset = tc.offset + 1
                 , count = tc.count + 1
