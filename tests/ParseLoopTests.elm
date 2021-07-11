@@ -59,48 +59,42 @@ suite =
                     |> pl
                     |> Expect.equal
                         [ Text_ "abc ", Element_ (Name "x") (EList_ [ Element_ (Name "i") (EList_ [ Text_ "a" ]), Element_ (Name "j") (EList_ [ Text_ "b" ]) ]), Text_ " def" ]
-        , skip <|
-            test "like a list, but with preceding and following text, including newlines" <|
-                \_ ->
-                    "abc\n [x [i a] [j b]] \n\ndef"
-                        |> pl
-                        |> Expect.equal
-                            [ Text_ "abc\n ", Element_ (Name "x") (EList_ [ Element_ (Name "i") (EList_ [ Text_ "a" ]), Element_ (Name "j") (EList_ [ Text_ "b" ]) ]), Text_ " \n\ndef" ]
-        , skip <|
-            test "fontRGB" <|
-                \_ ->
-                    "[fontRGB 255 0 255 foo [b bar]]"
-                        |> pl
-                        |> Expect.equal
-                            [ Element_ (Name "fontRGB") (EList_ [ Text_ "255 ", Text_ "0 ", Text_ "255 ", Text_ "foo ", Element_ (Name "b") (EList_ [ Text_ "bar" ]) ]) ]
-        , skip <|
-            test "fontRGB (2)" <|
-                \_ ->
-                    "[fontRGB 255 0 255 [i This text is in [b magenta]]]"
-                        |> pl
-                        |> Expect.equal
-                            [ Element_ (Name "fontRGB") (EList_ [ Text_ "255 ", Text_ "0 ", Text_ "255 ", Element_ (Name "i") (EList_ [ Text_ "This ", Text_ "text ", Text_ "is ", Text_ "in ", Element_ (Name "b") (EList_ [ Text_ "magenta" ]) ]) ]) ]
-        , skip <|
-            test "image" <|
-                \_ ->
-                    "[image caption:Camperdown https://upload.wikimedia.org/wikipedia/commons/2/20/Camperdown_Elm_Prospect_Park_Brooklyn.jpg]"
-                        |> pl
-                        |> Expect.equal
-                            [ Element_ (Name "image") (EList_ [ Text_ "caption:Camperdown https://upload.wikimedia.org/wikipedia/commons/2/20/Camperdown_Elm_Prospect_Park_Brooklyn.jpg" ]) ]
-        , skip <|
-            test "heading" <|
-                \_ ->
-                    "# Fault-Tolerant Parsing"
-                        |> pl
-                        |> Expect.equal
-                            [ Element_ (Name "heading") (EList_ [ Text_ "", Text_ " Fault-Tolerant Parsing" ]) ]
-        , skip <|
-            test "link" <|
-                \_ ->
-                    """[link "Error recovery with parser combinators"  https://eyalkalderon.com/blog/nom-error-recovery/]"""
-                        |> pl
-                        |> Expect.equal
-                            [ Element_ (Name "link") (EList_ [ Text_ "\"Error recovery with parser combinators\"", Text_ "  https://eyalkalderon.com/blog/nom-error-recovery/ " ]) ]
+        , test "like a list, but with preceding and following text, including newlines" <|
+            \_ ->
+                "abc\n [x [i a] [j b]] \n\ndef"
+                    |> pl
+                    |> Expect.equal
+                        [ Text_ "abc\n ", Element_ (Name "x") (EList_ [ Element_ (Name "i") (EList_ [ Text_ "a" ]), Element_ (Name "j") (EList_ [ Text_ "b" ]) ]), Text_ " \n\ndef" ]
+        , test "fontRGB" <|
+            \_ ->
+                "[fontRGB 255 0 255 foo [b bar]]"
+                    |> pl
+                    |> Expect.equal
+                        [ Element_ (Name "fontRGB") (EList_ [ Text_ "255 ", Text_ "0 ", Text_ "255 ", Text_ "foo ", Element_ (Name "b") (EList_ [ Text_ "bar" ]) ]) ]
+        , test "fontRGB (2)" <|
+            \_ ->
+                "[fontRGB 255 0 255 [i This text is in [b magenta]]]"
+                    |> pl
+                    |> Expect.equal
+                        [ Element_ (Name "fontRGB") (EList_ [ Text_ "255 ", Text_ "0 ", Text_ "255 ", Element_ (Name "i") (EList_ [ Text_ "This ", Text_ "text ", Text_ "is ", Text_ "in ", Element_ (Name "b") (EList_ [ Text_ "magenta" ]) ]) ]) ]
+        , test "image" <|
+            \_ ->
+                "[image caption:Camperdown https://upload.wikimedia.org/wikipedia/commons/2/20/Camperdown_Elm_Prospect_Park_Brooklyn.jpg]"
+                    |> pl
+                    |> Expect.equal
+                        [ Element_ (Name "image") (EList_ [ Text_ "caption:Camperdown https://upload.wikimedia.org/wikipedia/commons/2/20/Camperdown_Elm_Prospect_Park_Brooklyn.jpg" ]) ]
+        , test "heading" <|
+            \_ ->
+                "# Fault-Tolerant Parsing"
+                    |> pl
+                    |> Expect.equal
+                        [ Element_ (Name "heading") (EList_ [ Text_ "", Text_ " Fault-Tolerant Parsing" ]) ]
+        , test "link" <|
+            \_ ->
+                """[link "Error recovery with parser combinators"  https://eyalkalderon.com/blog/nom-error-recovery/]"""
+                    |> pl
+                    |> Expect.equal
+                        [ Element_ (Name "link") (EList_ [ Text_ "\"Error recovery with parser combinators\"", Text_ "  https://eyalkalderon.com/blog/nom-error-recovery/ " ]) ]
         , test "[x [i a] [j b]]" <|
             \_ ->
                 "[x [i a] [j b]]"
