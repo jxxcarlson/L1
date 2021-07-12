@@ -12,6 +12,8 @@ module Utility.ParserTools exposing
     , oneChar
     , optional
     , optionalList
+    , prefixFreeOf
+    , prefixWith
     , second
     , text
     )
@@ -138,9 +140,9 @@ textPS prefixTest stopChars =
         |= Parser.getSource
 
 
-{-| textPS = "text prefixText stopCharacters": Get the longest string
-whose first character satisfies the prefixTest and whose remaining
-characters are not in the list of stop characters. Example:
+{-| Get the longest string
+whose first character satisfies `prefix` and whose remaining
+characters satisfy `continue`. Example:
 
     line =
         textPS (\c -> Char.isAlpha) [ '\n' ]
@@ -193,3 +195,27 @@ loop s nextState =
 
         Done b ->
             b
+
+
+{-| Return the longest prefix beginning with the supplied Char.
+-}
+prefixWith : Char -> String -> StringData
+prefixWith c str =
+    case Parser.run (text (\c_ -> c_ == c) (\c_ -> c_ == c)) str of
+        Ok stringData ->
+            stringData
+
+        Err _ ->
+            { content = "", finish = 0, start = 0 }
+
+
+{-| Return the longest free of the supplied Char.
+-}
+prefixFreeOf : Char -> String -> StringData
+prefixFreeOf c str =
+    case Parser.run (text (\c_ -> c_ /= c) (\c_ -> c_ /= c)) str of
+        Ok stringData ->
+            stringData
+
+        Err _ ->
+            { content = "", finish = 0, start = 0 }

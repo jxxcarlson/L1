@@ -199,6 +199,10 @@ handleQuoted verbatimChar tc =
     ParserTools.Loop <| newTC
 
 
+{-| Return the longest prefix of str that does not contain a delimiter.
+The delimiter sets used depend upon position. One set for position = 0,
+another for position /= 0.
+-}
 advance : Configuration -> Int -> String -> ParserTools.StringData
 advance config position str =
     case Parser.run (ParserTools.text (Parser.Config.notDelimiter configuration position) (Parser.Config.notDelimiter configuration position)) str of
@@ -207,26 +211,6 @@ advance config position str =
 
         Err _ ->
             { content = "", finish = 0, start = 0 }
-
-
-
---advanceVerbatim : Configuration -> String -> ParserTools.StringData
---advanceVerbatim config str =
---    let
---        verbatimChars =
---            config.verbatimChars
---
---        predicate =
---            \c -> not (List.member c verbatimChars)
---    in
---    (case Parser.run (ParserTools.text predicate predicate) str of
---        Ok stringData ->
---            stringData |> Debug.log "!!! ADVANCE VERBATIM"
---
---        Err _ ->
---            { content = "", finish = 0, start = 0 }
---    )
---        |> Debug.log "ADVANCE VERBATIM"
 
 
 advanceVerbatim2 : Char -> String -> ParserTools.StringData
