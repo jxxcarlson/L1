@@ -98,34 +98,29 @@ nextCursor packet cursor =
                     ParserTools.Done cursor
 
                 Just c ->
-                    handleCharacterAtCursor packet c cursor
+                    handleDataAtCursor packet (ParserTools.prefixWith c remaining).content cursor
 
 
-handleCharacterAtCursor : Packet Element -> Char -> TextCursor -> ParserTools.Step TextCursor TextCursor
-handleCharacterAtCursor packet c tc =
+handleDataAtCursor : Packet Element -> String -> TextCursor -> ParserTools.Step TextCursor TextCursor
+handleDataAtCursor packet prefix tc =
     let
         _ =
-            Debug.log "c, offset, canPush" { char = c, offset = tc.offset, canPush = TextCursor.canPush configuration tc c, canPop = TextCursor.canPop tc c }
+            Debug.log "handleCharacterAtCursor" { prefix = prefix, offset = tc.offset, canPush = TextCursor.canPush configuration tc prefix, canPop = TextCursor.canPop tc prefix }
     in
-    if TextCursor.canPop tc c then
+    if TextCursor.canPop configuration tc prefix then
         ParserTools.Loop <| TextCursor.pop packet.parser { tc | message = "POP" }
         --else
 
-    else if TextCursor.canPush configuration tc c then
-        case Parser.Config.lookup configuration c of
-            Nothing ->
-                ParserTools.Done tc
+    else if TextCursor.canPush configuration tc prefix then
+        let
+            scannerType =
+                if List.member expectation.etype [ CodeType, InlineMathType, QuotedType ] then
+                    VerbatimScan c
 
-            Just expectation ->
-                let
-                    scannerType =
-                        if List.member expectation.etype [ CodeType, InlineMathType, QuotedType ] then
-                            VerbatimScan c
-
-                        else
-                            NormalScan
-                in
-                ParserTools.Loop <| TextCursor.push packet.parser expectation { tc | message = "PUSH", scannerType = scannerType }
+                else
+                    NormalScan
+        in
+        ParserTools.Loop <| TextCursor.push packet.parser expectation { tc | message = "PUSH", scannerType = scannerType }
 
     else if Just (ParserTools.prefixWith c tc.remainingSource).content == (List.head tc.stack |> Maybe.andThen (.expect >> .endSymbol)) then
         ParserTools.Loop <| TextCursor.pop packet.parser { tc | message = "POP", scannerType = NormalScan }

@@ -454,13 +454,14 @@ commit_ tc =
 {-| The parser has paused at charater c. If the prefix of the
 remaining source text that begins with character c what we expect?
 -}
-canPop : TextCursor -> Char -> Bool
-canPop tc c =
-    Just (ParserTools.prefixWith c tc.remainingSource).content == (List.head tc.stack |> Maybe.andThen (.expect >> .endSymbol))
+canPop : Parser.Config.Configuration -> TextCursor -> String -> Bool
+canPop configuration tc prefix =
+    Parser.Config.isEndSymbol configuration tc.offset prefix
 
 
-canPush configuration tc c =
-    Parser.Config.isBeginChar configuration tc.offset c
+canPush : Parser.Config.Configuration -> TextCursor -> String -> Bool
+canPush configuration tc prefix =
+    Parser.Config.isBeginSymbol configuration tc.offset prefix
 
 
 

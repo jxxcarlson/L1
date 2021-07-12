@@ -5,7 +5,9 @@ module Parser.Config exposing
     , MarkPosition(..)
     , configure
     , isBeginChar
+    , isBeginSymbol
     , isEndChar
+    , isEndSymbol
     , lookup
     , name
     , notDelimiter
@@ -14,6 +16,8 @@ module Parser.Config exposing
 import Dict exposing (Dict)
 import List.Extra
 import Maybe.Extra
+import Set exposing (Set)
+import Utility.Utility
 
 
 type alias Expectation =
@@ -54,7 +58,7 @@ name etype =
 
 
 type alias ExpectationsDict =
-    Dict Char Expectation
+    Dict Char (List Expectation)
 
 
 type alias ConfigurationDefinition =
@@ -66,8 +70,10 @@ type alias Configuration =
     , endSymbols : List String
     , beginChars : List Char
     , interiorBeginChars : List Char
+    , interiorBeginSymbols : List String
     , endChars : List Char
     , interiorEndChars : List Char
+    , interiorEndSymbols : List String
     , delimiters : List Char
     , interiorDelimiters : List Char
     , verbatimChars : List Char
@@ -75,9 +81,9 @@ type alias Configuration =
     }
 
 
-lookup : Configuration -> Char -> Maybe Expectation
+lookup : Configuration -> Char -> List Expectation
 lookup config c =
-    Dict.get c config.expectationsDict
+    Dict.get c config.expectationsDict |> Maybe.withDefault []
 
 
 firstChar : String -> Maybe Char
@@ -106,18 +112,37 @@ configure configDef =
         interiorEndChars =
             List.map (.endSymbol >> Maybe.map firstChar) (List.filter (\e -> e.markPosition == Anywhere) configDef)
                 |> Maybe.Extra.values
+
+        interiorBeginSymbols =
+            List.map .beginSymbol (List.filter (\e -> e.markPosition == Anywhere) configDef)
+
+        interiorEndSymbols =
+            List.map .endSymbol (List.filter (\e -> e.markPosition == Anywhere) configDef)
+                |> Maybe.Extra.values
     in
     { beginSymbols = configDef |> List.map .beginSymbol
     , endSymbols = configDef |> List.map .endSymbol |> Maybe.Extra.values
     , beginChars = beginChars
+    , interiorBeginSymbols = interiorBeginSymbols
     , interiorBeginChars = interiorBeginChars
     , endChars = endChars |> Maybe.Extra.values
     , interiorEndChars = interiorEndChars |> Maybe.Extra.values
+    , interiorEndSymbols = interiorEndSymbols
     , delimiters = beginChars ++ (endChars |> Maybe.Extra.values) |> List.Extra.unique
     , interiorDelimiters = interiorBeginChars ++ (interiorEndChars |> Maybe.Extra.values) |> List.Extra.unique
     , verbatimChars = [] -- verbatimChars configDef
-    , expectationsDict = Dict.empty
+    , expectationsDict = List.foldl (\e edict -> updateEDict e edict) Dict.empty configDef
     }
+
+
+updateEDict : Expectation -> ExpectationsDict -> ExpectationsDict
+updateEDict expectation edict =
+    case firstChar expectation.beginSymbol of
+        Nothing ->
+            edict
+
+        Just c ->
+            Dict.update c (Utility.Utility.liftToMaybe (\v -> expectation :: v)) edict
 
 
 
@@ -152,3 +177,21 @@ isEndChar config position c =
 
     else
         List.member c config.interiorEndChars
+
+
+isBeginSymbol : Configuration -> Int -> String -> Bool
+isBeginSymbol config position str =
+    if position == 0 then
+        List.member str config.beginSymbols
+
+    else
+        List.member str config.interiorBeginSymbols
+
+
+isEndSymbol : Configuration -> Int -> String -> Bool
+isEndSymbol config position str =
+    if position == 0 then
+        List.member str config.endSymbols
+
+    else
+        List.member str config.interiorEndSymbols
