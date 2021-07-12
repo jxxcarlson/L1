@@ -74,8 +74,8 @@ nextCursor packet cursor =
                 String.dropLeft cursor.offset cursor.remainingSource
 
             chompedText =
-                -- get some more text
-                -- this means text from one mark to the next
+                -- get some more text from what remains
+                -- this means text from one mark to the next, not inclusive
                 case cursor.scannerType of
                     NormalScan ->
                         advance configuration cursor.offset remaining

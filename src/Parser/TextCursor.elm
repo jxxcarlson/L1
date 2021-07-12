@@ -456,12 +456,26 @@ remaining source text that begins with character c what we expect?
 -}
 canPop : Parser.Config.Configuration -> TextCursor -> String -> Bool
 canPop configuration tc prefix =
+    if canPopPrecondition configuration tc prefix then
+        case List.head tc.stack of
+            Nothing ->
+                False
+
+            Just stackTop ->
+                stackTop.expect.beginSymbol == prefix
+
+    else
+        False
+
+
+canPopPrecondition : Parser.Config.Configuration -> TextCursor -> String -> Bool
+canPopPrecondition configuration tc prefix =
     let
         isEndSymbol =
             Parser.Config.isEndSymbol configuration tc.offset prefix
 
         _ =
-            Debug.log (blue <| "canPop (" ++ prefix ++ ")") isEndSymbol
+            Debug.log (blue <| "canPop Pre (" ++ prefix ++ ")") isEndSymbol
     in
     if isEndSymbol then
         True
