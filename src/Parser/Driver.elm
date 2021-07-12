@@ -1,4 +1,4 @@
-module Parser.Driver exposing (parse, parseLoop, pl, pl1)
+module Parser.Driver exposing (packet, parse, parseLoop, pl, pl1)
 
 import Parser.AST as AST exposing (Element(..))
 import Parser.Advanced as PA

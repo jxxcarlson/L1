@@ -456,14 +456,24 @@ remaining source text that begins with character c what we expect?
 -}
 canPop : Parser.Config.Configuration -> TextCursor -> String -> Bool
 canPop configuration tc prefix =
+    let
+        _ =
+            Debug.log (magenta "canPop, prefix") prefix
+
+        _ =
+            Debug.log (magenta "canPop, TC, stackTop") (tc.stack |> List.head)
+
+        _ =
+            Debug.log (blue "offset, remaining") ( tc.offset, tc.remainingSource )
+    in
     if canPopPrecondition configuration tc prefix then
         case List.head tc.stack of
             Nothing ->
                 False
 
             Just stackTop ->
-                True
-        -- stackTop.expect.beginSymbol == prefix
+                -- True
+                stackTop.expect.beginSymbol == prefix
         -- TODO why should the above check be necessary?
         -- With it, we get __many__ failing tests
 
@@ -484,7 +494,7 @@ canPopPrecondition configuration tc prefix =
         True
 
     else if String.length prefix > 1 then
-        canPop configuration tc (String.dropLeft 1 prefix)
+        canPopPrecondition configuration tc (String.dropLeft 1 prefix)
 
     else
         False

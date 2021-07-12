@@ -8,6 +8,7 @@ module Utility.ParserTools exposing
     , many
     , manyNonEmpty
     , manySeparatedBy
+    , mapLoop
     , maybe
     , oneChar
     , optional
@@ -195,6 +196,16 @@ loop s nextState =
 
         Done b ->
             b
+
+
+mapLoop : (state -> Step state a) -> Step state a -> Step state a
+mapLoop f stepState =
+    case stepState of
+        Loop s ->
+            f s
+
+        Done a ->
+            Done a
 
 
 {-| Return the longest prefix beginning with the supplied Char.
