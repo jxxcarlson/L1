@@ -199,6 +199,10 @@ handleQuoted verbatimChar tc =
     ParserTools.Loop <| newTC
 
 
+{-| Return the longest prefix of str that does not contain a delimiter.
+The delimiter sets used depend upon position. One set for position = 0,
+another for position /= 0.
+-}
 advance : Configuration -> Int -> String -> ParserTools.StringData
 advance config position str =
     case Parser.run (ParserTools.text (Parser.Config.notDelimiter configuration position) (Parser.Config.notDelimiter configuration position)) str of
