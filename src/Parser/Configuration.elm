@@ -4,10 +4,10 @@ import Parser.Config exposing (EType(..), MarkPosition(..))
 
 
 expectations =
-    [ { beginChar = '[', expectedEndChar = Just ']', etype = ElementType, isVerbatim = False, markPosition = Anywhere }
-    , { beginChar = '`', expectedEndChar = Just '`', etype = CodeType, isVerbatim = True, markPosition = Anywhere }
-    , { beginChar = '$', expectedEndChar = Just '$', etype = InlineMathType, isVerbatim = True, markPosition = Anywhere }
-    , { beginChar = '#', expectedEndChar = Nothing, etype = ElementType, isVerbatim = False, markPosition = AtBeginning }
-    , { beginChar = ':', expectedEndChar = Nothing, etype = ElementType, isVerbatim = False, markPosition = AtBeginning }
-    , { beginChar = '"', expectedEndChar = Just '"', etype = QuotedType, isVerbatim = False, markPosition = Anywhere }
+    [ { beginSymbol = "[", endSymbol = Just "]", etype = ElementType, isVerbatim = False, markPosition = Anywhere }
+    , { beginSymbol = "`", endSymbol = Just "`", etype = CodeType, isVerbatim = True, markPosition = Anywhere }
+    , { beginSymbol = "$", endSymbol = Just "$", etype = InlineMathType, isVerbatim = True, markPosition = Anywhere }
+    , { beginSymbol = "#", endSymbol = Nothing, etype = ElementType, isVerbatim = False, markPosition = AtBeginning }
+    , { beginSymbol = ":", endSymbol = Nothing, etype = ElementType, isVerbatim = False, markPosition = AtBeginning }
+    , { beginSymbol = "\"", endSymbol = Just "\"", etype = QuotedType, isVerbatim = False, markPosition = Anywhere }
     ]

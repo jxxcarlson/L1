@@ -13,6 +13,7 @@ module Parser.Config exposing
 
 import Dict exposing (Dict)
 import List.Extra
+import Maybe.Extra
 
 
 type alias Expectation =
@@ -79,32 +80,51 @@ lookup config c =
     Dict.get c config.expectationsDict
 
 
+firstChar : String -> Maybe Char
+firstChar str =
+    case String.uncons str of
+        Nothing ->
+            Nothing
+
+        Just ( c, _ ) ->
+            Just c
+
+
 configure : ConfigurationDefinition -> Configuration
 configure configDef =
     let
         beginChars =
-            List.map .beginSymbol configDef
+            List.map (.beginSymbol >> firstChar) configDef |> Maybe.Extra.values
 
         endChars =
-            List.map .endSymbol configDef |> List.map (\e -> Maybe.withDefault '0' e) |> List.filter (\c -> c /= '0')
+            List.map (.endSymbol >> Maybe.map firstChar) configDef |> Maybe.Extra.values
 
         interiorBeginChars =
-            List.map .beginSymbol (List.filter (\e -> e.markPosition == Anywhere) configDef)
+            List.map (.beginSymbol >> firstChar) (List.filter (\e -> e.markPosition == Anywhere) configDef)
+                |> Maybe.Extra.values
 
         interiorEndChars =
-            List.map .endSymbol (List.filter (\e -> e.markPosition == Anywhere) configDef)
-                |> List.map (\e -> Maybe.withDefault '0' e)
-                |> List.filter (\c -> c /= '0')
+            List.map (.endSymbol >> Maybe.map firstChar) (List.filter (\e -> e.markPosition == Anywhere) configDef)
+                |> Maybe.Extra.values
     in
-    { beginChars = beginChars
+    { beginSymbols = configDef |> List.map .beginSymbol
+    , endSymbols = configDef |> List.map .endSymbol |> Maybe.Extra.values
+    , beginChars = beginChars
     , interiorBeginChars = interiorBeginChars
-    , endChars = endChars
-    , interiorEndChars = interiorEndChars
-    , delimiters = beginChars |> List.Extra.unique
-    , interiorDelimiters = interiorBeginChars ++ interiorEndChars |> List.Extra.unique
-    , verbatimChars = List.filter (\def -> def.isVerbatim) configDef |> List.map .beginSymbol |> List.Extra.unique
-    , expectationsDict = Dict.fromList (List.map (\e -> ( e.beginSymbol, e )) configDef)
+    , endChars = endChars |> Maybe.Extra.values
+    , interiorEndChars = interiorEndChars |> Maybe.Extra.values
+    , delimiters = beginChars ++ (endChars |> Maybe.Extra.values) |> List.Extra.unique
+    , interiorDelimiters = interiorBeginChars ++ (interiorEndChars |> Maybe.Extra.values) |> List.Extra.unique
+    , verbatimChars = [] -- verbatimChars configDef
+    , expectationsDict = Dict.empty
     }
+
+
+
+--verbatimChars : List Configuration -> List Configuration
+--verbatimChars configDef =
+--    configDef |> List.filter (\e -> e.isVerbatim)
+--|> List.map firstChar
 
 
 notDelimiter : Configuration -> Int -> Char -> Bool

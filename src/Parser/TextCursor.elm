@@ -1,6 +1,6 @@
 module Parser.TextCursor exposing
     ( TextCursor, init
-    , ErrorStatus(..), ParseError, ScannerType(..), add, canPop, commit, empty, parseResult, pop, print, push, simpleStackItem
+    , ErrorStatus(..), ParseError, ScannerType(..), add, canPop, canPush, commit, empty, parseResult, pop, print, push, simpleStackItem
     )
 
 {-| TextCursor is the data structure used by Parser.parseLoop.
@@ -18,6 +18,7 @@ import Parser.MetaData as MetaData exposing (MetaData)
 import Parser.Utility
 import Render.Text
 import Utility.Console as Console
+import Utility.ParserTools as ParserTools
 import Utility.Utility
 
 
@@ -326,14 +327,14 @@ getParsed parse stackTop tc =
         txt =
             case stackTop.expect.endSymbol of
                 Nothing ->
-                    String.fromChar stackTop.expect.beginSymbol
+                    stackTop.expect.beginSymbol
                         ++ tc.text
                         |> parse
 
-                Just endChar ->
-                    String.fromChar stackTop.expect.beginSymbol
+                Just endSymbol ->
+                    stackTop.expect.beginSymbol
                         ++ tc.text
-                        ++ String.fromChar endChar
+                        ++ endSymbol
                         |> Utility.Utility.ifApply (tc.scannerType == NormalScan) parse Parser.Utility.makeText
     in
     txt :: tc.parsed
@@ -418,13 +419,13 @@ commit_ tc =
                                 parsed_ =
                                     parsed ++ [ Text top.content MetaData.dummy ]
                             in
-                            if top.expect.beginSymbol == '#' then
+                            if top.expect.beginSymbol == "#" then
                                 List.reverse tc.complete ++ [ Element (AST.Name "heading") (EList (List.reverse parsed_) MetaData.dummy) MetaData.dummy ]
 
                             else
                                 let
                                     errorMessage =
-                                        StackError top.offset tc.offset ("((unknown delimiter " ++ String.fromChar top.expect.beginSymbol ++ " at position " ++ String.fromInt top.offset ++ "))") (String.slice top.offset tc.offset tc.source)
+                                        StackError top.offset tc.offset ("((unknown delimiter " ++ top.expect.beginSymbol ++ " at position " ++ String.fromInt top.offset ++ "))") (String.slice top.offset tc.offset tc.source)
                                 in
                                 List.reverse tc.complete ++ [ errorMessage ]
 
@@ -432,7 +433,7 @@ commit_ tc =
                         Just _ ->
                             let
                                 errorMessage =
-                                    StackError top.offset tc.offset ("((unmatched delimiter " ++ String.fromChar top.expect.beginSymbol ++ " at position " ++ String.fromInt top.offset ++ "))") (String.slice top.offset tc.offset tc.source)
+                                    StackError top.offset tc.offset ("((unmatched delimiter " ++ top.expect.beginSymbol ++ " at position " ++ String.fromInt top.offset ++ "))") (String.slice top.offset tc.offset tc.source)
                             in
                             List.reverse tc.complete ++ [ errorMessage ]
             in
@@ -450,9 +451,16 @@ commit_ tc =
 -- PREDICATES
 
 
+{-| The parser has paused at charater c. If the prefix of the
+remaining source text that begins with character c what we expect?
+-}
 canPop : TextCursor -> Char -> Bool
 canPop tc c =
-    Just c == (List.head tc.stack |> Maybe.andThen (.expect >> .endSymbol))
+    Just (ParserTools.prefixWith c tc.remainingSource).content == (List.head tc.stack |> Maybe.andThen (.expect >> .endSymbol))
+
+
+canPush configuration tc c =
+    Parser.Config.isBeginChar configuration tc.offset c
 
 
 
@@ -518,7 +526,7 @@ printComplete cursor =
 
 printStackItem : StackItem -> String
 printStackItem item =
-    String.fromChar item.expect.beginSymbol
+    item.expect.beginSymbol
         ++ String.trim item.content
 
 

@@ -82,6 +82,9 @@ nextCursor packet cursor =
 
                     VerbatimScan c ->
                         advanceVerbatim2 c remaining
+
+            _ =
+                Debug.log "offset, chomped text" ( cursor.offset, chompedText )
         in
         if chompedText.finish - chompedText.start > 0 then
             -- the chompedText is non-void; add it to the cursor
@@ -100,11 +103,15 @@ nextCursor packet cursor =
 
 handleCharacterAtCursor : Packet Element -> Char -> TextCursor -> ParserTools.Step TextCursor TextCursor
 handleCharacterAtCursor packet c tc =
+    let
+        _ =
+            Debug.log "c, offset, canPush" { char = c, offset = tc.offset, canPush = TextCursor.canPush configuration tc c, canPop = TextCursor.canPop tc c }
+    in
     if TextCursor.canPop tc c then
         ParserTools.Loop <| TextCursor.pop packet.parser { tc | message = "POP" }
         --else
 
-    else if Parser.Config.isBeginChar configuration tc.offset c then
+    else if TextCursor.canPush configuration tc c then
         case Parser.Config.lookup configuration c of
             Nothing ->
                 ParserTools.Done tc
@@ -120,7 +127,7 @@ handleCharacterAtCursor packet c tc =
                 in
                 ParserTools.Loop <| TextCursor.push packet.parser expectation { tc | message = "PUSH", scannerType = scannerType }
 
-    else if Just c == (List.head tc.stack |> Maybe.andThen (.expect >> .endSymbol)) then
+    else if Just (ParserTools.prefixWith c tc.remainingSource).content == (List.head tc.stack |> Maybe.andThen (.expect >> .endSymbol)) then
         ParserTools.Loop <| TextCursor.pop packet.parser { tc | message = "POP", scannerType = NormalScan }
 
     else
