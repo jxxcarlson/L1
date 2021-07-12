@@ -457,16 +457,16 @@ remaining source text that begins with character c what we expect?
 canPop : Parser.Config.Configuration -> TextCursor -> String -> Bool
 canPop configuration tc prefix =
     let
-        result =
+        isEndSymbol =
             Parser.Config.isEndSymbol configuration tc.offset prefix
 
         _ =
-            Debug.log (blue <| "canPop (" ++ prefix ++ ")") result
+            Debug.log (blue <| "canPop (" ++ prefix ++ ")") isEndSymbol
     in
-    if result == True then
+    if isEndSymbol then
         True
 
-    else if result == False && String.length prefix > 1 then
+    else if String.length prefix > 1 then
         canPop configuration tc (String.dropLeft 1 prefix)
 
     else
