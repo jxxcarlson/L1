@@ -86,6 +86,12 @@ getText element =
         Text s _ ->
             s
 
+        Element _ list _ ->
+            getText list
+
+        EList list _ ->
+            List.map getText list |> String.join " "
+
         _ ->
             ""
 

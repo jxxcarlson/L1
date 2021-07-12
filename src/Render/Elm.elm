@@ -236,7 +236,32 @@ padLeft element =
 
 heading : FRender msg
 heading renderArgs name args body =
-    el [ Font.size 24 ] (render renderArgs body)
+    let
+        text =
+            getText body |> Maybe.withDefault "TITLE"
+
+        level =
+            text
+                |> String.words
+                |> List.filter (\s -> String.left 1 s == "#")
+                |> List.head
+                |> Maybe.withDefault ""
+                |> String.length
+                |> Debug.log "XX LEVEL"
+
+        prefix =
+            String.repeat level "#"
+
+        title =
+            String.replace prefix "" text
+
+        factor =
+            min 1.8 (sqrt (sqrt (toFloat level + 1)))
+
+        fontSize =
+            round (24 / factor)
+    in
+    el [ Font.size fontSize ] (E.text title)
 
 
 item : FRender msg

@@ -418,7 +418,15 @@ commit_ tc =
                                 parsed_ =
                                     parsed ++ [ Text top.content MetaData.dummy ]
                             in
-                            List.reverse tc.complete ++ [ Element (AST.Name "heading") (EList (List.reverse parsed_) MetaData.dummy) MetaData.dummy ]
+                            if top.expect.beginChar == '#' then
+                                List.reverse tc.complete ++ [ Element (AST.Name "heading") (EList (List.reverse parsed_) MetaData.dummy) MetaData.dummy ]
+
+                            else
+                                let
+                                    errorMessage =
+                                        StackError top.offset tc.offset ("((unknown delimiter " ++ String.fromChar top.expect.beginChar ++ " at position " ++ String.fromInt top.offset ++ "))") (String.slice top.offset tc.offset tc.source)
+                                in
+                                List.reverse tc.complete ++ [ errorMessage ]
 
                         -- Element (AST.Name "heading") (EList parsed MetaData.dummy) MetaData.dummy :: List.reverse tc.complete
                         Just _ ->
