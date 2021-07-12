@@ -118,9 +118,12 @@ handleDataAtCursor packet prefix tc =
 
             Just expectation ->
                 let
+                    _ =
+                        Debug.log "LOOP, expectation" expectation
+
                     scannerType =
                         if List.member expectation.etype [ CodeType, InlineMathType, QuotedType ] then
-                            VerbatimScan '`'
+                            VerbatimScan '$'
                             -- TODO: fix this (prefix)
 
                         else

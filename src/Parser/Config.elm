@@ -119,6 +119,9 @@ configure configDef =
         interiorEndSymbols =
             List.map .endSymbol (List.filter (\e -> e.markPosition == Anywhere) configDef)
                 |> Maybe.Extra.values
+
+        verbatimChars =
+            configDef |> List.filter (\d -> d.isVerbatim) |> List.map (.beginSymbol >> firstChar) |> Maybe.Extra.values
     in
     { beginSymbols = configDef |> List.map .beginSymbol
     , endSymbols = configDef |> List.map .endSymbol |> Maybe.Extra.values
@@ -130,12 +133,20 @@ configure configDef =
     , interiorEndSymbols = interiorEndSymbols
     , delimiters = beginChars ++ (endChars |> Maybe.Extra.values) |> List.Extra.unique
     , interiorDelimiters = interiorBeginChars ++ (interiorEndChars |> Maybe.Extra.values) |> List.Extra.unique
-    , verbatimChars = [] -- verbatimChars configDef
+    , verbatimChars = verbatimChars
     , expectationsDict = Dict.fromList (List.map (\e -> ( e.beginSymbol, e )) configDef)
     }
 
 
 
+--type alias Expectation =
+--    { beginSymbol : String
+--    , endSymbol : Maybe String
+--    , etype : EType
+--    , isVerbatim : Bool
+--    , markPosition : MarkPosition
+--    }
+--
 --verbatimChars : List Configuration -> List Configuration
 --verbatimChars configDef =
 --    configDef |> List.filter (\e -> e.isVerbatim)

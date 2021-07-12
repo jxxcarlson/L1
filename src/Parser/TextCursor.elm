@@ -502,11 +502,8 @@ printMessage cursor =
     (String.fromInt cursor.count |> String.padLeft 2 '.')
         ++ (cursor.message |> String.padLeft 5 '.')
         ++ " :: "
-
-
-
---++ (Debug.toString cursor.scannerType |> String.padLeft 12 '.')
---++ " :: "
+        ++ (Debug.toString cursor.scannerType |> String.padLeft 12 '.')
+        ++ " :: "
 
 
 printPreceding : TextCursor -> String
