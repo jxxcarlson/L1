@@ -424,7 +424,7 @@ commit_ tc =
                         Just _ ->
                             let
                                 errorMessage =
-                                    StackError top.offset tc.offset "((unmatched bracket))" (String.slice top.offset tc.offset tc.source)
+                                    StackError top.offset tc.offset ("((unmatched delimiter " ++ String.fromChar top.expect.beginChar ++ " at position " ++ String.fromInt top.offset ++ "))") (String.slice top.offset tc.offset tc.source)
                             in
                             List.reverse tc.complete ++ [ errorMessage ]
             in

@@ -1,7 +1,8 @@
 module Main exposing (..)
 
 import Browser
-import Data
+import Data.Article
+import Data.Example
 import Element exposing (..)
 import Element.Background as Background
 import Element.Font as Font
@@ -35,6 +36,7 @@ type Msg
     = NoOp
     | InputText String
     | ClearText
+    | LoadDocumentText String
 
 
 type alias Flags =
@@ -42,7 +44,7 @@ type alias Flags =
 
 
 initialText =
-    Data.initialText
+    Data.Example.text
 
 
 init : Flags -> ( Model, Cmd Msg )
@@ -104,6 +106,9 @@ update msg model =
             , Cmd.none
             )
 
+        LoadDocumentText text ->
+            ( { model | input = text }, Cmd.none )
+
 
 
 --
@@ -139,7 +144,7 @@ mainColumn model =
 
 inputElement model =
     column [ spacing 8, moveUp 9 ]
-        [ row [ spacing 12 ] [ clearTextButton ]
+        [ row [ spacing 12 ] [ exampleDocButton, articleButton, clearTextButton ]
         , inputText model
         ]
 
@@ -268,7 +273,23 @@ clearTextButton : Element Msg
 clearTextButton =
     Input.button buttonStyle2
         { onPress = Just ClearText
-        , label = el [ centerX, centerY, Font.size 14 ] (text "clear")
+        , label = el [ centerX, centerY, Font.size 14 ] (text "Clear")
+        }
+
+
+exampleDocButton : Element Msg
+exampleDocButton =
+    Input.button buttonStyle2
+        { onPress = Just (LoadDocumentText Data.Example.text)
+        , label = el [ centerX, centerY, Font.size 14 ] (text "Examples")
+        }
+
+
+articleButton : Element Msg
+articleButton =
+    Input.button buttonStyle2
+        { onPress = Just (LoadDocumentText Data.Article.text)
+        , label = el [ centerX, centerY, Font.size 14 ] (text "Article")
         }
 
 
@@ -336,6 +357,7 @@ buttonStyle2 =
     [ Font.color (rgb255 255 255 255)
     , Background.color (rgb255 0 0 180)
     , paddingXY 15 8
+    , mouseDown [ Background.color (rgb255 180 180 255) ]
     ]
 
 

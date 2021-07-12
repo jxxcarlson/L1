@@ -8,6 +8,8 @@ scripts:
 
   complexity: npx elm-review --template jfmengels/elm-review-cognitive-complexity/example --rules CognitiveComplexity
 
+  unused: npx elm-review --template jfmengels/elm-review-unused/example
+
   make: elm make  --optimize app/Main.elm --output=app/public/Main.js
 
   debug: elm make app/Main.elm --output=app/public/Main.js

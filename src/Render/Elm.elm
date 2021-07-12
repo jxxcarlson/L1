@@ -52,7 +52,7 @@ renderElementDict =
         , ( "gray", gray )
         , ( "code", code )
         , ( "quoted", quoted )
-        , ( "math2", renderMath2 )
+        , ( "math2", math2 )
         , ( "m", renderMath )
         , ( "mathblock", mathblock )
         , ( "mb", mathblock )
@@ -222,6 +222,16 @@ link renderArgs name args body =
         { url = url
         , label = el [ Font.color linkColor, Font.italic ] (text <| Utility.unquote label)
         }
+        |> padLeft
+
+
+padLeft : E.Element msg -> E.Element msg
+padLeft element =
+    E.paragraph [] [ text " ", element ]
+
+
+
+--    E.paddingEach { left = k, right = 0, top = 0, bottom = 0 }
 
 
 heading : FRender msg
@@ -310,8 +320,8 @@ renderMathDisplay2 rendArgs name args body =
     mathText rendArgs DisplayMathMode (getText2 body)
 
 
-renderMath2 : FRender msg
-renderMath2 renderArgs name args body =
+math2 : FRender msg
+math2 renderArgs name args body =
     mathText renderArgs InlineMathMode (getText2 body)
 
 
@@ -333,7 +343,7 @@ renderMath renderArgs name args body =
 mathText : RenderArgs -> DisplayMode -> String -> E.Element msg
 mathText renderArgs displayMode content =
     Html.Keyed.node "span"
-        []
+        [ HA.style "margin-left" "6px" ]
         [ ( String.fromInt renderArgs.generation, mathText_ displayMode renderArgs.selectedId content )
         ]
         |> E.html
