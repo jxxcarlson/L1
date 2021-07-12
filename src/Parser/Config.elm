@@ -58,7 +58,7 @@ name etype =
 
 
 type alias ExpectationsDict =
-    Dict Char (List Expectation)
+    Dict String Expectation
 
 
 type alias ConfigurationDefinition =
@@ -81,9 +81,9 @@ type alias Configuration =
     }
 
 
-lookup : Configuration -> Char -> List Expectation
-lookup config c =
-    Dict.get c config.expectationsDict |> Maybe.withDefault []
+lookup : Configuration -> String -> Maybe Expectation
+lookup config prefix =
+    Dict.get prefix config.expectationsDict
 
 
 firstChar : String -> Maybe Char
@@ -131,18 +131,8 @@ configure configDef =
     , delimiters = beginChars ++ (endChars |> Maybe.Extra.values) |> List.Extra.unique
     , interiorDelimiters = interiorBeginChars ++ (interiorEndChars |> Maybe.Extra.values) |> List.Extra.unique
     , verbatimChars = [] -- verbatimChars configDef
-    , expectationsDict = List.foldl (\e edict -> updateEDict e edict) Dict.empty configDef
+    , expectationsDict = Dict.fromList (List.map (\e -> ( e.beginSymbol, e )) configDef)
     }
-
-
-updateEDict : Expectation -> ExpectationsDict -> ExpectationsDict
-updateEDict expectation edict =
-    case firstChar expectation.beginSymbol of
-        Nothing ->
-            edict
-
-        Just c ->
-            Dict.update c (Utility.Utility.liftToMaybe (\v -> expectation :: v)) edict
 
 
 
