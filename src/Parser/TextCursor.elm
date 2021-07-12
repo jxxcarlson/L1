@@ -276,11 +276,30 @@ handleText parse stackTop tc =
                 args =
                     List.map (\a -> Text a MetaData.dummy) args_
 
+                parsed : List Element
                 parsed =
                     case stackTop.expect.etype of
                         ElementType ->
-                            handleFunction parse tc stackTop_ fname args
+                            let
+                                new =
+                                    handleFunction parse tc stackTop_ fname args
+                            in
+                            case ( List.head new, tc.text ) of
+                                ( Nothing, _ ) ->
+                                    new
 
+                                ( _, "" ) ->
+                                    new
+
+                                ( Just first_, text ) ->
+                                    --let
+                                    --    first =
+                                    --        AST.join first_ (parse text :: List.drop 1 new)
+                                    --in
+                                    [ AST.join first_ (List.drop 1 new ++ [ parse text ]) ]
+
+                        -- List.drop 1 new ++ [ first ]
+                        -- first :: List.drop 1 new
                         CodeType ->
                             [ Element (Name "code") (Text stackTop.content MetaData.dummy) MetaData.dummy ] ++ tc.parsed
 
@@ -289,9 +308,18 @@ handleText parse stackTop tc =
 
                         QuotedType ->
                             [ Text (Utility.Utility.unquote stackTop.content) MetaData.dummy ] ++ tc.parsed
+
+                _ =
+                    Debug.log (blue "handleText, tc.text") tc.text
+
+                _ =
+                    Debug.log (blue "handleText, tc.text parsed") (parse tc.text)
+
+                parsed2 =
+                    Debug.log (blue "handleText, parsed, SIMPLE") parsed |> List.map AST.simplify
             in
             { tc
-                | parsed = parsed |> Debug.log (magenta "handleEmptyText, parsed")
+                | parsed = parsed
 
                 --, complete = complete
                 , stack = List.drop 1 tc.stack
@@ -506,3 +534,8 @@ printStack items =
 magenta : String -> String
 magenta str =
     Console.magenta str
+
+
+blue : String -> String
+blue str =
+    Console.black str |> Console.bgCyan

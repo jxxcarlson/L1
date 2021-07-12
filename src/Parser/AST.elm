@@ -177,6 +177,16 @@ join el list =
             el
 
 
+join2 : Element -> List Element -> Element
+join2 el list =
+    case el of
+        Element name (EList list1 _) meta ->
+            Element name (EList (list1 ++ list) Parser.MetaData.dummy) meta
+
+        _ ->
+            el
+
+
 body : Element -> List Element
 body element =
     case element of

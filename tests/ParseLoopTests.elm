@@ -137,8 +137,15 @@ suite =
                     |> pl
                     |> Expect.equal
                         [ Element_ (Name "mathblock") (EList_ [ Text_ "\\int_0^1", Text_ "x^n", Text_ "dx", Text_ "=", Text_ "\\frac{1}{n+1}" ]) ]
+        , test "[x [y is [b not] good] stuff]" <|
+            \_ ->
+                "[x [y is [b not] good] stuff]"
+                    |> pl
+                    |> Expect.equal
+                        [ Element_ (Name "x") (EList_ [ Element_ (Name "y") (EList_ [ Text_ "is", Element_ (Name "b") (EList_ [ Text_ "not" ]), Text_ " good" ]), Text_ " stuff" ]) ]
         ]
 
 
 
---  [Element_ (Name "mathblock") (EList_ [Text_ "\\int_0^1",Text_ "x^n",Text_ "dx",Text_ "=",Text_ "\\frac{1}{n+1}"])]
+--  "[x [y is [b not] good] stuff]"
+-- [Element_ (Name "x") (EList_ [Element_ (Name "y") (EList_ [Text_ "is",Element_ (Name "b") (EList_ [Text_ "not"]),Text_ (" good")]),Text_ (" stuff")])]
