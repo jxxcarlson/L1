@@ -6,11 +6,16 @@ text =
 
 
 
-# Examples: the L1 Markup Language
+# The L1 Markup Language: Examples
+
+
+[image width:80 placement:left https://ichef.bbci.co.uk/news/976/cpsprodpb/4FB7/production/_116970402_a20-20sahas20barve20-20parrotbill_chavan.jpg]
+
+
+[image width:200 placement:left https://ichef.bbci.co.uk/news/976/cpsprodpb/4FB7/production/_116970402_a20-20sahas20barve20-20parrotbill_chavan.jpg]
 
 [image https://ichef.bbci.co.uk/news/976/cpsprodpb/4FB7/production/_116970402_a20-20sahas20barve20-20parrotbill_chavan.jpg]
 
-[image width:200 placement:left https://ichef.bbci.co.uk/news/976/cpsprodpb/4FB7/production/_116970402_a20-20sahas20barve20-20parrotbill_chavan.jpg]
 
 [b Errors.] Look at the examples below.  The text has errors, as noted in the rendered version.  We plan to have better error handling soon, as in Camperdown itself.
 
@@ -45,6 +50,8 @@ Below is a small assortment.   Compare the source and rendered text to see what 
 [item In class, we learned that]
 
 [mathblock \\int_0^1 x^n dx = \\frac{1}{n+1}]
+
+
 
 
 """
