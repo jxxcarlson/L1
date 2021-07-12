@@ -324,14 +324,14 @@ getParsed parse stackTop tc =
     --if True then
     let
         txt =
-            case stackTop.expect.expectedEndChar of
+            case stackTop.expect.endSymbol of
                 Nothing ->
-                    String.fromChar stackTop.expect.beginChar
+                    String.fromChar stackTop.expect.beginSymbol
                         ++ tc.text
                         |> parse
 
                 Just endChar ->
-                    String.fromChar stackTop.expect.beginChar
+                    String.fromChar stackTop.expect.beginSymbol
                         ++ tc.text
                         ++ String.fromChar endChar
                         |> Utility.Utility.ifApply (tc.scannerType == NormalScan) parse Parser.Utility.makeText
@@ -412,19 +412,19 @@ commit_ tc =
         top :: restOfStack ->
             let
                 complete_ =
-                    case top.expect.expectedEndChar of
+                    case top.expect.endSymbol of
                         Nothing ->
                             let
                                 parsed_ =
                                     parsed ++ [ Text top.content MetaData.dummy ]
                             in
-                            if top.expect.beginChar == '#' then
+                            if top.expect.beginSymbol == '#' then
                                 List.reverse tc.complete ++ [ Element (AST.Name "heading") (EList (List.reverse parsed_) MetaData.dummy) MetaData.dummy ]
 
                             else
                                 let
                                     errorMessage =
-                                        StackError top.offset tc.offset ("((unknown delimiter " ++ String.fromChar top.expect.beginChar ++ " at position " ++ String.fromInt top.offset ++ "))") (String.slice top.offset tc.offset tc.source)
+                                        StackError top.offset tc.offset ("((unknown delimiter " ++ String.fromChar top.expect.beginSymbol ++ " at position " ++ String.fromInt top.offset ++ "))") (String.slice top.offset tc.offset tc.source)
                                 in
                                 List.reverse tc.complete ++ [ errorMessage ]
 
@@ -432,7 +432,7 @@ commit_ tc =
                         Just _ ->
                             let
                                 errorMessage =
-                                    StackError top.offset tc.offset ("((unmatched delimiter " ++ String.fromChar top.expect.beginChar ++ " at position " ++ String.fromInt top.offset ++ "))") (String.slice top.offset tc.offset tc.source)
+                                    StackError top.offset tc.offset ("((unmatched delimiter " ++ String.fromChar top.expect.beginSymbol ++ " at position " ++ String.fromInt top.offset ++ "))") (String.slice top.offset tc.offset tc.source)
                             in
                             List.reverse tc.complete ++ [ errorMessage ]
             in
@@ -452,7 +452,7 @@ commit_ tc =
 
 canPop : TextCursor -> Char -> Bool
 canPop tc c =
-    Just c == (List.head tc.stack |> Maybe.andThen (.expect >> .expectedEndChar))
+    Just c == (List.head tc.stack |> Maybe.andThen (.expect >> .endSymbol))
 
 
 
@@ -518,7 +518,7 @@ printComplete cursor =
 
 printStackItem : StackItem -> String
 printStackItem item =
-    String.fromChar item.expect.beginChar
+    String.fromChar item.expect.beginSymbol
         ++ String.trim item.content
 
 

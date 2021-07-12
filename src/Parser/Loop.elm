@@ -120,7 +120,7 @@ handleCharacterAtCursor packet c tc =
                 in
                 ParserTools.Loop <| TextCursor.push packet.parser expectation { tc | message = "PUSH", scannerType = scannerType }
 
-    else if Just c == (List.head tc.stack |> Maybe.andThen (.expect >> .expectedEndChar)) then
+    else if Just c == (List.head tc.stack |> Maybe.andThen (.expect >> .endSymbol)) then
         ParserTools.Loop <| TextCursor.pop packet.parser { tc | message = "POP", scannerType = NormalScan }
 
     else
@@ -207,26 +207,6 @@ advance config position str =
 
         Err _ ->
             { content = "", finish = 0, start = 0 }
-
-
-
---advanceVerbatim : Configuration -> String -> ParserTools.StringData
---advanceVerbatim config str =
---    let
---        verbatimChars =
---            config.verbatimChars
---
---        predicate =
---            \c -> not (List.member c verbatimChars)
---    in
---    (case Parser.run (ParserTools.text predicate predicate) str of
---        Ok stringData ->
---            stringData |> Debug.log "!!! ADVANCE VERBATIM"
---
---        Err _ ->
---            { content = "", finish = 0, start = 0 }
---    )
---        |> Debug.log "ADVANCE VERBATIM"
 
 
 advanceVerbatim2 : Char -> String -> ParserTools.StringData
