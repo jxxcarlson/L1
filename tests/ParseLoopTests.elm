@@ -15,12 +15,11 @@ suite =
                 "foo"
                     |> pl
                     |> Expect.equal [ Text_ "foo" ]
-        , only <|
-            test "simple element" <|
-                \_ ->
-                    "[foo]"
-                        |> pl
-                        |> Expect.equal [ Element_ (Name "foo") (EList_ []) ]
+        , test "simple element" <|
+            \_ ->
+                "[foo]"
+                    |> pl
+                    |> Expect.equal [ Element_ (Name "foo") (EList_ []) ]
         , test "element with two interior pieces" <|
             \_ ->
                 "[i foo]"

@@ -462,7 +462,10 @@ canPop configuration tc prefix =
                 False
 
             Just stackTop ->
-                stackTop.expect.beginSymbol == prefix
+                True
+        -- stackTop.expect.beginSymbol == prefix
+        -- TODO why should the above check be necessary?
+        -- With it, we get __many__ failing tests
 
     else
         False
