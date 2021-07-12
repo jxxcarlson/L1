@@ -115,13 +115,12 @@ suite =
                     |> pl
                     |> Expect.equal
                         [ Element_ (Name "x") (EList_ [ Element_ (Name "i") (EList_ [ Text_ "a" ]), Text_ " ", Element_ (Name "j") (EList_ [ Text_ "b" ]) ]) ]
-        , skip <|
-            test "code" <|
-                \_ ->
-                    "`a[0] = 1`"
-                        |> pl
-                        |> Expect.equal
-                            [ Element_ (Name "code") (Text_ "a[0] = 1") ]
+        , test "code" <|
+            \_ ->
+                "`a[0] = 1`"
+                    |> pl
+                    |> Expect.equal
+                        [ Element_ (Name "code") (Text_ "a[0] = 1") ]
         , skip <|
             test "math" <|
                 \_ ->
@@ -129,25 +128,22 @@ suite =
                         |> pl
                         |> Expect.equal
                             [ Text_ "Pythagoras sez ", Element_ (Name "math2") (Text_ "a^2 + b^2 = c^2"), Text_ "." ]
-        , skip <|
-            test "chem-physics" <|
-                \_ ->
-                    "# Introduction to [red Chemistry] [blue Physics]"
-                        |> pl
-                        |> Expect.equal
-                            [ Element_ (Name "heading") (EList_ [ Text_ " Introduction to ", Element_ (Name "red") (EList_ [ Text_ "Chemistry" ]), Text_ " ", Element_ (Name "blue") (EList_ [ Text_ "Physics" ]) ]) ]
-        , skip <|
-            test "mathblock" <|
-                \_ ->
-                    "[mathblock \\int_0^1 x^n dx = \\frac{1}{n+1}]"
-                        |> pl
-                        |> Expect.equal
-                            [ Element_ (Name "mathblock") (EList_ [ Text_ "\\int_0^1", Text_ "x^n", Text_ "dx", Text_ "=", Text_ "\\frac{1}{n+1}" ]) ]
-        , skip <|
-            test "[x [y is [b not] good] stuff]" <|
-                \_ ->
-                    "[x [y is [b not] good] stuff]"
-                        |> pl
-                        |> Expect.equal
-                            [ Element_ (Name "x") (EList_ [ Element_ (Name "y") (EList_ [ Text_ "is", Element_ (Name "b") (EList_ [ Text_ "not" ]), Text_ " good" ]), Text_ " stuff" ]) ]
+        , test "chem-physics" <|
+            \_ ->
+                "# Introduction to [red Chemistry] [blue Physics]"
+                    |> pl
+                    |> Expect.equal
+                        [ Element_ (Name "heading") (EList_ [ Text_ " Introduction to ", Element_ (Name "red") (EList_ [ Text_ "Chemistry" ]), Text_ " ", Element_ (Name "blue") (EList_ [ Text_ "Physics" ]) ]) ]
+        , test "mathblock" <|
+            \_ ->
+                "[mathblock \\int_0^1 x^n dx = \\frac{1}{n+1}]"
+                    |> pl
+                    |> Expect.equal
+                        [ Element_ (Name "mathblock") (EList_ [ Text_ "\\int_0^1", Text_ "x^n", Text_ "dx", Text_ "=", Text_ "\\frac{1}{n+1}" ]) ]
+        , test "[x [y is [b not] good] stuff]" <|
+            \_ ->
+                "[x [y is [b not] good] stuff]"
+                    |> pl
+                    |> Expect.equal
+                        [ Element_ (Name "x") (EList_ [ Element_ (Name "y") (EList_ [ Text_ "is", Element_ (Name "b") (EList_ [ Text_ "not" ]), Text_ " good" ]), Text_ " stuff" ]) ]
         ]
