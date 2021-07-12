@@ -144,8 +144,3 @@ suite =
                     |> Expect.equal
                         [ Element_ (Name "x") (EList_ [ Element_ (Name "y") (EList_ [ Text_ "is", Element_ (Name "b") (EList_ [ Text_ "not" ]), Text_ " good" ]), Text_ " stuff" ]) ]
         ]
-
-
-
---  "[x [y is [b not] good] stuff]"
--- [Element_ (Name "x") (EList_ [Element_ (Name "y") (EList_ [Text_ "is",Element_ (Name "b") (EList_ [Text_ "not"]),Text_ (" good")]),Text_ (" stuff")])]

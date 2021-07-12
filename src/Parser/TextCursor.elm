@@ -178,10 +178,6 @@ addContentToStack str stack =
                 ( str, stack )
 
 
-
----- XXXX
-
-
 {-| A
 -}
 push : (String -> Element) -> Expectation -> TextCursor -> TextCursor
@@ -195,8 +191,6 @@ push parse expectation tc =
                     { expect = expectation, content = "", precedingText = [], count = tc.count, offset = tc.offset } :: tc.stack
 
                 Just stackTop ->
-                    -- (1) TODO: DANGER DELETING THIS !! { expect = expectation, content = tc.text, precedingText = [ tc.text ], count = tc.count, offset = tc.offset } :: tc.stack
-                    -- (2) TODO: ?? { expect = expectation, content = "", precedingText = [ tc.text ], count = tc.count, offset = tc.offset } :: tc.stack
                     { expect = expectation, content = "", precedingText = [ tc.text ], count = tc.count, offset = tc.offset } :: tc.stack
         , parsed =
             if tc.stack == [] then
@@ -292,14 +286,8 @@ handleText parse stackTop tc =
                                     new
 
                                 ( Just first_, text ) ->
-                                    --let
-                                    --    first =
-                                    --        AST.join first_ (parse text :: List.drop 1 new)
-                                    --in
                                     [ AST.join first_ (List.drop 1 new ++ [ parse text ]) ]
 
-                        -- List.drop 1 new ++ [ first ]
-                        -- first :: List.drop 1 new
                         CodeType ->
                             [ Element (Name "code") (Text stackTop.content MetaData.dummy) MetaData.dummy ] ++ tc.parsed
 
