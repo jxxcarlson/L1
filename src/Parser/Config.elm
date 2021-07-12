@@ -4,6 +4,7 @@ module Parser.Config exposing
     , Expectation
     , MarkPosition(..)
     , configure
+    , firstChar
     , isBeginChar
     , isBeginSymbol
     , isEndChar

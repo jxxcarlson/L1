@@ -387,7 +387,7 @@ handleFunction parse tc stackTop fname args =
 
 commit : TextCursor -> TextCursor
 commit tc =
-    tc |> commit_ |> (\tc2 -> { tc2 | complete = List.reverse tc2.complete })
+    tc |> commit_ |> (\tc2 -> { tc2 | complete = List.reverse tc2.complete }) |> Debug.log (magenta "COMMIT!!")
 
 
 commit_ : TextCursor -> TextCursor
@@ -473,7 +473,8 @@ canPop configuration tc prefix =
 
             Just stackTop ->
                 -- True
-                stackTop.expect.beginSymbol == prefix
+                --stackTop.expect.beginSymbol == prefix
+                True
         -- TODO why should the above check be necessary?
         -- With it, we get __many__ failing tests
 

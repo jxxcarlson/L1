@@ -123,7 +123,7 @@ handleDataAtCursor packet prefix tc =
 
                     scannerType =
                         if List.member expectation.etype [ CodeType, InlineMathType, QuotedType ] then
-                            VerbatimScan '$'
+                            VerbatimScan (expectation.beginSymbol |> Parser.Config.firstChar |> Maybe.withDefault '0')
                             -- TODO: fix this (prefix)
 
                         else
