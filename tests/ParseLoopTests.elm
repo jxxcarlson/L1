@@ -31,81 +31,70 @@ suite =
                     |> pl
                     --|> Expect.equal [Element_ (Name ("i ")) [] (Element_ (Name "b") [] (EList_ [Raw_ "foo"]))]
                     |> Expect.equal [ Element_ (Name "i") (EList_ [ Element_ (Name "b") (EList_ [ Text_ "foo" ]) ]) ]
-        , skip <|
-            test "simple element preceded by text" <|
-                \_ ->
-                    "abc [foo]"
-                        |> pl
-                        |> Expect.equal [ Text_ "abc ", Element_ (Name "foo") (EList_ []) ]
-        , skip <|
-            test "simple element preceded and followed by text" <|
-                \_ ->
-                    "abc [foo] def"
-                        |> pl
-                        |> Expect.equal [ Text_ "abc ", Element_ (Name "foo") (EList_ []), Text_ " def" ]
-        , skip <|
-            test "simple element preceded and followed by text (2)" <|
-                \_ ->
-                    "abc def [foo] ghi jkl [bar] mno pqr"
-                        |> pl
-                        |> Expect.equal
-                            [ Text_ "abc def ", Element_ (Name "foo") (EList_ []), Text_ " ghi jkl ", Element_ (Name "bar") (EList_ []), Text_ " mno pqr" ]
-        , skip <|
-            test "like a list" <|
-                \_ ->
-                    "[x [i a] [j b]]"
-                        |> pl
-                        |> Expect.equal
-                            [ Element_ (Name "x") (EList_ [ Element_ (Name "i") (EList_ [ Text_ "a" ]), Text_ " ", Element_ (Name "j") (EList_ [ Text_ "b" ]) ]) ]
-        , skip <|
-            test "like a list, but with preceding and following text" <|
-                \_ ->
-                    "abc [x [i a] [j b]] def"
-                        |> pl
-                        |> Expect.equal
-                            [ Text_ "abc ", Element_ (Name "x") (EList_ [ Element_ (Name "i") (EList_ [ Text_ "a" ]), Text_ " ", Element_ (Name "j") (EList_ [ Text_ "b" ]) ]), Text_ " def" ]
-        , skip <|
-            test "like a list, but with preceding and following text, including newlines" <|
-                \_ ->
-                    "abc\n [x [i a] [j b]] \n\ndef"
-                        |> pl
-                        |> Expect.equal
-                            [ Text_ "abc\n ", Element_ (Name "x") (EList_ [ Element_ (Name "i") (EList_ [ Text_ "a" ]), Text_ " ", Element_ (Name "j") (EList_ [ Text_ "b" ]) ]), Text_ " \n\ndef" ]
-        , skip <|
-            test "fontRGB (1)" <|
-                \_ ->
-                    "[fontRGB 255 0 255 foo bar]"
-                        |> pl
-                        |> Expect.equal
-                            [ Element_ (Name "fontRGB") (EList_ [ Text_ "255", Text_ "0", Text_ "255", Text_ "foo", Text_ "bar" ]) ]
-        , skip <|
-            test "fontRGB (2)" <|
-                \_ ->
-                    "[fontRGB 255 0 255 foo [b bar]]"
-                        |> pl
-                        |> Expect.equal
-                            [ Element_ (Name "fontRGB") (EList_ [ Text_ "255", Text_ "0", Text_ "255", Text_ "foo", Element_ (Name "b") (EList_ [ Text_ "bar" ]) ]) ]
-        , skip <|
-            test "fontRGB (3)" <|
-                \_ ->
-                    "[fontRGB 255 0 255 [i This text is in [b magenta]]]"
-                        |> pl
-                        |> Expect.equal
-                            [ Element_ (Name "fontRGB") (EList_ [ Text_ "255", Text_ "0", Text_ "255", Element_ (Name "i") (EList_ [ Text_ "This", Text_ "text", Text_ "is", Text_ "in" ]), Element_ (Name "b") (EList_ [ Text_ "magenta" ]) ]) ]
-        , skip <|
-            test "image" <|
-                \_ ->
-                    "[image caption:Camperdown https://upload.wikimedia.org/wikipedia/commons/2/20/Camperdown_Elm_Prospect_Park_Brooklyn.jpg]"
-                        |> pl
-                        |> Expect.equal
-                            [ Element_ (Name "image") (EList_ [ Text_ "caption:Camperdown", Text_ "https://upload.wikimedia.org/wikipedia/commons/2/20/Camperdown_Elm_Prospect_Park_Brooklyn.jpg" ]) ]
-        , skip <|
-            test "heading" <|
-                \_ ->
-                    "# Fault-Tolerant Parsing"
-                        |> pl
-                        |> Expect.equal
-                            [ Element_ (Name "heading") (EList_ [ Text_ " Fault-Tolerant Parsing" ]) ]
+        , test "simple element preceded by text" <|
+            \_ ->
+                "abc [foo]"
+                    |> pl
+                    |> Expect.equal [ Text_ "abc ", Element_ (Name "foo") (EList_ []) ]
+        , test "simple element preceded and followed by text" <|
+            \_ ->
+                "abc [foo] def"
+                    |> pl
+                    |> Expect.equal [ Text_ "abc ", Element_ (Name "foo") (EList_ []), Text_ " def" ]
+        , test "simple element preceded and followed by text (2)" <|
+            \_ ->
+                "abc def [foo] ghi jkl [bar] mno pqr"
+                    |> pl
+                    |> Expect.equal
+                        [ Text_ "abc def ", Element_ (Name "foo") (EList_ []), Text_ " ghi jkl ", Element_ (Name "bar") (EList_ []), Text_ " mno pqr" ]
+        , test "like a list" <|
+            \_ ->
+                "[x [i a] [j b]]"
+                    |> pl
+                    |> Expect.equal
+                        [ Element_ (Name "x") (EList_ [ Element_ (Name "i") (EList_ [ Text_ "a" ]), Text_ " ", Element_ (Name "j") (EList_ [ Text_ "b" ]) ]) ]
+        , test "like a list, but with preceding and following text" <|
+            \_ ->
+                "abc [x [i a] [j b]] def"
+                    |> pl
+                    |> Expect.equal
+                        [ Text_ "abc ", Element_ (Name "x") (EList_ [ Element_ (Name "i") (EList_ [ Text_ "a" ]), Text_ " ", Element_ (Name "j") (EList_ [ Text_ "b" ]) ]), Text_ " def" ]
+        , test "like a list, but with preceding and following text, including newlines" <|
+            \_ ->
+                "abc\n [x [i a] [j b]] \n\ndef"
+                    |> pl
+                    |> Expect.equal
+                        [ Text_ "abc\n ", Element_ (Name "x") (EList_ [ Element_ (Name "i") (EList_ [ Text_ "a" ]), Text_ " ", Element_ (Name "j") (EList_ [ Text_ "b" ]) ]), Text_ " \n\ndef" ]
+        , test "fontRGB (1)" <|
+            \_ ->
+                "[fontRGB 255 0 255 foo bar]"
+                    |> pl
+                    |> Expect.equal
+                        [ Element_ (Name "fontRGB") (EList_ [ Text_ "255", Text_ "0", Text_ "255", Text_ "foo", Text_ "bar" ]) ]
+        , test "fontRGB (2)" <|
+            \_ ->
+                "[fontRGB 255 0 255 foo [b bar]]"
+                    |> pl
+                    |> Expect.equal
+                        [ Element_ (Name "fontRGB") (EList_ [ Text_ "255", Text_ "0", Text_ "255", Text_ "foo", Element_ (Name "b") (EList_ [ Text_ "bar" ]) ]) ]
+        , test "fontRGB (3)" <|
+            \_ ->
+                "[fontRGB 255 0 255 [i This text is in [b magenta]]]"
+                    |> pl
+                    |> Expect.equal
+                        [ Element_ (Name "fontRGB") (EList_ [ Text_ "255", Text_ "0", Text_ "255", Element_ (Name "i") (EList_ [ Text_ "This", Text_ "text", Text_ "is", Text_ "in" ]), Element_ (Name "b") (EList_ [ Text_ "magenta" ]) ]) ]
+        , test "image" <|
+            \_ ->
+                "[image caption:Camperdown https://upload.wikimedia.org/wikipedia/commons/2/20/Camperdown_Elm_Prospect_Park_Brooklyn.jpg]"
+                    |> pl
+                    |> Expect.equal
+                        [ Element_ (Name "image") (EList_ [ Text_ "caption:Camperdown", Text_ "https://upload.wikimedia.org/wikipedia/commons/2/20/Camperdown_Elm_Prospect_Park_Brooklyn.jpg" ]) ]
+        , test "heading" <|
+            \_ ->
+                "# Fault-Tolerant Parsing"
+                    |> pl
+                    |> Expect.equal
+                        [ Element_ (Name "heading") (EList_ [ Text_ " Fault-Tolerant Parsing" ]) ]
         , skip <|
             test "link (1)" <|
                 \_ ->
@@ -120,13 +109,12 @@ suite =
                         |> pl
                         |> Expect.equal
                             [ Element_ (Name "link") (EList_ [ Text_ "Error recovery with parser combinators", Text_ "https://eyalkalderon.com/blog/nom-error-recovery/" ]) ]
-        , skip <|
-            test "[x [i a] [j b]]" <|
-                \_ ->
-                    "[x [i a] [j b]]"
-                        |> pl
-                        |> Expect.equal
-                            [ Element_ (Name "x") (EList_ [ Element_ (Name "i") (EList_ [ Text_ "a" ]), Text_ " ", Element_ (Name "j") (EList_ [ Text_ "b" ]) ]) ]
+        , test "[x [i a] [j b]]" <|
+            \_ ->
+                "[x [i a] [j b]]"
+                    |> pl
+                    |> Expect.equal
+                        [ Element_ (Name "x") (EList_ [ Element_ (Name "i") (EList_ [ Text_ "a" ]), Text_ " ", Element_ (Name "j") (EList_ [ Text_ "b" ]) ]) ]
         , skip <|
             test "code" <|
                 \_ ->
