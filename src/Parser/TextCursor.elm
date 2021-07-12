@@ -248,128 +248,11 @@ pop parse tc =
             { tc | count = tc.count + 1, offset = tc.offset + 1, scannerType = NormalScan }
 
         Just stackTop ->
-            if tc.text /= "" then
-                handleNonEmptyText parse stackTop tc
-
-            else
-                handleEmptyText parse stackTop tc
+            handleText parse stackTop tc
 
 
-handleNonEmptyText : (String -> Element) -> StackItem -> TextCursor -> TextCursor
-handleNonEmptyText parse stackTop tc =
-    -- cursor.text is nonempty.  We proceed as follows, where 'stackTop'
-    -- is the item on the top of the stack.
-    -- (a)
-    let
-        _ =
-            Debug.log (magenta "handleNonEmptyText") "!!!"
-
-        parsed : List Element
-        parsed =
-            let
-                parsed_ : List Element
-                parsed_ =
-                    getParsed parse stackTop tc |> Debug.log (magenta "handleNonEmptyText, parsed_")
-            in
-            case stackTop.expect.etype of
-                InlineMathType ->
-                    Element
-                        (Name "math")
-                        (EList (List.map (AST.map Utility.Utility.clipEnds) parsed_) MetaData.dummy)
-                        MetaData.dummy
-                        |> (\x -> [ x ])
-
-                CodeType ->
-                    Element
-                        (Name "code")
-                        (EList (List.map (AST.map Utility.Utility.clipEnds) parsed_) MetaData.dummy)
-                        MetaData.dummy
-                        |> (\x -> [ x ])
-
-                QuotedType ->
-                    parsed_ |> Debug.log (magenta "handleNonEmptyText, QuotedType")
-
-                _ ->
-                    parsed_
-
-        stack =
-            List.drop 1 tc.stack
-    in
-    if stack == [] then
-        { tc
-            | offset = tc.offset + 1
-            , count = tc.count + 1
-            , parsed = []
-            , stack = []
-            , complete = parsed ++ tc.complete
-            , text = ""
-            , scannerType = NormalScan
-        }
-
-    else
-        { tc
-            | offset = tc.offset + 1
-            , count = tc.count + 1
-            , parsed = parsed
-
-            -- , complete = parsed ++ tc.complete -- ++ List.map parse stackTop.precedingText
-            , stack = stack
-            , text = ""
-            , scannerType = NormalScan
-        }
-
-
-getParsed : (String -> Element) -> StackItem -> TextCursor -> List Element
-getParsed parse stackTop tc =
-    ---- if stackTop.content == "" then
-    --if True then
-    let
-        txt =
-            case stackTop.expect.expectedEndChar of
-                Nothing ->
-                    String.fromChar stackTop.expect.beginChar
-                        ++ tc.text
-                        |> parse
-
-                Just endChar ->
-                    String.fromChar stackTop.expect.beginChar
-                        ++ tc.text
-                        ++ String.fromChar endChar
-                        |> Utility.Utility.ifApply (tc.scannerType == NormalScan) parse Parser.Utility.makeText
-    in
-    txt :: tc.parsed
-
-
-
---
---else
---    let
---        _ =
---            Debug.log (magenta "getParsed BRANCH TWO, tc.text") tc.text
---
---        top =
---            case stackTop.expect.expectedEndChar of
---                Nothing ->
---                    String.fromChar stackTop.expect.beginChar
---                        ++ stackTop.content
---                        |> parse
---
---                Just endChar ->
---                    String.fromChar stackTop.expect.beginChar
---                        ++ stackTop.content
---                        ++ String.fromChar endChar
---                        |> parse
---
---        txt =
---            -- Text (tc.text ++ " ") MetaData.dummy
---            parse tc.text
---                |> Debug.log (magenta "getParsed, BRANCH TWO, txt")
---    in
---    [ AST.join top (List.reverse <| txt :: tc.parsed) ] |> Debug.log (magenta "getParsed, BRANCH 2")
-
-
-handleEmptyText : (String -> Element) -> StackItem -> TextCursor -> TextCursor
-handleEmptyText parse stackTop tc =
+handleText : (String -> Element) -> StackItem -> TextCursor -> TextCursor
+handleText parse stackTop tc =
     let
         _ =
             Debug.log (magenta "handleEMPTYText") tc.scannerType
@@ -417,6 +300,27 @@ handleEmptyText parse stackTop tc =
                 , text = ""
                 , scannerType = NormalScan
             }
+
+
+getParsed : (String -> Element) -> StackItem -> TextCursor -> List Element
+getParsed parse stackTop tc =
+    ---- if stackTop.content == "" then
+    --if True then
+    let
+        txt =
+            case stackTop.expect.expectedEndChar of
+                Nothing ->
+                    String.fromChar stackTop.expect.beginChar
+                        ++ tc.text
+                        |> parse
+
+                Just endChar ->
+                    String.fromChar stackTop.expect.beginChar
+                        ++ tc.text
+                        ++ String.fromChar endChar
+                        |> Utility.Utility.ifApply (tc.scannerType == NormalScan) parse Parser.Utility.makeText
+    in
+    txt :: tc.parsed
 
 
 handleFunction : (String -> Element) -> TextCursor -> StackItem -> String -> List Element -> List Element

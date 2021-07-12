@@ -1,7 +1,7 @@
 module Data exposing (initialText)
 
 
-initialText =
+stuff =
     """
 
 
@@ -58,7 +58,7 @@ All parsers do their work by scanning from left to right.
 """
 
 
-stuff =
+initialText =
     """
 
 # Introduction to [red Chemistry] and Physics
