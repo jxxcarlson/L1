@@ -26,7 +26,7 @@ import Utility.Utility
 type alias TextCursor =
     { count : Int
     , generation : Int
-    , offset : Int
+    , scanPoint : Int
     , length : Int
 
     --
@@ -70,7 +70,7 @@ empty : TextCursor
 empty =
     { count = 0
     , generation = 0
-    , offset = 0
+    , scanPoint = 0
     , length = 0
 
     --
@@ -90,7 +90,7 @@ init : Int -> String -> TextCursor
 init generation source =
     { count = 0
     , generation = generation
-    , offset = 0
+    , scanPoint = 0
     , length = String.length source
 
     --
@@ -139,7 +139,7 @@ add1 str tc =
 
                     else
                         tc.stack
-        , offset = tc.offset + String.length str
+        , scanPoint = tc.scanPoint + String.length str
     }
 
 
@@ -157,7 +157,7 @@ add str tc =
         | count = tc.count + 1
         , text = stringToAdd ++ tc.text
         , stack = newStack
-        , offset = tc.offset + String.length str
+        , scanPoint = tc.scanPoint + String.length str
     }
 
 
@@ -181,14 +181,14 @@ push : (String -> Element) -> Expectation -> TextCursor -> TextCursor
 push parse expectation tc =
     { tc
         | count = tc.count + 1
-        , offset = tc.offset + 1
+        , scanPoint = tc.scanPoint + 1
         , stack =
             case List.head tc.stack of
                 Nothing ->
-                    { expect = expectation, content = "", precedingText = [], count = tc.count, offset = tc.offset } :: tc.stack
+                    { expect = expectation, content = "", precedingText = [], count = tc.count, offset = tc.scanPoint } :: tc.stack
 
                 Just stackTop ->
-                    { expect = expectation, content = "", precedingText = [ tc.text ], count = tc.count, offset = tc.offset } :: tc.stack
+                    { expect = expectation, content = "", precedingText = [ tc.text ], count = tc.count, offset = tc.scanPoint } :: tc.stack
         , parsed =
             if tc.stack == [] then
                 []
@@ -221,10 +221,10 @@ updateForPush parse tc expectation =
                 else
                     parse tc.text :: tc.parsed ++ tc.complete
         in
-        ( complete, { expect = expectation, content = "", precedingText = [], count = tc.count, offset = tc.offset } :: tc.stack )
+        ( complete, { expect = expectation, content = "", precedingText = [], count = tc.count, offset = tc.scanPoint } :: tc.stack )
 
     else
-        ( tc.parsed ++ tc.complete, { expect = expectation, content = tc.text, precedingText = [], count = tc.count, offset = tc.offset } :: tc.stack )
+        ( tc.parsed ++ tc.complete, { expect = expectation, content = tc.text, precedingText = [], count = tc.count, offset = tc.scanPoint } :: tc.stack )
 
 
 pop : (String -> Element) -> TextCursor -> TextCursor
@@ -236,7 +236,7 @@ pop parse tc =
     -- two case, depending on whether cursor.text is empty.
     case List.head tc.stack of
         Nothing ->
-            { tc | count = tc.count + 1, offset = tc.offset + 1, scannerType = NormalScan }
+            { tc | count = tc.count + 1, scanPoint = tc.scanPoint + 1, scannerType = NormalScan }
 
         Just stackTop ->
             handleText parse stackTop tc
@@ -250,7 +250,7 @@ handleText parse stackTop tc =
     in
     case List.head tc.stack of
         Nothing ->
-            { tc | count = tc.count + 1, offset = tc.offset + 1 }
+            { tc | count = tc.count + 1, scanPoint = tc.scanPoint + 1 }
 
         Just stackTop_ ->
             let
@@ -308,7 +308,7 @@ handleText parse stackTop tc =
 
                 --, complete = complete
                 , stack = List.drop 1 tc.stack
-                , offset = tc.offset + 1
+                , scanPoint = tc.scanPoint + 1
                 , count = tc.count + 1
                 , text = ""
                 , scannerType = NormalScan
@@ -421,7 +421,7 @@ commit_ tc =
                             else
                                 let
                                     errorMessage =
-                                        StackError top.offset tc.offset ("((unknown delimiter " ++ String.fromChar top.expect.beginChar ++ " at position " ++ String.fromInt top.offset ++ "))") (String.slice top.offset tc.offset tc.source)
+                                        StackError top.offset tc.scanPoint ("((unknown delimiter " ++ String.fromChar top.expect.beginChar ++ " at position " ++ String.fromInt top.offset ++ "))") (String.slice top.offset tc.scanPoint tc.source)
                                 in
                                 List.reverse tc.complete ++ [ errorMessage ]
 
@@ -429,7 +429,7 @@ commit_ tc =
                         Just _ ->
                             let
                                 errorMessage =
-                                    StackError top.offset tc.offset ("((unmatched delimiter " ++ String.fromChar top.expect.beginChar ++ " at position " ++ String.fromInt top.offset ++ "))") (String.slice top.offset tc.offset tc.source)
+                                    StackError top.offset tc.scanPoint ("((unmatched delimiter " ++ String.fromChar top.expect.beginChar ++ " at position " ++ String.fromInt top.offset ++ "))") (String.slice top.offset tc.scanPoint tc.source)
                             in
                             List.reverse tc.complete ++ [ errorMessage ]
             in

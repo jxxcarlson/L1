@@ -64,21 +64,21 @@ nextCursor packet cursor =
         _ =
             Debug.log (TextCursor.print cursor) ""
     in
-    if cursor.offset >= cursor.length then
+    if cursor.scanPoint >= cursor.length then
         ParserTools.Done cursor
 
     else
         let
             remaining =
-                -- offset has been updated, so remaining should be also
-                String.dropLeft cursor.offset cursor.source
+                -- remaining is the source text from the scanPoint onwards
+                String.dropLeft cursor.scanPoint cursor.source
 
             chompedText =
                 -- get some more text
                 -- this means text from one mark to the next
                 case cursor.scannerType of
                     NormalScan ->
-                        advance configuration cursor.offset remaining
+                        advance configuration cursor.scanPoint remaining
 
                     VerbatimScan c ->
                         advanceVerbatim2 c remaining
@@ -95,16 +95,16 @@ nextCursor packet cursor =
                     ParserTools.Done cursor
 
                 Just c ->
-                    handleCharacterAtCursor packet c cursor
+                    handleCursorAtScanPoint packet c cursor
 
 
-handleCharacterAtCursor : Packet Element -> Char -> TextCursor -> ParserTools.Step TextCursor TextCursor
-handleCharacterAtCursor packet c tc =
+handleCursorAtScanPoint : Packet Element -> Char -> TextCursor -> ParserTools.Step TextCursor TextCursor
+handleCursorAtScanPoint packet c tc =
     if TextCursor.canPop tc c then
         ParserTools.Loop <| TextCursor.pop packet.parser { tc | message = "POP" }
         --else
 
-    else if Parser.Config.isBeginChar configuration tc.offset c then
+    else if Parser.Config.isBeginChar configuration tc.scanPoint c then
         case Parser.Config.lookup configuration c of
             Nothing ->
                 ParserTools.Done tc
