@@ -500,12 +500,12 @@ print : TextCursor -> String
 print cursor =
     (printMessage cursor
         ++ printComplete cursor
-        ++ printStack cursor.stack
         ++ printCursorText cursor
         ++ printPreceding cursor
         ++ printParsed cursor
         ++ printCaret
         ++ printRemaining cursor
+        ++ printStack cursor.stack
     )
         |> Utility.Utility.normalize
         |> String.replace "[ " "["
@@ -527,7 +527,7 @@ printPreceding cursor =
             " " |> Console.blue |> Console.bgWhite
 
         Just stackTop ->
-            " " ++ Debug.toString stackTop.precedingText ++ " " |> Console.blue |> Console.bgWhite
+            " " ++ (List.filter (\s -> s /= "") stackTop.precedingText |> String.join "") ++ " " |> Console.blue |> Console.bgWhite
 
 
 printCaret =
@@ -535,7 +535,7 @@ printCaret =
 
 
 printRemaining cursor =
-    String.dropLeft cursor.scanPoint cursor.source |> Console.black |> Console.bgGreen
+    String.dropLeft cursor.scanPoint cursor.source ++ " " |> Console.black |> Console.bgGreen
 
 
 printCursorText cursor =
@@ -558,7 +558,7 @@ printStackItem item =
 
 printStack : List StackItem -> String
 printStack items =
-    List.map printStackItem (List.reverse items) |> String.join " " |> String.trim |> Console.bgMagenta |> Console.black
+    " " ++ (List.map printStackItem (List.reverse items) |> String.join " ") |> Console.bgMagenta |> Console.black
 
 
 magenta : String -> String
