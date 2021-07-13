@@ -6,7 +6,6 @@ module Parser.TextCursor exposing
       , canPop
       , canPush
       , commit
-      , parseResult
       , pop
       , push
       , simpleStackItem
@@ -55,19 +54,17 @@ type alias StackItem =
     { expect : Expectation, content : String, precedingText : List String, count : Int, scanPoint : Int }
 
 
-parseResult : TextCursor -> List Element
-parseResult t =
-    t.parsed
-
-
 {-| initialize with source text
 -}
 init : Int -> String -> TextCursor
 init generation source =
     { count = 0
     , generation = generation
+
+    --
     , scanPoint = 0
     , length = String.length source
+    , scannerType = NormalScan
 
     --
     , source = source
@@ -75,7 +72,8 @@ init generation source =
     , parsed = []
     , complete = []
     , stack = []
-    , scannerType = NormalScan
+
+    --
     , message = "STAR"
     }
 
@@ -348,7 +346,7 @@ handleError tc top =
         ++ [ Element (Name "error") (Text (" unmatched " ++ top.expect.beginSymbol ++ " ") MetaData.dummy) MetaData.dummy
            , Text top.content MetaData.dummy
            ]
-        ++ tc.parsed
+        ++ List.reverse tc.parsed
         ++ [ Text tc.text MetaData.dummy ]
 
 

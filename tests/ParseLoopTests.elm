@@ -149,9 +149,15 @@ suite =
                     |> pl
                     |> Expect.equal
                         [ Element_ (Name "item") (Text_ "this is stuff") ]
+        , test "[red [b [i foo]] [strike This is a test.]" <|
+            \_ ->
+                "[red [b [i foo]] [strike This is a test.]"
+                    |> pl
+                    |> Expect.equal
+                        [ Element_ (Name "error") (Text_ " unmatched [ "), Text_ "red ", Element_ (Name "b") (EList_ [ Element_ (Name "i") (EList_ [ Text_ "foo" ]) ]), Text_ " ", Element_ (Name "strike") (EList_ [ Text_ "This", Text_ "is", Text_ "a", Text_ "test." ]), Text_ "" ]
         ]
 
 
 
--- ":item this is stuff"
--- [Element_ (Name "item") (Text_ ("this is stuff"))]
+-- "[red [b [i foo]] [strike This is a test.]
+-- [Element_ (Name "error") (Text_ (" unmatched [ ")),Text_ ("red "),Element_ (Name "b") (EList_ [Element_ (Name "i") (EList_ [Text_ "foo"])]),Text_ (" "),Element_ (Name "strike") (EList_ [Text_ "This",Text_ "is",Text_ "a",Text_ "test."]),Text_ ""]
