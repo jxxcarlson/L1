@@ -452,9 +452,14 @@ canPop tc c =
     Just c == (List.head tc.stack |> Maybe.andThen (.expect >> .expectedEndChar))
 
 
-canPush : TextCursor -> Char -> Bool
-canPush tc c =
+canPushBad : TextCursor -> Char -> Bool
+canPushBad tc c =
     Just c == (List.head tc.stack |> Maybe.map (.expect >> .beginChar))
+
+
+canPush : Parser.Config.Configuration -> TextCursor -> Char -> Bool
+canPush configuration tc c =
+    Parser.Config.isBeginChar configuration tc.scanPoint c
 
 
 

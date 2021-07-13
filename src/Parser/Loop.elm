@@ -104,7 +104,7 @@ handleCursorAtScanPoint packet c tc =
         ParserTools.Loop <| TextCursor.pop packet.parser { tc | message = "POP" }
         --else
 
-    else if Parser.Config.isBeginChar configuration tc.scanPoint c then
+    else if TextCursor.canPush configuration tc c then
         case Parser.Config.lookup configuration c of
             Nothing ->
                 ParserTools.Done tc
@@ -120,7 +120,7 @@ handleCursorAtScanPoint packet c tc =
                 in
                 ParserTools.Loop <| TextCursor.push packet.parser expectation { tc | message = "PUSH", scannerType = scannerType }
 
-    else if Just c == (List.head tc.stack |> Maybe.andThen (.expect >> .expectedEndChar)) then
+    else if TextCursor.canPop tc c then
         ParserTools.Loop <| TextCursor.pop packet.parser { tc | message = "POP", scannerType = NormalScan }
 
     else
