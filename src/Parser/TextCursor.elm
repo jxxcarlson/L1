@@ -1,6 +1,6 @@
 module Parser.TextCursor exposing
     ( TextCursor, init
-    , ErrorStatus(..), ParseError, ScannerType(..), add, canPop, commit, empty, parseResult, pop, print, push, simpleStackItem
+    , ErrorStatus(..), ParseError, ScannerType(..), add, canPop, canPush, commit, empty, parseResult, pop, print, push, simpleStackItem
     )
 
 {-| TextCursor is the data structure used by Parser.parseLoop.
@@ -452,6 +452,11 @@ canPop tc c =
     Just c == (List.head tc.stack |> Maybe.andThen (.expect >> .expectedEndChar))
 
 
+canPush : TextCursor -> Char -> Bool
+canPush tc c =
+    Just c == (List.head tc.stack |> Maybe.map (.expect >> .beginChar))
+
+
 
 -- PRINT
 
@@ -498,7 +503,7 @@ printCaret =
 
 
 printRemaining cursor =
-    String.dropLeft cursor.offset cursor.source |> Console.black |> Console.bgGreen
+    String.dropLeft cursor.scanPoint cursor.source |> Console.black |> Console.bgGreen
 
 
 printCursorText cursor =
