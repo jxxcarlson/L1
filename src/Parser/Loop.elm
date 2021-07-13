@@ -80,9 +80,6 @@ nextCursor packet cursor =
 
                     VerbatimScan c ->
                         advanceVerbatim c remaining
-
-            _ =
-                Debug.log "scanPoint, chomped text" ( cursor.scanPoint, chompedText )
         in
         if chompedText.finish - chompedText.start > 0 then
             -- the chompedText is non-void; add it to the cursor
@@ -111,9 +108,6 @@ handleCursorAtScanPoint packet prefix tc =
 
             Just expectation ->
                 let
-                    _ =
-                        Debug.log "LOOP, expectation" expectation
-
                     scannerType =
                         if List.member expectation.etype [ CodeType, InlineMathType, QuotedType ] then
                             VerbatimScan (expectation.beginSymbol |> Parser.Config.firstChar |> Maybe.withDefault '0')

@@ -17,8 +17,6 @@ module Parser.Config exposing
 import Dict exposing (Dict)
 import List.Extra
 import Maybe.Extra
-import Set exposing (Set)
-import Utility.Utility
 
 
 type alias Expectation =

@@ -1,6 +1,7 @@
 module Utility.Utility exposing
     ( clipEnds
     , commaSeparatedToList
+    , dropWords
     , entities
     , ifApply
     , keyValueDict
@@ -129,3 +130,8 @@ liftToMaybe f =
 
 mapTriple f ( a, b, c ) =
     ( f a, f b, f c )
+
+
+dropWords : Int -> String -> String
+dropWords k str =
+    str |> String.words |> List.drop k |> String.join " "

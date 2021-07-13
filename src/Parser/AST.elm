@@ -5,6 +5,7 @@ module Parser.AST exposing
     , body
     , body_
     , getText
+    , indexedMap
     , join
     , joinText
     , length
@@ -219,8 +220,19 @@ map f element =
         Text s meta ->
             Text (f s) meta
 
+        Element name body__ meta ->
+            Element name (map f body__) meta
+
+        EList items meta ->
+            EList (List.map (map f) items) meta
+
         _ ->
             element
+
+
+indexedMap : (Int -> String -> String) -> List Element -> List Element
+indexedMap f list =
+    List.indexedMap (\k el -> map (f k) el) list
 
 
 joinText : List Element -> String

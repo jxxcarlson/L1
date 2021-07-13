@@ -202,10 +202,10 @@ push parse expectation tc =
                     []
 
                 else
-                    Text tc.text MetaData.dummy :: tc.parsed ++ tc.complete |> Debug.log (magenta "PUSH, complete (1)")
+                    Text tc.text MetaData.dummy :: tc.parsed ++ tc.complete
 
             else
-                Debug.log (magenta "PUSH complete (2)") tc.complete
+                tc.complete
         , text = ""
     }
 
@@ -244,25 +244,17 @@ pop parse tc =
 
 handleText : (String -> Element) -> StackItem -> TextCursor -> TextCursor
 handleText parse stackTop tc =
-    let
-        _ =
-            Debug.log (magenta "handleEMPTYText") tc.scannerType
-    in
     case List.head tc.stack of
         Nothing ->
             { tc | count = tc.count + 1, scanPoint = tc.scanPoint + 1 }
 
         Just stackTop_ ->
             let
-                _ =
-                    Debug.log (magenta "stackTop.expect.etype   ") stackTop.expect.etype
-
                 ( fname, args_ ) =
                     stackTop_.content
                         |> String.words
                         |> List.Extra.uncons
                         |> Maybe.withDefault ( "fname", [] )
-                        |> Debug.log (magenta " ( fname, args_ ) ")
 
                 args =
                     List.map (\a -> Text a MetaData.dummy) args_
@@ -293,15 +285,6 @@ handleText parse stackTop tc =
 
                         QuotedType ->
                             [ Text (Utility.Utility.unquote stackTop.content) MetaData.dummy ] ++ tc.parsed
-
-                _ =
-                    Debug.log (blue "handleText, tc.text") tc.text
-
-                _ =
-                    Debug.log (blue "handleText, tc.text parsed") (parse tc.text)
-
-                parsed2 =
-                    Debug.log (blue "handleText, parsed, SIMPLE") parsed |> List.map AST.simplify
             in
             { tc
                 | parsed = parsed
@@ -350,40 +333,23 @@ handleFunction parse tc stackTop fname args =
             [ EList (args ++ List.reverse tc.parsed) MetaData.dummy ]
 
     else if args == [] then
-        let
-            _ =
-                Debug.log (magenta "handleFunction") "A"
-        in
         [ Element (AST.Name fname)
             (EList (List.reverse tc.parsed) MetaData.dummy)
             MetaData.dummy
         ]
 
-    else
-        let
-            _ =
-                Debug.log (magenta "handleFunction") "B"
-        in
-        if stackTop.precedingText /= [] then
-            let
-                _ =
-                    Debug.log (magenta "handleFunction") "B1"
-            in
-            [ Element (AST.Name fname) (EList args MetaData.dummy) MetaData.dummy ]
-                ++ List.map parse (List.filter (\s -> s /= "") stackTop.precedingText)
-                ++ tc.parsed
+    else if stackTop.precedingText /= [] then
+        [ Element (AST.Name fname) (EList args MetaData.dummy) MetaData.dummy ]
+            ++ List.map parse (List.filter (\s -> s /= "") stackTop.precedingText)
+            ++ tc.parsed
 
-        else
-            let
-                _ =
-                    Debug.log (magenta "handleFunction") "B2"
-            in
-            [ AST.join (Element (AST.Name fname) (EList args MetaData.dummy) MetaData.dummy) tc.parsed ]
+    else
+        [ AST.join (Element (AST.Name fname) (EList args MetaData.dummy) MetaData.dummy) tc.parsed ]
 
 
 commit : TextCursor -> TextCursor
 commit tc =
-    tc |> commit_ |> (\tc2 -> { tc2 | complete = List.reverse tc2.complete }) |> Debug.log (magenta "COMMIT!!")
+    tc |> commit_ |> (\tc2 -> { tc2 | complete = List.reverse tc2.complete })
 
 
 commit_ : TextCursor -> TextCursor
@@ -395,9 +361,6 @@ commit_ tc =
 
             else
                 AST.Text tc.text MetaData.dummy :: tc.parsed
-
-        _ =
-            Debug.log (magenta "commit_, parsed") (parsed |> List.map AST.simplify)
 
         complete =
             parsed ++ tc.complete
@@ -418,6 +381,22 @@ commit_ tc =
                             if top.expect.beginSymbol == "#" then
                                 List.reverse tc.complete ++ [ Element (AST.Name "heading") (EList (List.reverse parsed_) MetaData.dummy) MetaData.dummy ]
 
+                            else if top.expect.beginSymbol == "##" then
+                                List.reverse tc.complete ++ [ Element (AST.Name "heading") (EList (List.reverse parsed_) MetaData.dummy) MetaData.dummy ]
+
+                            else if top.expect.beginSymbol == "###" then
+                                List.reverse tc.complete ++ [ Element (AST.Name "heading") (EList (List.reverse parsed_) MetaData.dummy) MetaData.dummy ]
+
+                            else if top.expect.beginSymbol == "####" then
+                                List.reverse tc.complete ++ [ Element (AST.Name "heading") (EList (List.reverse parsed_) MetaData.dummy) MetaData.dummy ]
+
+                            else if top.expect.beginSymbol == ":" then
+                                let
+                                    body =
+                                        AST.indexedMap dropFirstWord (List.reverse parsed_)
+                                in
+                                List.reverse tc.complete ++ [ Element (AST.Name "item") (EList body MetaData.dummy) MetaData.dummy ]
+
                             else
                                 let
                                     errorMessage =
@@ -425,7 +404,6 @@ commit_ tc =
                                 in
                                 List.reverse tc.complete ++ [ errorMessage ]
 
-                        -- Element (AST.Name "heading") (EList parsed MetaData.dummy) MetaData.dummy :: List.reverse tc.complete
                         Just _ ->
                             let
                                 errorMessage =
@@ -444,6 +422,19 @@ commit_ tc =
 
 
 
+-- HELPERS
+
+
+dropFirstWord : Int -> String -> String
+dropFirstWord k str =
+    if k == 0 then
+        Utility.Utility.dropWords 1 str
+
+    else
+        str
+
+
+
 -- PREDICATES
 
 
@@ -452,16 +443,6 @@ remaining source text that begins with character c what we expect?
 -}
 canPop : Parser.Config.Configuration -> TextCursor -> String -> Bool
 canPop configuration tc prefix =
-    let
-        _ =
-            Debug.log (magenta "canPop, prefix") prefix
-
-        _ =
-            Debug.log (magenta "canPop, TC, stackTop") (tc.stack |> List.head)
-
-        _ =
-            Debug.log (blue "scanPoint, remaining") ( tc.scanPoint, tc.source )
-    in
     if canPopPrecondition configuration tc prefix then
         case List.head tc.stack of
             Nothing ->
@@ -483,9 +464,6 @@ canPopPrecondition configuration tc prefix =
     let
         isEndSymbol =
             Parser.Config.isEndSymbol configuration tc.scanPoint prefix
-
-        _ =
-            Debug.log (blue <| "canPop Pre (" ++ prefix ++ ")") isEndSymbol
     in
     if isEndSymbol then
         True
