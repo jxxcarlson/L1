@@ -38,8 +38,8 @@ parseLoop packet generation str =
                 |> TextCursor.commit
                 |> (\tc_ -> { tc_ | message = "COMM" })
 
-        _ =
-            Debug.log (Parser.Print.print result) "-"
+        --_ =
+        --    Debug.log (Parser.Print.print result) "-"
     in
     result
 
