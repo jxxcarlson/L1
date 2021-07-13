@@ -81,7 +81,7 @@ nextCursor packet cursor =
                         advance configuration cursor.scanPoint remaining
 
                     VerbatimScan c ->
-                        advanceVerbatim2 c remaining
+                        advanceVerbatim c remaining
         in
         if chompedText.finish - chompedText.start > 0 then
             -- the chompedText is non-void; add it to the cursor
@@ -101,8 +101,7 @@ nextCursor packet cursor =
 handleCursorAtScanPoint : Packet Element -> Char -> TextCursor -> ParserTools.Step TextCursor TextCursor
 handleCursorAtScanPoint packet c tc =
     if TextCursor.canPop tc c then
-        ParserTools.Loop <| TextCursor.pop packet.parser { tc | message = "POP" }
-        --else
+        ParserTools.Loop <| TextCursor.pop packet.parser { tc | message = "POP", scannerType = NormalScan }
 
     else if TextCursor.canPush configuration tc c then
         case Parser.Config.lookup configuration c of
@@ -119,9 +118,6 @@ handleCursorAtScanPoint packet c tc =
                             NormalScan
                 in
                 ParserTools.Loop <| TextCursor.push packet.parser expectation { tc | message = "PUSH", scannerType = scannerType }
-
-    else if TextCursor.canPop tc c then
-        ParserTools.Loop <| TextCursor.pop packet.parser { tc | message = "POP", scannerType = NormalScan }
 
     else
         -- TODO: add error message for unexpected end char
@@ -142,8 +138,8 @@ advance config position str =
             { content = "", finish = 0, start = 0 }
 
 
-advanceVerbatim2 : Char -> String -> ParserTools.StringData
-advanceVerbatim2 verbatimChar str =
+advanceVerbatim : Char -> String -> ParserTools.StringData
+advanceVerbatim verbatimChar str =
     let
         predicate =
             \c -> c /= verbatimChar
