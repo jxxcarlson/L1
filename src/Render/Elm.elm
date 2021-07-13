@@ -148,7 +148,7 @@ red renderArgs _ _ body =
 
 error : FRender msg
 error renderArgs _ _ body =
-    el [ Font.color redColor, Font.bold ] (render renderArgs body)
+    paragraph [] [ el [ Font.color redColor, E.paddingXY 4 4, Background.color (rgb255 242 199 226) ] (render renderArgs body), el [ E.paddingXY 2 4 ] (text " ") ]
 
 
 blue : FRender msg
