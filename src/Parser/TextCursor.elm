@@ -18,7 +18,6 @@ import Parser.MetaData as MetaData exposing (MetaData)
 import Parser.Utility
 import Render.Text
 import Utility.Console as Console
-import Utility.ParserTools as ParserTools
 import Utility.Utility
 
 
@@ -27,12 +26,11 @@ import Utility.Utility
 type alias TextCursor =
     { count : Int
     , generation : Int
-    , offset : Int
+    , scanPoint : Int
     , length : Int
 
     --
     , source : String
-    , remainingSource : String
     , text : String
     , parsed : List Element
     , complete : List Element
@@ -48,7 +46,7 @@ type ScannerType
 
 
 type alias StackItem =
-    { expect : Expectation, content : String, precedingText : List String, count : Int, offset : Int }
+    { expect : Expectation, content : String, precedingText : List String, count : Int, scanPoint : Int }
 
 
 type alias ParseError =
@@ -72,12 +70,11 @@ empty : TextCursor
 empty =
     { count = 0
     , generation = 0
-    , offset = 0
+    , scanPoint = 0
     , length = 0
 
     --
     , source = ""
-    , remainingSource = ""
     , text = ""
     , parsed = []
     , complete = []
@@ -93,12 +90,11 @@ init : Int -> String -> TextCursor
 init generation source =
     { count = 0
     , generation = generation
-    , offset = 0
+    , scanPoint = 0
     , length = String.length source
 
     --
     , source = source
-    , remainingSource = source
     , text = ""
     , parsed = []
     , complete = []
@@ -111,8 +107,8 @@ init generation source =
 {-| for testing by humans
 -}
 simpleStackItem : StackItem -> String
-simpleStackItem { content, offset } =
-    "Offset " ++ String.fromInt offset ++ ": " ++ content
+simpleStackItem { content, scanPoint } =
+    "Offset " ++ String.fromInt scanPoint ++ ": " ++ content
 
 
 {-| Add text to the .text field
@@ -143,7 +139,7 @@ add1 str tc =
 
                     else
                         tc.stack
-        , offset = tc.offset + String.length str
+        , scanPoint = tc.scanPoint + String.length str
     }
 
 
@@ -161,7 +157,7 @@ add str tc =
         | count = tc.count + 1
         , text = stringToAdd ++ tc.text
         , stack = newStack
-        , offset = tc.offset + String.length str
+        , scanPoint = tc.scanPoint + String.length str
     }
 
 
@@ -185,14 +181,14 @@ push : (String -> Element) -> Expectation -> TextCursor -> TextCursor
 push parse expectation tc =
     { tc
         | count = tc.count + 1
-        , offset = tc.offset + 1
+        , scanPoint = tc.scanPoint + 1
         , stack =
             case List.head tc.stack of
                 Nothing ->
-                    { expect = expectation, content = "", precedingText = [], count = tc.count, offset = tc.offset } :: tc.stack
+                    { expect = expectation, content = "", precedingText = [], count = tc.count, scanPoint = tc.scanPoint } :: tc.stack
 
                 Just stackTop ->
-                    { expect = expectation, content = "", precedingText = [ tc.text ], count = tc.count, offset = tc.offset } :: tc.stack
+                    { expect = expectation, content = "", precedingText = [ tc.text ], count = tc.count, scanPoint = tc.scanPoint } :: tc.stack
         , parsed =
             if tc.stack == [] then
                 []
@@ -225,22 +221,22 @@ updateForPush parse tc expectation =
                 else
                     parse tc.text :: tc.parsed ++ tc.complete
         in
-        ( complete, { expect = expectation, content = "", precedingText = [], count = tc.count, offset = tc.offset } :: tc.stack )
+        ( complete, { expect = expectation, content = "", precedingText = [], count = tc.count, scanPoint = tc.scanPoint } :: tc.stack )
 
     else
-        ( tc.parsed ++ tc.complete, { expect = expectation, content = tc.text, precedingText = [], count = tc.count, offset = tc.offset } :: tc.stack )
+        ( tc.parsed ++ tc.complete, { expect = expectation, content = tc.text, precedingText = [], count = tc.count, scanPoint = tc.scanPoint } :: tc.stack )
 
 
 pop : (String -> Element) -> TextCursor -> TextCursor
 pop parse tc =
-    -- The cursors' offset is pointing at a character that
+    -- The cursors' scanPoint is pointing at a character that
     -- signal the end of an element, e.g., ']' in the
     -- case of language L1.  It is time to pop the stack
     -- and update the cursor.  We split this operation into
     -- two case, depending on whether cursor.text is empty.
     case List.head tc.stack of
         Nothing ->
-            { tc | count = tc.count + 1, offset = tc.offset + 1, scannerType = NormalScan }
+            { tc | count = tc.count + 1, scanPoint = tc.scanPoint + 1, scannerType = NormalScan }
 
         Just stackTop ->
             handleText parse stackTop tc
@@ -254,7 +250,7 @@ handleText parse stackTop tc =
     in
     case List.head tc.stack of
         Nothing ->
-            { tc | count = tc.count + 1, offset = tc.offset + 1 }
+            { tc | count = tc.count + 1, scanPoint = tc.scanPoint + 1 }
 
         Just stackTop_ ->
             let
@@ -312,7 +308,7 @@ handleText parse stackTop tc =
 
                 --, complete = complete
                 , stack = List.drop 1 tc.stack
-                , offset = tc.offset + 1
+                , scanPoint = tc.scanPoint + 1
                 , count = tc.count + 1
                 , text = ""
                 , scannerType = NormalScan
@@ -425,7 +421,7 @@ commit_ tc =
                             else
                                 let
                                     errorMessage =
-                                        StackError top.offset tc.offset ("((unknown delimiter " ++ top.expect.beginSymbol ++ " at position " ++ String.fromInt top.offset ++ "))") (String.slice top.offset tc.offset tc.source)
+                                        StackError top.scanPoint tc.scanPoint ("((unknown delimiter " ++ top.expect.beginSymbol ++ " at position " ++ String.fromInt top.scanPoint ++ "))") (String.slice top.scanPoint tc.scanPoint tc.source)
                                 in
                                 List.reverse tc.complete ++ [ errorMessage ]
 
@@ -433,7 +429,7 @@ commit_ tc =
                         Just _ ->
                             let
                                 errorMessage =
-                                    StackError top.offset tc.offset ("((unmatched delimiter " ++ top.expect.beginSymbol ++ " at position " ++ String.fromInt top.offset ++ "))") (String.slice top.offset tc.offset tc.source)
+                                    StackError top.scanPoint tc.scanPoint ("((unmatched delimiter " ++ top.expect.beginSymbol ++ " at position " ++ String.fromInt top.scanPoint ++ "))") (String.slice top.scanPoint tc.scanPoint tc.source)
                             in
                             List.reverse tc.complete ++ [ errorMessage ]
             in
@@ -464,7 +460,7 @@ canPop configuration tc prefix =
             Debug.log (magenta "canPop, TC, stackTop") (tc.stack |> List.head)
 
         _ =
-            Debug.log (blue "offset, remaining") ( tc.offset, tc.remainingSource )
+            Debug.log (blue "scanPoint, remaining") ( tc.scanPoint, tc.source )
     in
     if canPopPrecondition configuration tc prefix then
         case List.head tc.stack of
@@ -486,7 +482,7 @@ canPopPrecondition : Parser.Config.Configuration -> TextCursor -> String -> Bool
 canPopPrecondition configuration tc prefix =
     let
         isEndSymbol =
-            Parser.Config.isEndSymbol configuration tc.offset prefix
+            Parser.Config.isEndSymbol configuration tc.scanPoint prefix
 
         _ =
             Debug.log (blue <| "canPop Pre (" ++ prefix ++ ")") isEndSymbol
@@ -503,7 +499,7 @@ canPopPrecondition configuration tc prefix =
 
 canPush : Parser.Config.Configuration -> TextCursor -> String -> Bool
 canPush configuration tc prefix =
-    Parser.Config.isBeginSymbol configuration tc.offset prefix
+    Parser.Config.isBeginSymbol configuration tc.scanPoint prefix
 
 
 
@@ -549,7 +545,7 @@ printCaret =
 
 
 printRemaining cursor =
-    String.dropLeft cursor.offset cursor.remainingSource |> Console.black |> Console.bgGreen
+    String.dropLeft cursor.scanPoint cursor.source |> Console.black |> Console.bgGreen
 
 
 printCursorText cursor =
