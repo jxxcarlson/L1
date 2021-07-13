@@ -477,8 +477,7 @@ canPop configuration tc prefix =
 
             Just stackTop ->
                 -- True
-                --stackTop.expect.beginSymbol == prefix
-                True
+                Maybe.map2 String.contains stackTop.expect.endSymbol (Just prefix) |> Maybe.withDefault False
         -- TODO why should the above check be necessary?
         -- With it, we get __many__ failing tests
 

@@ -31,7 +31,7 @@ suite =
                     |> pl
                     --|> Expect.equal [Element_ (Name ("i ")) [] (Element_ (Name "b") [] (EList_ [Raw_ "foo"]))]
                     |> Expect.equal [ Element_ (Name "i") (EList_ [ Element_ (Name "b") (EList_ [ Text_ "foo" ]) ]) ]
-        , test "simple element preceded by text" <|
+        , test "abc [foo]" <|
             \_ ->
                 "abc [foo]"
                     |> pl
@@ -47,7 +47,7 @@ suite =
                     |> pl
                     |> Expect.equal
                         [ Text_ "abc def ", Element_ (Name "foo") (EList_ []), Text_ " ghi jkl ", Element_ (Name "bar") (EList_ []), Text_ " mno pqr" ]
-        , test "like a list" <|
+        , test "[x [i a] [j b]]" <|
             \_ ->
                 "[x [i a] [j b]]"
                     |> pl
@@ -107,12 +107,6 @@ suite =
                     |> pl
                     |> Expect.equal
                         [ Element_ (Name "link") (EList_ [ Text_ "Error recovery with parser combinators", Text_ "https://eyalkalderon.com/blog/nom-error-recovery/" ]) ]
-        , test "[x [i a] [j b]]" <|
-            \_ ->
-                "[x [i a] [j b]]"
-                    |> pl
-                    |> Expect.equal
-                        [ Element_ (Name "x") (EList_ [ Element_ (Name "i") (EList_ [ Text_ "a" ]), Text_ " ", Element_ (Name "j") (EList_ [ Text_ "b" ]) ]) ]
         , test "code" <|
             \_ ->
                 "`a[0] = 1`"
