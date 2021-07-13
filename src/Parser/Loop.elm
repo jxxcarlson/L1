@@ -67,48 +67,54 @@ nextCursor packet cursor =
 
     else
         let
-            remaining =
-                -- remaining is the source text from the scanPoint onwards
+            textToProcess =
                 String.dropLeft cursor.scanPoint cursor.source
 
             chompedText =
-                -- get some more text from what remains
+                -- get some more text
                 -- this means text from one mark to the next, not inclusive
                 case cursor.scannerType of
                     NormalScan ->
-                        advance configuration cursor.scanPoint remaining
+                        advance configuration cursor.scanPoint textToProcess
 
                     VerbatimScan c ->
-                        advanceVerbatim c remaining
+                        advanceVerbatim c textToProcess
         in
         if chompedText.finish - chompedText.start > 0 then
             -- the chompedText is non-void; add it to the cursor
             ParserTools.Loop <| TextCursor.add chompedText.content { cursor | message = "ADD" }
 
         else
-            -- We are at a mark, and so must decide whether to push, pop, or call it quits
-            -- Decide this on the basis of the character at the heading the remaining text
-            case String.uncons remaining |> Maybe.map Tuple.first of
+            -- We are at a mark, and so must decide whether to push, pop, or commit
+            -- Decide this on the basis of the prefix at the head of the text to process
+            -- The prefix is longest prefix of the text to process consisting
+            -- entirely of the character at the scanpoint
+            case String.uncons textToProcess |> Maybe.map Tuple.first of
                 Nothing ->
-                    ParserTools.Done cursor
+                    ParserTools.Done { cursor | message = "Unexpected error" }
 
                 Just c ->
-                    handleCursorAtScanPoint packet (ParserTools.prefixWith c remaining).content cursor
+                    -- Get the prefix at the scanPoint using ParserTools.prefixWith,
+                    -- then call 'handleCursor' to push, pop, or commit
+                    handleCursor packet (ParserTools.prefixWith c textToProcess).content cursor
 
 
-handleCursorAtScanPoint : Packet Element -> String -> TextCursor -> ParserTools.Step TextCursor TextCursor
-handleCursorAtScanPoint packet prefix tc =
+handleCursor : Packet Element -> String -> TextCursor -> ParserTools.Step TextCursor TextCursor
+handleCursor packet prefix tc =
+    -- POP
     if TextCursor.canPop configuration tc prefix then
         ParserTools.Loop <| TextCursor.pop packet.parser { tc | message = "POP", scannerType = NormalScan }
 
     else if TextCursor.canPush configuration tc prefix then
+        -- PUSH or quit with error
         case Parser.Config.lookup configuration prefix of
             Nothing ->
-                ParserTools.Done tc
+                ParserTools.Done { tc | message = "Unexpected error: no corresponding expectation" }
 
             Just expectation ->
                 let
                     scannerType =
+                        -- Set the scanner type
                         if List.member expectation.etype [ CodeType, InlineMathType, QuotedType ] then
                             VerbatimScan (expectation.beginSymbol |> Parser.Config.firstChar |> Maybe.withDefault '0')
                             -- TODO: fix this (prefix)
@@ -119,8 +125,7 @@ handleCursorAtScanPoint packet prefix tc =
                 ParserTools.Loop <| TextCursor.push packet.parser expectation { tc | message = "PUSH", scannerType = scannerType }
 
     else
-        -- TODO: add error message for unexpected end char
-        ParserTools.Done tc
+        ParserTools.Done { tc | message = "Could neither push nor pop.  What the heck?" }
 
 
 {-| Return the longest prefix of str that does not contain a delimiter.
@@ -137,6 +142,9 @@ advance config position str =
             { content = "", finish = 0, start = 0 }
 
 
+{-| Advance, but according to different criteria, because the
+scanner type has been set to 'VerbatimScan c'
+-}
 advanceVerbatim : Char -> String -> ParserTools.StringData
 advanceVerbatim verbatimChar str =
     let

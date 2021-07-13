@@ -60,10 +60,6 @@ type alias ExpectationsDict =
     Dict String Expectation
 
 
-type alias ConfigurationDefinition =
-    List Expectation
-
-
 type alias Configuration =
     { beginSymbols : List String
     , endSymbols : List String
@@ -95,7 +91,7 @@ firstChar str =
             Just c
 
 
-configure : ConfigurationDefinition -> Configuration
+configure : List Expectation -> Configuration
 configure configDef =
     let
         beginChars =
