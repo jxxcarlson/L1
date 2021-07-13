@@ -31,7 +31,6 @@ type alias TextCursor =
 
     --
     , source : String
-    , remainingSource : String
     , text : String
     , parsed : List Element
     , complete : List Element
@@ -76,7 +75,6 @@ empty =
 
     --
     , source = ""
-    , remainingSource = ""
     , text = ""
     , parsed = []
     , complete = []
@@ -97,7 +95,6 @@ init generation source =
 
     --
     , source = source
-    , remainingSource = source
     , text = ""
     , parsed = []
     , complete = []
@@ -386,7 +383,7 @@ handleFunction parse tc stackTop fname args =
 
 commit : TextCursor -> TextCursor
 commit tc =
-    tc |> commit_ |> (\tc2 -> { tc2 | complete = List.reverse tc2.complete })
+    tc |> commit_ |> (\tc2 -> { tc2 | complete = List.reverse tc2.complete }) |> Debug.log (magenta "COMMIT!!")
 
 
 commit_ : TextCursor -> TextCursor
@@ -501,7 +498,7 @@ printCaret =
 
 
 printRemaining cursor =
-    String.dropLeft cursor.offset cursor.remainingSource |> Console.black |> Console.bgGreen
+    String.dropLeft cursor.offset cursor.source |> Console.black |> Console.bgGreen
 
 
 printCursorText cursor =

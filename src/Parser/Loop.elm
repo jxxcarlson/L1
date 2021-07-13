@@ -71,7 +71,7 @@ nextCursor packet cursor =
         let
             remaining =
                 -- offset has been updated, so remaining should be also
-                String.dropLeft cursor.offset cursor.remainingSource
+                String.dropLeft cursor.offset cursor.source
 
             chompedText =
                 -- get some more text
@@ -126,79 +126,6 @@ handleCharacterAtCursor packet c tc =
     else
         -- TODO: add error message for unexpected end char
         ParserTools.Done tc
-
-
-
---
---handleVerbatim : EType -> Char -> TextCursor -> ParserTools.Step TextCursor TextCursor
---handleVerbatim etype verbatimChar tc =
---    let
---        name =
---            Parser.Config.name etype
---
---        remaining_ =
---            String.dropLeft (tc.offset + 1) tc.remainingSource
---
---        verbatimText =
---            advanceVerbatim2 verbatimChar remaining_
---
---        verbatimTextLength =
---            verbatimText.finish - verbatimText.start
---
---        preceding =
---            Text tc.text MetaData.dummy
---
---        newElement =
---            Element (Name name) (Text verbatimText.content MetaData.dummy) MetaData.dummy
---
---        newTC =
---            { tc
---                | offset = tc.offset + verbatimTextLength + 2
---                , text = ""
---                , parsed = newElement :: preceding :: tc.parsed
---            }
---    in
---    ParserTools.Loop <| newTC
---
---
---handleQuoted : Char -> TextCursor -> ParserTools.Step TextCursor TextCursor
---handleQuoted verbatimChar tc =
---    let
---        newStack =
---            case List.head tc.stack of
---                Nothing ->
---                    tc.stack
---
---                Just stackTop ->
---                    { stackTop | content = tc.text } :: List.drop 1 tc.stack
---
---        remaining_ =
---            String.dropLeft (tc.offset + 1) tc.remainingSource
---
---        verbatimText =
---            advanceVerbatim2 verbatimChar remaining_
---
---        verbatimTextLength =
---            verbatimText.finish - verbatimText.start
---
---        preceding =
---            Text tc.text MetaData.dummy
---
---        newElement =
---            Text (Utility.unquote verbatimText.content) MetaData.dummy
---
---        newTC =
---            { tc
---                | offset = tc.offset + verbatimTextLength + 2
---                , text = ""
---                , stack = newStack
---
---                -- , parsed = newElement :: preceding :: tc.parsed
---                , parsed = newElement :: tc.parsed
---                , count = tc.count + 1
---            }
---    in
---    ParserTools.Loop <| newTC
 
 
 {-| Return the longest prefix of str that does not contain a delimiter.
