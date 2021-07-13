@@ -37,8 +37,8 @@ parseLoop packet generation str =
                 |> TextCursor.commit
                 |> (\tc_ -> { tc_ | message = "COMM" })
 
-        _ =
-            Debug.log (TextCursor.print result) "-"
+        --_ =
+        --    Debug.log (TextCursor.print result) "-"
     in
     result
 
@@ -58,10 +58,10 @@ when the scanPoint comes to the end of the source.
 -}
 nextCursor : Packet Element -> TextCursor -> ParserTools.Step TextCursor TextCursor
 nextCursor packet cursor =
-    let
-        _ =
-            Debug.log (TextCursor.print cursor) ""
-    in
+    --let
+    --    _ =
+    --        Debug.log (TextCursor.print cursor) ""
+    --in
     if cursor.scanPoint >= cursor.length then
         ParserTools.Done cursor
 

@@ -253,7 +253,6 @@ heading renderArgs name args body =
                 |> List.head
                 |> Maybe.withDefault ""
                 |> String.length
-                |> Debug.log "XX LEVEL"
 
         prefix =
             String.repeat level "#"
@@ -361,7 +360,7 @@ math2 renderArgs name args body =
 
 mathblock : FRender msg
 mathblock rendArgs name args body =
-    mathText rendArgs DisplayMathMode (Debug.log "CONTENT" (AST.stringContent body))
+    mathText rendArgs DisplayMathMode (AST.stringContent body)
 
 
 renderMath : FRender msg
@@ -431,7 +430,7 @@ toInt x =
 
 getInt : Element -> Int
 getInt e =
-    e |> Debug.log "E" |> getText2 |> Debug.log "GE" |> toInt
+    e |> getText2 |> toInt
 
 
 getText2 : Element -> String
