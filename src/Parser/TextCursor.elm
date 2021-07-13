@@ -391,11 +391,23 @@ commit_ tc =
                                 List.reverse tc.complete ++ [ Element (AST.Name "heading") (EList (List.reverse parsed_) MetaData.dummy) MetaData.dummy ]
 
                             else if top.expect.beginSymbol == ":" then
-                                let
-                                    body =
-                                        AST.indexedMap dropFirstWord (List.reverse parsed_)
-                                in
-                                List.reverse tc.complete ++ [ Element (AST.Name "item") (EList body MetaData.dummy) MetaData.dummy ]
+                                case List.Extra.uncons (List.reverse parsed_) of
+                                    Nothing ->
+                                        List.reverse tc.complete ++ [ Text "empty" MetaData.dummy ]
+
+                                    Just ( first, [] ) ->
+                                        case String.words (AST.getText first) of
+                                            [] ->
+                                                List.reverse tc.complete ++ [ Element (AST.Name "empty") (EList [] MetaData.dummy) MetaData.dummy ]
+
+                                            name :: [] ->
+                                                List.reverse tc.complete ++ [ Element (AST.Name (String.trim name)) (EList [] MetaData.dummy) MetaData.dummy ]
+
+                                            name :: rest ->
+                                                List.reverse tc.complete ++ [ Element (AST.Name (String.trim name)) (Text (String.join " " rest) MetaData.dummy) MetaData.dummy ]
+
+                                    Just ( first, rest ) ->
+                                        List.reverse tc.complete ++ [ Element (AST.Name (String.trim (AST.getText first))) (EList rest MetaData.dummy) MetaData.dummy ]
 
                             else
                                 let

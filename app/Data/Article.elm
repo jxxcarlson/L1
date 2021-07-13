@@ -4,13 +4,7 @@ module Data.Article exposing (text)
 text =
     """
 
-
-
-
-
-
-
-[image caption:Camperdown https://upload.wikimedia.org/wikipedia/commons/2/20/Camperdown_Elm_Prospect_Park_Brooklyn.jpg]
+[image caption:Camperdown-Prospect-Park-Brooklyn https://upload.wikimedia.org/wikipedia/commons/2/20/Camperdown_Elm_Prospect_Park_Brooklyn.jpg]
 
 # Fault-Tolerant Parsing
 
@@ -35,35 +29,27 @@ These are rendered as
 
 
 
-# The Main Idea
+# The Main Ideas
+
+Some of the strategies that go into designing a fault-tolerant parser are simple while others are relatively sophisticated.  In [b L1] as with Camperdown, several  strategies are used in conjunction,
 
 ## Isolation
 
-## Scratch Work
+A first strategy is to divide the document into pieces A, B, C, D, ... that can be parsed separately.  Then an error in B, for example, will not affect the parsing of the subsequent parts C, D, etc.  This strategy has another advantage.  If the user edits part B, only that part need be re-parsed and re-rendered.  This kind of partitioning of the work provides large speed improvements.  The goal is always the same: instant feedback for the user.
 
 
 
-In its simplest form, sentences in [b L1] consist  of [i elements]
-such as `[i this is italic]` interspersed with ordinary "unmarked"
-text, e.g. `[i this is italic] but that is not.` An AST that
-can express such sentences is
+## Text Cursor
 
-Consider first a simple phrase such as `[b this is a test]`.
-
-once again the sentence `This [highlight is [b not] a very good] test.`
-All parsers do their work by scanning from left to right.
+The second strategy is to use  a `Text Cursor` while scanning the source text.
 
 
 
-# References
+
+## References
 
 
 [link "Error recovery with parser combinators"  "https://eyalkalderon.com/blog/nom-error-recovery/"]
-
-
-
-
-
 
 
 """

@@ -145,4 +145,21 @@ suite =
                     |> pl
                     |> Expect.equal
                         [ Element_ (Name "x") (EList_ [ Element_ (Name "y") (EList_ [ Text_ "is", Element_ (Name "b") (EList_ [ Text_ "not" ]), Text_ " good" ]), Text_ " stuff" ]) ]
+        , test ":xx [p a] [k b] c" <|
+            \_ ->
+                ":xx [p a] [k b] c"
+                    |> pl
+                    |> Expect.equal
+                        [ Element_ (Name "xx") (EList_ [ Element_ (Name "p") (EList_ [ Text_ "a" ]), Text_ " ", Element_ (Name "k") (EList_ [ Text_ "b" ]), Text_ " c" ]) ]
+        , test ":item this is stuff" <|
+            \_ ->
+                ":item this is stuff"
+                    |> pl
+                    |> Expect.equal
+                        [ Element_ (Name "item") (Text_ "this is stuff") ]
         ]
+
+
+
+-- ":item this is stuff"
+-- [Element_ (Name "item") (Text_ ("this is stuff"))]

@@ -260,8 +260,11 @@ heading renderArgs name args body =
 
         fontSize =
             round (24 / factor)
+
+        headerPadding =
+            E.paddingEach { top = round (12 / factor), bottom = 0, left = 0, right = 0 }
     in
-    el [ Font.size fontSize ] (E.text title)
+    column [ Font.size fontSize, headerPadding ] [ E.text title ]
 
 
 item : FRender msg
