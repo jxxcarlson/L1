@@ -4,6 +4,7 @@ module Data.Article exposing (text)
 text =
     """
 
+
 [image caption:Camperdown-Prospect-Park-Brooklyn https://upload.wikimedia.org/wikipedia/commons/2/20/Camperdown_Elm_Prospect_Park_Brooklyn.jpg]
 
 # Fault-Tolerant Parsing
@@ -14,7 +15,7 @@ To put the notion of fault-tolerance in context, recall that the task of a  pars
 
 The strategy for fault-tolerant parsing discussed here is based on Matt Griffith's project [link mdgriffith/elm-markup https://package.elm-lang.org/packages/mdgriffith/elm-markup/latest/], in which he introduced the notion of [i TextCursor].  Building on Griffith's work, the ed-tech company [link Brillant.org https://brilliant.org] developed a configurable fault-tolerant parser, Camperdown, for its internal authoring tools.
 
-The Camperdown parser can be configured for applications ranging from Markdown-style languages to a kind of mini-LaTeX to interactive story-telling (see XXX).  The aim here is to present the main ideas of Camperdown in a simple yet nontrivial context that will be helpful both on its own and as a warmup to understanding and using Camperdown itself. The  codebase for [b L1] is small, with the core `textCursor` module, the largest of the bunch,  weighing in at 400 lines of code. Here are a few sentences in [b L1]:
+The Camperdown parser can be configured for applications ranging from Markdown-style languages to a kind of mini-LaTeX to interactive story-telling (see XXX).  The aim here is to present the main ideas of Camperdown in a simple yet nontrivial context that will be helpful both on its own and as a warmup to understanding and using Camperdown itself. The  codebase for [b L1] is small, with the core `textCursor` module, the largest of the bunch,  weighing in at 400 lines of code and the others less than half that. Here are a few sentences in [b L1]:
 
 [item (a) `This [highlight is [b not] a very good] test.`]
 
@@ -50,6 +51,8 @@ The second strategy is to use  a `Text Cursor` while scanning the source text.
 
 
 [link "Error recovery with parser combinators"  "https://eyalkalderon.com/blog/nom-error-recovery/"]
+
+
 
 
 """
