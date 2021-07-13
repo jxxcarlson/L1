@@ -47,6 +47,7 @@ renderElementDict =
         , ( "highlightRGB", highlight )
         , ( "fontRGB", fontRGB )
         , ( "red", red )
+        , ( "error", error )
         , ( "blue", blue )
         , ( "violet", violet )
         , ( "gray", gray )
@@ -143,6 +144,11 @@ highlight renderArgs _ _ body =
 red : FRender msg
 red renderArgs _ _ body =
     el [ Font.color redColor ] (render renderArgs body)
+
+
+error : FRender msg
+error renderArgs _ _ body =
+    el [ Font.color redColor, Font.bold ] (render renderArgs body)
 
 
 blue : FRender msg

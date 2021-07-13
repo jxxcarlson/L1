@@ -417,11 +417,7 @@ commit_ tc =
                                 List.reverse tc.complete ++ [ errorMessage ]
 
                         Just _ ->
-                            let
-                                errorMessage =
-                                    StackError top.scanPoint tc.scanPoint ("((unmatched delimiter " ++ top.expect.beginSymbol ++ " at position " ++ String.fromInt top.scanPoint ++ "))") (String.slice top.scanPoint tc.scanPoint tc.source)
-                            in
-                            List.reverse tc.complete ++ [ errorMessage ]
+                            handleError2 tc top
             in
             commit
                 { tc
@@ -431,6 +427,33 @@ commit_ tc =
                     , parsed = []
                     , complete = complete_
                 }
+
+
+handleError : TextCursor -> StackItem -> List Element
+handleError tc top =
+    let
+        errorMessage =
+            StackError top.scanPoint
+                tc.scanPoint
+                ("((unmatched delimiter "
+                    ++ top.expect.beginSymbol
+                    ++ " at position "
+                    ++ String.fromInt top.scanPoint
+                    ++ "))"
+                )
+                (String.slice top.scanPoint tc.scanPoint tc.source)
+    in
+    List.reverse tc.complete ++ [ errorMessage ]
+
+
+handleError2 : TextCursor -> StackItem -> List Element
+handleError2 tc top =
+    List.reverse tc.complete
+        ++ [ Element (Name "error") (Text ("unmatched: " ++ top.expect.beginSymbol ++ " ") MetaData.dummy) MetaData.dummy
+           , Text top.content MetaData.dummy
+           ]
+        ++ tc.parsed
+        ++ [ Text tc.text MetaData.dummy ]
 
 
 
