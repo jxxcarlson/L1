@@ -1,6 +1,17 @@
 module Parser.TextCursor exposing
     ( TextCursor, init
-    , ErrorStatus(..), ParseError, ScannerType(..), add, canPop, canPush, commit, empty, parseResult, pop, print, push, simpleStackItem
+    ,  ScannerType(..)
+      , StackItem
+      , add
+      , canPop
+      , canPush
+      , commit
+      , parseResult
+      , pop
+      , push
+      , simpleStackItem
+        --, ErrorStatus(..)
+
     )
 
 {-| TextCursor is the data structure used by Parser.parseLoop.
@@ -9,15 +20,10 @@ module Parser.TextCursor exposing
 
 -}
 
--- import Render.Text
-
 import List.Extra
 import Parser.AST as AST exposing (Element(..), Name(..))
 import Parser.Config exposing (EType(..), Expectation)
 import Parser.MetaData as MetaData exposing (MetaData)
-import Parser.Utility
-import Render.Text
-import Utility.Console as Console
 import Utility.Utility
 
 
@@ -49,39 +55,9 @@ type alias StackItem =
     { expect : Expectation, content : String, precedingText : List String, count : Int, scanPoint : Int }
 
 
-type alias ParseError =
-    { status : ErrorStatus, correctedText : List String }
-
-
-type ErrorStatus
-    = NoError
-    | PipeError
-    | RightBracketError
-    | LeftBracketError
-    | UnhandledError
-
-
 parseResult : TextCursor -> List Element
 parseResult t =
     t.parsed
-
-
-empty : TextCursor
-empty =
-    { count = 0
-    , generation = 0
-    , scanPoint = 0
-    , length = 0
-
-    --
-    , source = ""
-    , text = ""
-    , parsed = []
-    , complete = []
-    , stack = []
-    , scannerType = NormalScan
-    , message = ""
-    }
 
 
 {-| initialize with source text
@@ -111,42 +87,6 @@ simpleStackItem { content, scanPoint } =
     "Offset " ++ String.fromInt scanPoint ++ ": " ++ content
 
 
-{-| Add text to the .text field
--}
-add1 : String -> TextCursor -> TextCursor
-add1 str tc =
-    { tc
-        | count = tc.count + 1
-        , text =
-            case List.head tc.stack of
-                Nothing ->
-                    str ++ tc.text
-
-                Just top ->
-                    if top.content == "" then
-                        tc.text
-
-                    else
-                        str ++ tc.text
-        , stack =
-            case List.head tc.stack of
-                Nothing ->
-                    tc.stack
-
-                Just top ->
-                    if top.content == "" then
-                        { top | content = str } :: List.drop 1 tc.stack
-
-                    else
-                        tc.stack
-        , scanPoint = tc.scanPoint + String.length str
-    }
-
-
-
----- XXXX
-
-
 add : String -> TextCursor -> TextCursor
 add str tc =
     let
@@ -161,6 +101,8 @@ add str tc =
     }
 
 
+{-| Used by add
+-}
 addContentToStack : String -> List StackItem -> ( String, List StackItem )
 addContentToStack str stack =
     case List.head stack of
@@ -177,8 +119,8 @@ addContentToStack str stack =
 
 {-| A
 -}
-push : (String -> Element) -> Expectation -> TextCursor -> TextCursor
-push parse expectation tc =
+push : Expectation -> TextCursor -> TextCursor
+push expectation tc =
     { tc
         | count = tc.count + 1
         , scanPoint = tc.scanPoint + 1
@@ -208,23 +150,6 @@ push parse expectation tc =
                 tc.complete
         , text = ""
     }
-
-
-updateForPush : (String -> Element) -> TextCursor -> Expectation -> ( List Element, List StackItem )
-updateForPush parse tc expectation =
-    if tc.stack == [] then
-        let
-            complete =
-                if tc.text == "" then
-                    tc.parsed ++ tc.complete
-
-                else
-                    parse tc.text :: tc.parsed ++ tc.complete
-        in
-        ( complete, { expect = expectation, content = "", precedingText = [], count = tc.count, scanPoint = tc.scanPoint } :: tc.stack )
-
-    else
-        ( tc.parsed ++ tc.complete, { expect = expectation, content = tc.text, precedingText = [], count = tc.count, scanPoint = tc.scanPoint } :: tc.stack )
 
 
 pop : (String -> Element) -> TextCursor -> TextCursor
@@ -296,27 +221,6 @@ handleText parse stackTop tc =
                 , text = ""
                 , scannerType = NormalScan
             }
-
-
-getParsed : (String -> Element) -> StackItem -> TextCursor -> List Element
-getParsed parse stackTop tc =
-    ---- if stackTop.content == "" then
-    --if True then
-    let
-        txt =
-            case stackTop.expect.endSymbol of
-                Nothing ->
-                    stackTop.expect.beginSymbol
-                        ++ tc.text
-                        |> parse
-
-                Just endSymbol ->
-                    stackTop.expect.beginSymbol
-                        ++ tc.text
-                        ++ endSymbol
-                        |> Utility.Utility.ifApply (tc.scannerType == NormalScan) parse Parser.Utility.makeText
-    in
-    txt :: tc.parsed
 
 
 handleFunction : (String -> Element) -> TextCursor -> StackItem -> String -> List Element -> List Element
@@ -449,19 +353,6 @@ handleError tc top =
 
 
 
--- HELPERS
-
-
-dropFirstWord : Int -> String -> String
-dropFirstWord k str =
-    if k == 0 then
-        Utility.Utility.dropWords 1 str
-
-    else
-        str
-
-
-
 -- PREDICATES
 
 
@@ -508,81 +399,3 @@ canPush configuration tc prefix =
 
 
 -- PRINT
-
-
-print : TextCursor -> String
-print cursor =
-    (printMessage cursor
-        ++ printComplete cursor
-        ++ printCursorText cursor
-        ++ printPreceding cursor
-        ++ printParsed cursor
-        ++ printCaret
-        ++ printRemaining cursor
-        ++ printStack cursor.stack
-    )
-        |> Utility.Utility.normalize
-        |> String.replace "[ " "["
-        |> String.trim
-
-
-printMessage cursor =
-    (String.fromInt cursor.count |> String.padLeft 2 '.')
-        ++ (cursor.message |> String.padLeft 5 '.')
-        ++ " :: "
-
-
-
---++ (Debug.toString cursor.scannerType |> String.padLeft 12 '.')
---++ " :: "
-
-
-printPreceding : TextCursor -> String
-printPreceding cursor =
-    case List.head cursor.stack of
-        Nothing ->
-            " " |> Console.blue |> Console.bgWhite
-
-        Just stackTop ->
-            " " ++ (List.filter (\s -> s /= "") stackTop.precedingText |> String.join "") ++ " " |> Console.blue |> Console.bgWhite
-
-
-printCaret =
-    " ^ " |> Console.bgRed
-
-
-printRemaining cursor =
-    String.dropLeft cursor.scanPoint cursor.source ++ " " |> Console.black |> Console.bgGreen
-
-
-printCursorText cursor =
-    cursor.text ++ " " |> Console.black |> Console.bgYellow
-
-
-printParsed cursor =
-    cursor.parsed |> List.map Render.Text.print |> String.join " " |> (\x -> x ++ " ") |> Console.bgCyan |> Console.black
-
-
-printComplete cursor =
-    cursor.complete |> List.map Render.Text.print |> String.join " " |> (\x -> x ++ " ") |> Console.bgBlue
-
-
-printStackItem : StackItem -> String
-printStackItem item =
-    item.expect.beginSymbol
-        ++ String.trim item.content
-
-
-printStack : List StackItem -> String
-printStack items =
-    " " ++ (List.map printStackItem (List.reverse items) |> String.join " ") |> Console.bgMagenta |> Console.black
-
-
-magenta : String -> String
-magenta str =
-    Console.magenta str
-
-
-blue : String -> String
-blue str =
-    Console.black str |> Console.bgCyan

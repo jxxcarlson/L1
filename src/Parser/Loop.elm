@@ -5,6 +5,7 @@ import Parser.Advanced as Parser exposing ((|.), (|=))
 import Parser.Config exposing (Configuration, EType(..))
 import Parser.Configuration as Configuration
 import Parser.Error exposing (Context, Problem)
+import Parser.Print
 import Parser.TextCursor as TextCursor exposing (ScannerType(..), TextCursor)
 import Utility.ParserTools as ParserTools
 
@@ -37,8 +38,8 @@ parseLoop packet generation str =
                 |> TextCursor.commit
                 |> (\tc_ -> { tc_ | message = "COMM" })
 
-        --_ =
-        --    Debug.log (TextCursor.print result) "-"
+        _ =
+            Debug.log (Parser.Print.print result) "-"
     in
     result
 
@@ -122,7 +123,7 @@ handleCursor packet prefix tc =
                         else
                             NormalScan
                 in
-                ParserTools.Loop <| TextCursor.push packet.parser expectation { tc | message = "PUSH", scannerType = scannerType }
+                ParserTools.Loop <| TextCursor.push expectation { tc | message = "PUSH", scannerType = scannerType }
 
     else
         ParserTools.Done { tc | message = "Could neither push nor pop.  What the heck?" }

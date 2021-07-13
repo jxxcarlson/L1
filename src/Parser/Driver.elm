@@ -5,7 +5,7 @@ import Parser.Advanced as PA
 import Parser.Error exposing (Context(..), Problem(..))
 import Parser.Loop as Loop
 import Parser.Parser as Parser
-import Parser.TextCursor as TextCursor exposing (ErrorStatus(..), TextCursor)
+import Parser.TextCursor as TextCursor exposing (TextCursor)
 
 
 {-| The value of Loop.Packet that we need here
