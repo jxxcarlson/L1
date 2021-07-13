@@ -378,36 +378,11 @@ commit_ tc =
                                 parsed_ =
                                     parsed ++ [ Text top.content MetaData.dummy ]
                             in
-                            if top.expect.beginSymbol == "#" then
-                                List.reverse tc.complete ++ [ Element (AST.Name "heading") (EList (List.reverse parsed_) MetaData.dummy) MetaData.dummy ]
-
-                            else if top.expect.beginSymbol == "##" then
-                                List.reverse tc.complete ++ [ Element (AST.Name "heading") (EList (List.reverse parsed_) MetaData.dummy) MetaData.dummy ]
-
-                            else if top.expect.beginSymbol == "###" then
-                                List.reverse tc.complete ++ [ Element (AST.Name "heading") (EList (List.reverse parsed_) MetaData.dummy) MetaData.dummy ]
-
-                            else if top.expect.beginSymbol == "####" then
-                                List.reverse tc.complete ++ [ Element (AST.Name "heading") (EList (List.reverse parsed_) MetaData.dummy) MetaData.dummy ]
+                            if String.left 1 top.expect.beginSymbol == "#" then
+                                handleHeadings tc top parsed_
 
                             else if top.expect.beginSymbol == ":" then
-                                case List.Extra.uncons (List.reverse parsed_) of
-                                    Nothing ->
-                                        List.reverse tc.complete ++ [ Text "empty" MetaData.dummy ]
-
-                                    Just ( first, [] ) ->
-                                        case String.words (AST.getText first) of
-                                            [] ->
-                                                List.reverse tc.complete ++ [ Element (AST.Name "empty") (EList [] MetaData.dummy) MetaData.dummy ]
-
-                                            name :: [] ->
-                                                List.reverse tc.complete ++ [ Element (AST.Name (String.trim name)) (EList [] MetaData.dummy) MetaData.dummy ]
-
-                                            name :: rest ->
-                                                List.reverse tc.complete ++ [ Element (AST.Name (String.trim name)) (Text (String.join " " rest) MetaData.dummy) MetaData.dummy ]
-
-                                    Just ( first, rest ) ->
-                                        List.reverse tc.complete ++ [ Element (AST.Name (String.trim (AST.getText first))) (EList rest MetaData.dummy) MetaData.dummy ]
+                                handleLineCommand tc parsed_
 
                             else
                                 let
@@ -417,7 +392,7 @@ commit_ tc =
                                 List.reverse tc.complete ++ [ errorMessage ]
 
                         Just _ ->
-                            handleError2 tc top
+                            handleError tc top
             in
             commit
                 { tc
@@ -429,25 +404,42 @@ commit_ tc =
                 }
 
 
+handleHeadings tc top parsed_ =
+    if top.expect.beginSymbol == "#" then
+        List.reverse tc.complete ++ [ Element (AST.Name "heading") (EList (List.reverse parsed_) MetaData.dummy) MetaData.dummy ]
+
+    else if top.expect.beginSymbol == "##" then
+        List.reverse tc.complete ++ [ Element (AST.Name "heading") (EList (List.reverse parsed_) MetaData.dummy) MetaData.dummy ]
+
+    else if top.expect.beginSymbol == "###" then
+        List.reverse tc.complete ++ [ Element (AST.Name "heading") (EList (List.reverse parsed_) MetaData.dummy) MetaData.dummy ]
+
+    else
+        List.reverse tc.complete ++ [ Element (AST.Name "heading") (EList (List.reverse parsed_) MetaData.dummy) MetaData.dummy ]
+
+
+handleLineCommand tc parsed_ =
+    case List.Extra.uncons (List.reverse parsed_) of
+        Nothing ->
+            List.reverse tc.complete ++ [ Text "empty" MetaData.dummy ]
+
+        Just ( first, [] ) ->
+            case String.words (AST.getText first) of
+                [] ->
+                    List.reverse tc.complete ++ [ Element (AST.Name "empty") (EList [] MetaData.dummy) MetaData.dummy ]
+
+                name :: [] ->
+                    List.reverse tc.complete ++ [ Element (AST.Name (String.trim name)) (EList [] MetaData.dummy) MetaData.dummy ]
+
+                name :: rest ->
+                    List.reverse tc.complete ++ [ Element (AST.Name (String.trim name)) (Text (String.join " " rest) MetaData.dummy) MetaData.dummy ]
+
+        Just ( first, rest ) ->
+            List.reverse tc.complete ++ [ Element (AST.Name (String.trim (AST.getText first))) (EList rest MetaData.dummy) MetaData.dummy ]
+
+
 handleError : TextCursor -> StackItem -> List Element
 handleError tc top =
-    let
-        errorMessage =
-            StackError top.scanPoint
-                tc.scanPoint
-                ("((unmatched delimiter "
-                    ++ top.expect.beginSymbol
-                    ++ " at position "
-                    ++ String.fromInt top.scanPoint
-                    ++ "))"
-                )
-                (String.slice top.scanPoint tc.scanPoint tc.source)
-    in
-    List.reverse tc.complete ++ [ errorMessage ]
-
-
-handleError2 : TextCursor -> StackItem -> List Element
-handleError2 tc top =
     List.reverse tc.complete
         ++ [ Element (Name "error") (Text ("unmatched: " ++ top.expect.beginSymbol ++ " ") MetaData.dummy) MetaData.dummy
            , Text top.content MetaData.dummy
