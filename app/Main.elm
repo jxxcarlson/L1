@@ -7,11 +7,13 @@ import Element exposing (..)
 import Element.Background as Background
 import Element.Font as Font
 import Element.Input as Input
+import File.Download as Download
 import Html exposing (Html)
 import Html.Keyed
 import Parser.Document
 import Parser.Driver
 import Render.Elm
+import Render.Markdown
 
 
 main =
@@ -37,6 +39,7 @@ type Msg
     | InputText String
     | ClearText
     | LoadDocumentText String
+    | ExportMarkdown
 
 
 type alias Flags =
@@ -109,6 +112,28 @@ update msg model =
         LoadDocumentText text ->
             ( { model | input = text }, Cmd.none )
 
+        ExportMarkdown ->
+            ( model, exportMarkdown model "article" )
+
+
+exportMarkdown : Model -> String -> Cmd msg
+exportMarkdown model fileName =
+    let
+        exportData =
+            toMarkdown model.input
+    in
+    download (fileName ++ ".md") "text/markdown" exportData
+
+
+toMarkdown : String -> String
+toMarkdown content =
+    Render.Markdown.transformDocument content
+
+
+download : String -> String -> String -> Cmd msg
+download filename mimetype content =
+    Download.string filename mimetype content
+
 
 
 --
@@ -144,7 +169,7 @@ mainColumn model =
 
 inputElement model =
     column [ spacing 8, moveUp 9 ]
-        [ row [ spacing 12 ] [ exampleDocButton, articleButton, clearTextButton ]
+        [ row [ spacing 12 ] [ exampleDocButton, articleButton, exportToMarkdownButton ]
         , inputText model
         ]
 
@@ -274,6 +299,14 @@ clearTextButton =
     Input.button buttonStyle2
         { onPress = Just ClearText
         , label = el [ centerX, centerY, Font.size 14 ] (text "Clear")
+        }
+
+
+exportToMarkdownButton : Element Msg
+exportToMarkdownButton =
+    Input.button buttonStyle2
+        { onPress = Just ExportMarkdown
+        , label = el [ centerX, centerY, Font.size 14 ] (text "Export: Markdown")
         }
 
 
