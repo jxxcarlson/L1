@@ -156,8 +156,3 @@ suite =
                     |> Expect.equal
                         [ Element_ (Name "error") (Text_ " unmatched [ "), Text_ "red ", Element_ (Name "b") (EList_ [ Element_ (Name "i") (EList_ [ Text_ "foo" ]) ]), Text_ " ", Element_ (Name "strike") (EList_ [ Text_ "This", Text_ "is", Text_ "a", Text_ "test." ]), Text_ "" ]
         ]
-
-
-
--- "[red [b [i foo]] [strike This is a test.]
--- [Element_ (Name "error") (Text_ (" unmatched [ ")),Text_ ("red "),Element_ (Name "b") (EList_ [Element_ (Name "i") (EList_ [Text_ "foo"])]),Text_ (" "),Element_ (Name "strike") (EList_ [Text_ "This",Text_ "is",Text_ "a",Text_ "test."]),Text_ ""]
