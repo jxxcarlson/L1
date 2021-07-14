@@ -1,11 +1,11 @@
-module Parser.Driver exposing (packet, parse, parseLoop, pl, pl1)
+module Parser.Driver exposing (packet, parse, parseLoop, pl)
 
 import Parser.AST as AST exposing (Element(..))
 import Parser.Advanced as PA
 import Parser.Error exposing (Context(..), Problem(..))
 import Parser.Loop as Loop
 import Parser.Parser as Parser
-import Parser.TextCursor as TextCursor exposing (TextCursor)
+import Parser.TextCursor exposing (TextCursor)
 
 
 {-| The value of Loop.Packet that we need here
@@ -39,15 +39,6 @@ pl str =
             parseLoop 0 str
     in
     tc |> .complete |> List.map AST.simplify
-
-
-pl1 : String -> List AST.Element
-pl1 str =
-    let
-        tc =
-            parseLoop 0 str
-    in
-    tc |> .complete
 
 
 

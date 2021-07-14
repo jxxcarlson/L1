@@ -8,9 +8,6 @@ type Problem
     | EndOfInput
     | ExpectingEscape
     | ExpectingComma
-    | ExpectingRawPrefix
-    | ExpectingRawStringBegin
-    | ExpectingRawStringEnd
     | UnHandledError Int
     | NoError
 

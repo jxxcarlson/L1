@@ -28,11 +28,6 @@ printMessage cursor =
         ++ " :: "
 
 
-
---++ (Debug.toString cursor.scannerType |> String.padLeft 12 '.')
---++ " :: "
-
-
 printPreceding : TextCursor -> String
 printPreceding cursor =
     case List.head cursor.stack of

@@ -1,14 +1,10 @@
-module Parser.MetaData exposing (MetaData, dummy, meta)
+module Parser.MetaData exposing (MetaData, dummy)
 
 import Parser.Loc as Loc
 
 
 type alias MetaData =
     { position : Loc.Position, generation : Int }
-
-
-meta generation start end =
-    { position = { start = start, end = end }, generation = generation }
 
 
 dummy =

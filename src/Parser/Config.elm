@@ -5,9 +5,7 @@ module Parser.Config exposing
     , MarkPosition(..)
     , configure
     , firstChar
-    , isBeginChar
     , isBeginSymbol
-    , isEndChar
     , isEndSymbol
     , lookup
     , name
@@ -133,21 +131,6 @@ configure configDef =
     }
 
 
-
---type alias Expectation =
---    { beginSymbol : String
---    , endSymbol : Maybe String
---    , etype : EType
---    , isVerbatim : Bool
---    , markPosition : MarkPosition
---    }
---
---verbatimChars : List Configuration -> List Configuration
---verbatimChars configDef =
---    configDef |> List.filter (\e -> e.isVerbatim)
---|> List.map firstChar
-
-
 notDelimiter : Configuration -> Int -> Char -> Bool
 notDelimiter config position c =
     if position == 0 then
@@ -155,24 +138,6 @@ notDelimiter config position c =
 
     else
         not (List.member c config.interiorDelimiters)
-
-
-isBeginChar : Configuration -> Int -> Char -> Bool
-isBeginChar config position c =
-    if position == 0 then
-        List.member c config.beginChars
-
-    else
-        List.member c config.interiorBeginChars
-
-
-isEndChar : Configuration -> Int -> Char -> Bool
-isEndChar config position c =
-    if position == 0 then
-        List.member c config.endChars
-
-    else
-        List.member c config.interiorEndChars
 
 
 isBeginSymbol : Configuration -> Int -> String -> Bool
