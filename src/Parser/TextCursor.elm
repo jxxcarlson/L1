@@ -6,6 +6,7 @@ module Parser.TextCursor exposing
       , canPop
       , canPush
       , commit
+      , isBalanced
       , pop
       , push
       , simpleStackItem
@@ -395,6 +396,11 @@ canPopPrecondition configuration tc prefix =
 canPush : Parser.Config.Configuration -> TextCursor -> String -> Bool
 canPush configuration tc prefix =
     Parser.Config.isBeginSymbol configuration tc.scanPoint prefix
+
+
+isBalanced : String -> Bool
+isBalanced str =
+    (List.length <| String.indices "[" str) == (List.length <| String.indices "]" str)
 
 
 

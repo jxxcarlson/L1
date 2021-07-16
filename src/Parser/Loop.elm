@@ -3,7 +3,7 @@ module Parser.Loop exposing (Packet, advance, nextCursor, parseLoop)
 import Library.ParserTools as ParserTools
 import Parser.AST as AST exposing (Element(..), Name(..))
 import Parser.Advanced as Parser exposing ((|.), (|=))
-import Parser.Config exposing (Configuration, EType(..))
+import Parser.Config as Config exposing (Configuration, EType(..))
 import Parser.Configuration as Configuration
 import Parser.Error exposing (Context, Problem)
 import Parser.Print
@@ -22,7 +22,7 @@ type alias Packet a =
 
 
 configuration =
-    Parser.Config.configure Configuration.expectations
+    Config.configure Configuration.expectations
 
 
 {-| parseLoop scans the source text from right to left, update the TextCursor
@@ -62,71 +62,74 @@ nextCursor packet cursor =
     let
         _ =
             Debug.log (Parser.Print.print cursor) ""
+
+        textToProcess =
+            String.dropLeft cursor.scanPoint cursor.source
+
+        chompedText =
+            getChompedText cursor textToProcess
     in
-    if cursor.scanPoint >= cursor.length then
-        ParserTools.Done cursor
+    case String.uncons textToProcess |> Maybe.map Tuple.first of
+        Nothing ->
+            ParserTools.Done { cursor | message = "Done" }
 
-    else
-        let
-            textToProcess =
-                String.dropLeft cursor.scanPoint cursor.source
+        Just c ->
+            if Config.notDelimiter configuration 0 c then
+                ParserTools.Loop <| TextCursor.add chompedText.content { cursor | message = "ADD" }
 
-            chompedText =
-                -- get some more text
-                -- this means text from one mark to the next, not inclusive
-                case cursor.scannerType of
-                    NormalScan ->
-                        advance configuration cursor.scanPoint textToProcess
-
-                    VerbatimScan c ->
-                        advanceVerbatim c textToProcess
-        in
-        if chompedText.finish - chompedText.start > 0 then
-            -- the chompedText is non-void; add it to the cursor
-            ParserTools.Loop <| TextCursor.add chompedText.content { cursor | message = "ADD" }
-
-        else
-            -- We are at a mark, and so must decide whether to push, pop, or commit
-            -- Decide this on the basis of the prefix at the head of the text to process
-            -- The prefix is longest prefix of the text to process consisting
-            -- entirely of the character at the scanpoint
-            case String.uncons textToProcess |> Maybe.map Tuple.first of
-                Nothing ->
-                    ParserTools.Done { cursor | message = "Unexpected error" }
-
-                Just c ->
-                    -- Get the prefix at the scanPoint using ParserTools.prefixWith,
-                    -- then call 'handleCursor' to push, pop, or commit
-                    handleCursor packet (ParserTools.prefixWith c textToProcess).content cursor
-
-
-handleCursor : Packet Element -> String -> TextCursor -> ParserTools.Step TextCursor TextCursor
-handleCursor packet prefix tc =
-    -- POP
-    if TextCursor.canPop configuration tc prefix then
-        ParserTools.Loop <| TextCursor.pop packet.parser { tc | message = "POP", scannerType = NormalScan }
-
-    else if TextCursor.canPush configuration tc prefix then
-        -- PUSH or quit with error
-        case Parser.Config.lookup configuration prefix of
-            Nothing ->
-                ParserTools.Done { tc | message = "Unexpected error: no corresponding expectation" }
-
-            Just expectation ->
+            else
                 let
-                    scannerType =
-                        -- Set the scanner type
-                        if List.member expectation.etype [ CodeType, InlineMathType, QuotedType ] then
-                            VerbatimScan (expectation.beginSymbol |> Parser.Config.firstChar |> Maybe.withDefault '0')
-                            -- TODO: fix this (prefix)
-
-                        else
-                            NormalScan
+                    prefix =
+                        (ParserTools.prefixWith c textToProcess).content
                 in
-                ParserTools.Loop <| TextCursor.push expectation { tc | message = "PUSH", scannerType = scannerType }
+                if TextCursor.canPop configuration cursor prefix then
+                    pop packet cursor
 
-    else
-        ParserTools.Done { tc | message = "Could neither push nor pop.  What the heck?" }
+                else if TextCursor.canPush configuration cursor prefix then
+                    push cursor prefix
+
+                else
+                    ParserTools.Done { cursor | message = "Could neither push nor pop.  What the heck?" }
+
+
+pop packet cursor =
+    ParserTools.Loop <| TextCursor.pop packet.parser { cursor | message = "POP", scannerType = NormalScan }
+
+
+push cursor prefix =
+    case Config.lookup configuration prefix of
+        Nothing ->
+            error cursor
+
+        Just expectation ->
+            push_ cursor expectation
+
+
+error cursor =
+    ParserTools.Done { cursor | message = "Unexpected error: no corresponding expectation" }
+
+
+push_ cursor expectation =
+    let
+        scannerType =
+            -- Set the scanner type
+            if List.member expectation.etype [ CodeType, InlineMathType, QuotedType ] then
+                VerbatimScan (expectation.beginSymbol |> Config.firstChar |> Maybe.withDefault '0')
+                -- TODO: fix this (prefix)
+
+            else
+                NormalScan
+    in
+    ParserTools.Loop <| TextCursor.push expectation { cursor | message = "PUSH", scannerType = scannerType }
+
+
+getChompedText cursor textToProcess =
+    case cursor.scannerType of
+        NormalScan ->
+            advance configuration cursor.scanPoint textToProcess
+
+        VerbatimScan c ->
+            advanceVerbatim c textToProcess
 
 
 {-| Return the longest prefix of str that does not contain a delimiter.
@@ -135,7 +138,7 @@ another for position /= 0.
 -}
 advance : Configuration -> Int -> String -> ParserTools.StringData
 advance config position str =
-    case Parser.run (ParserTools.text (Parser.Config.notDelimiter configuration position) (Parser.Config.notDelimiter configuration position)) str of
+    case Parser.run (ParserTools.text (Config.notDelimiter configuration position) (Config.notDelimiter configuration position)) str of
         Ok stringData ->
             stringData
 
