@@ -19,11 +19,11 @@ module Parser.TextCursor exposing
 
 -}
 
+import Library.Utility
 import List.Extra
 import Parser.AST as AST exposing (Element(..), Name(..))
 import Parser.Config exposing (EType(..), Expectation)
 import Parser.MetaData as MetaData exposing (MetaData)
-import Utility.Utility
 
 
 {-| TODO: give an account of what these fields do
@@ -34,13 +34,15 @@ type alias TextCursor =
     , scanPoint : Int
     , length : Int
 
-    --
+    ---
     , source : String
     , text : String
-    , parsed : List Element
-    , complete : List Element
-    , stack : List StackItem
+    , parsed : List Element -- might be incorporated later
+    , complete : List Element -- no changes will be made
+    , stack : List StackItem -- a stack of unclosed elements
     , scannerType : ScannerType
+
+    ---
     , message : String
     }
 
@@ -207,7 +209,7 @@ handleText parse stackTop tc =
                             [ Element (Name "math2") (Text stackTop.content MetaData.dummy) MetaData.dummy ] ++ tc.parsed
 
                         QuotedType ->
-                            [ Text (Utility.Utility.unquote stackTop.content) MetaData.dummy ] ++ tc.parsed
+                            [ Text (Library.Utility.unquote stackTop.content) MetaData.dummy ] ++ tc.parsed
             in
             { tc
                 | parsed = parsed

@@ -1,9 +1,9 @@
 module Parser.Print exposing (..)
 
+import Library.Console as Console
+import Library.Utility
 import Parser.TextCursor exposing (StackItem, TextCursor)
 import Render.Text
-import Utility.Console as Console
-import Utility.Utility
 
 
 print : TextCursor -> String
@@ -17,7 +17,7 @@ print cursor =
         ++ printRemaining cursor
         ++ printStack cursor.stack
     )
-        |> Utility.Utility.normalize
+        |> Library.Utility.normalize
         |> String.replace "[ " "["
         |> String.trim
 

@@ -1,5 +1,6 @@
 module Parser.Loop exposing (Packet, advance, nextCursor, parseLoop)
 
+import Library.ParserTools as ParserTools
 import Parser.AST as AST exposing (Element(..), Name(..))
 import Parser.Advanced as Parser exposing ((|.), (|=))
 import Parser.Config exposing (Configuration, EType(..))
@@ -7,7 +8,6 @@ import Parser.Configuration as Configuration
 import Parser.Error exposing (Context, Problem)
 import Parser.Print
 import Parser.TextCursor as TextCursor exposing (ScannerType(..), TextCursor)
-import Utility.ParserTools as ParserTools
 
 
 type alias Parser a =

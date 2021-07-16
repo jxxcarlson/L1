@@ -1,4 +1,4 @@
-module Utility.Utility exposing
+module Library.Utility exposing
     ( clipEnds
     , commaSeparatedToList
     , dropWords

@@ -1,4 +1,4 @@
-module Utility.Console exposing
+module Library.Console exposing
     ( plain, dark, bold, underline, colorsInverted
     , black, red, green, yellow, blue, magenta, cyan, white
     , bgBlack, bgRed, bgGreen, bgYellow, bgBlue, bgMagenta, bgCyan, bgWhite

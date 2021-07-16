@@ -1,4 +1,4 @@
-module Utility.StringParser exposing (isNonLanguageChar, isNotExtendedLanguageChar, textListWithPredicate, textWithPredicate)
+module Library.StringParser exposing (isNonLanguageChar, isNotExtendedLanguageChar, textListWithPredicate, textWithPredicate)
 
 {-| Grammar:
 
@@ -15,9 +15,9 @@ module Utility.StringParser exposing (isNonLanguageChar, isNotExtendedLanguageCh
 
 {- (text -}
 
+import Library.ParserTools as ParserTools
 import Parser.Advanced exposing ((|.), (|=))
 import Parser.Error exposing (Context(..), Problem(..))
-import Utility.ParserTools as ParserTools
 
 
 type alias Parser a =

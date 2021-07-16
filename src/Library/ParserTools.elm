@@ -1,4 +1,4 @@
-module Utility.ParserTools exposing
+module Library.ParserTools exposing
     ( Step(..)
     , StringData
     , between

@@ -1,11 +1,11 @@
 module Parser.Parser exposing (parse, parseList, parseSimple)
 
+import Library.ParserTools as T
+import Library.StringParser as XString
 import Parser.AST as AST exposing (Element(..), Name(..))
 import Parser.Advanced as Parser exposing ((|.), (|=))
 import Parser.Error exposing (Context(..), Problem(..))
 import Parser.Loc as Loc exposing (Position)
-import Utility.ParserTools as T
-import Utility.StringParser as XString
 
 
 type alias ErrorMessage =
