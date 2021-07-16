@@ -68,28 +68,40 @@ nextCursor packet cursor =
 
         chompedText =
             getChompedText cursor textToProcess
-    in
-    case String.uncons textToProcess |> Maybe.map Tuple.first of
-        Nothing ->
-            ParserTools.Done { cursor | message = "Done" }
 
-        Just c ->
-            if Config.notDelimiter configuration 0 c then
-                ParserTools.Loop <| TextCursor.add chompedText.content { cursor | message = "ADD" }
+        maybeFirstChar =
+            String.uncons textToProcess |> Maybe.map Tuple.first
+
+        maybePrefix =
+            Maybe.map ((\c -> ParserTools.prefixWith c textToProcess) >> .content) maybeFirstChar
+    in
+    case ( maybeFirstChar, maybePrefix ) of
+        ( Nothing, _ ) ->
+            done cursor
+
+        ( _, Nothing ) ->
+            done cursor
+
+        ( Just firstChar, Just prefix ) ->
+            if Config.notDelimiter configuration 0 firstChar then
+                add cursor chompedText
+
+            else if TextCursor.canPop configuration cursor prefix then
+                pop packet cursor
+
+            else if TextCursor.canPush configuration cursor prefix then
+                push cursor prefix
 
             else
-                let
-                    prefix =
-                        (ParserTools.prefixWith c textToProcess).content
-                in
-                if TextCursor.canPop configuration cursor prefix then
-                    pop packet cursor
+                done cursor
 
-                else if TextCursor.canPush configuration cursor prefix then
-                    push cursor prefix
 
-                else
-                    ParserTools.Done { cursor | message = "Could neither push nor pop.  What the heck?" }
+done cursor =
+    ParserTools.Done { cursor | message = "Done" }
+
+
+add cursor chompedText =
+    ParserTools.Loop <| TextCursor.add chompedText.content { cursor | message = "ADD" }
 
 
 pop packet cursor =
