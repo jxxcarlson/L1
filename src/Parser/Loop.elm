@@ -86,7 +86,7 @@ nextCursor parser cursor =
 
             ( Just firstChar, Just prefix ) ->
                 if Config.notDelimiter configuration 0 firstChar then
-                    add cursor chompedText
+                    add parser cursor chompedText
 
                 else if TextCursor.canPush configuration cursor prefix then
                     let
@@ -106,8 +106,8 @@ done cursor message =
     ParserTools.Done { cursor | message = message }
 
 
-add cursor chompedText =
-    ParserTools.Loop <| TextCursor.add chompedText.content { cursor | message = "ADD" }
+add parser cursor chompedText =
+    ParserTools.Loop <| TextCursor.add parser chompedText.content { cursor | message = "ADD" }
 
 
 pop parser prefix cursor =

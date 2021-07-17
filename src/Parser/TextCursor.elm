@@ -250,12 +250,14 @@ simpleStackItem stackItem =
             str
 
 
-add : String -> TextCursor -> TextCursor
-add str tc =
+add : (String -> Element) -> String -> TextCursor -> TextCursor
+add parse_ str tc =
     { tc
         | count = tc.count + 1
-        , stack = TextItem { content = str } :: tc.stack
+
+        -- , stack = TextItem { content = str } :: tc.stack
         , scanPoint = tc.scanPoint + String.length str
+        , complete = parse_ str :: tc.complete
     }
 
 
