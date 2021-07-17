@@ -3,14 +3,19 @@ module Parser.TextCursor exposing
     ,  ScannerType(..)
       , StackItem
       , add
+      , beginSymbol
       , canPop
       , canPush
       , commit
+      , content
       , isBalanced
       , pop
+      , precedingText
       , push
       , simpleStackItem
         --, ErrorStatus(..)
+      , simplifyStack
+      , simplifyStack2
 
     )
 
@@ -53,8 +58,87 @@ type ScannerType
     | VerbatimScan Char
 
 
-type alias StackItem =
+type StackItem
+    = Expect StackItemData
+    | EndMark String
+
+
+mark : StackItem -> String
+mark stackItem =
+    case stackItem of
+        Expect data ->
+            data.expect.beginSymbol
+
+        EndMark str ->
+            str
+
+
+type alias StackItemData =
     { expect : Expectation, content : String, precedingText : List String, count : Int, scanPoint : Int }
+
+
+simplifyStack : List StackItem -> List String
+simplifyStack stack =
+    List.map mark stack
+
+
+pairDict =
+    Dict String String
+
+
+simplifyStack2 : List StackItem -> String
+simplifyStack2 stack =
+    String.join " " (simplifyStack stack)
+
+
+scanPoint : StackItem -> Int
+scanPoint stackItem =
+    case stackItem of
+        Expect data ->
+            data.scanPoint
+
+        EndMark _ ->
+            -1
+
+
+beginSymbol : StackItem -> String
+beginSymbol si =
+    case si of
+        Expect data ->
+            data.expect.beginSymbol
+
+        EndMark str ->
+            "@NOTHING"
+
+
+endSymbol : StackItem -> Maybe String
+endSymbol si =
+    case si of
+        Expect data ->
+            data.expect.endSymbol
+
+        EndMark str ->
+            Just str
+
+
+content : StackItem -> Maybe String
+content si =
+    case si of
+        EndMark _ ->
+            Nothing
+
+        Expect data ->
+            Just data.content
+
+
+precedingText : StackItem -> List String
+precedingText item =
+    case item of
+        Expect e ->
+            e.precedingText
+
+        EndMark _ ->
+            []
 
 
 {-| initialize with source text
@@ -84,8 +168,13 @@ init generation source =
 {-| for testing by humans
 -}
 simpleStackItem : StackItem -> String
-simpleStackItem { content, scanPoint } =
-    "Offset " ++ String.fromInt scanPoint ++ ": " ++ content
+simpleStackItem stackItem =
+    case stackItem of
+        Expect si ->
+            "Offset " ++ String.fromInt si.scanPoint ++ ": " ++ si.content
+
+        EndMark str ->
+            str
 
 
 add : String -> TextCursor -> TextCursor
@@ -110,12 +199,22 @@ addContentToStack str stack =
         Nothing ->
             ( str, stack )
 
-        Just top ->
-            if top.content == "" then
-                ( "", { top | content = str } :: List.drop 1 stack )
+        Just top_ ->
+            case content top_ of
+                Nothing ->
+                    ( str, stack )
 
-            else
-                ( str, stack )
+                Just "" ->
+                    case top_ of
+                        Expect top ->
+                            ( "", Expect { top | content = str } :: List.drop 1 stack )
+
+                        EndMark _ ->
+                            -- TODO: is this correct?
+                            ( str, stack )
+
+                Just str_ ->
+                    ( str_, stack )
 
 
 {-| A
@@ -128,10 +227,10 @@ push expectation tc =
         , stack =
             case List.head tc.stack of
                 Nothing ->
-                    { expect = expectation, content = "", precedingText = [], count = tc.count, scanPoint = tc.scanPoint } :: tc.stack
+                    Expect { expect = expectation, content = "", precedingText = [], count = tc.count, scanPoint = tc.scanPoint } :: tc.stack
 
                 Just stackTop ->
-                    { expect = expectation, content = "", precedingText = [ tc.text ], count = tc.count, scanPoint = tc.scanPoint } :: tc.stack
+                    Expect { expect = expectation, content = "", precedingText = [ tc.text ], count = tc.count, scanPoint = tc.scanPoint } :: tc.stack
         , parsed =
             if tc.stack == [] then
                 []
@@ -154,32 +253,37 @@ push expectation tc =
 
 
 pop : (String -> Element) -> TextCursor -> TextCursor
-pop parse tc =
+pop parse cursor =
     -- The cursors' scanPoint is pointing at a character that
     -- signal the end of an element, e.g., ']' in the
     -- case of language L1.  It is time to pop the stack
     -- and update the cursor.  We split this operation into
     -- two case, depending on whether cursor.text is empty.
-    case List.head tc.stack of
+    case List.head cursor.stack of
         Nothing ->
-            { tc | count = tc.count + 1, scanPoint = tc.scanPoint + 1, scannerType = NormalScan }
+            { cursor | count = cursor.count + 1, scanPoint = cursor.scanPoint + 1, scannerType = NormalScan }
 
-        Just stackTop ->
-            handleText parse stackTop tc
+        Just stackTop_ ->
+            case stackTop_ of
+                Expect stackTopData ->
+                    handleText parse stackTopData cursor
+
+                EndMark _ ->
+                    cursor
 
 
-handleText : (String -> Element) -> StackItem -> TextCursor -> TextCursor
-handleText parse stackTop tc =
-    case List.head tc.stack of
+handleText : (String -> Element) -> StackItemData -> TextCursor -> TextCursor
+handleText parse stackTopData cursor =
+    case List.head cursor.stack of
         Nothing ->
-            { tc | count = tc.count + 1, scanPoint = tc.scanPoint + 1 }
+            { cursor | count = cursor.count + 1, scanPoint = cursor.scanPoint + 1 }
 
         Just stackTop_ ->
             let
                 ( fname, args_ ) =
-                    stackTop_.content
-                        |> String.words
-                        |> List.Extra.uncons
+                    content stackTop_
+                        |> Maybe.map String.words
+                        |> Maybe.andThen List.Extra.uncons
                         |> Maybe.withDefault ( "fname", [] )
 
                 args =
@@ -187,13 +291,13 @@ handleText parse stackTop tc =
 
                 parsed : List Element
                 parsed =
-                    case stackTop.expect.etype of
+                    case stackTopData.expect.etype of
                         ElementType ->
                             let
                                 new =
-                                    handleFunction parse tc stackTop_ fname args
+                                    handleFunction parse cursor stackTop_ fname args
                             in
-                            case ( List.head new, tc.text ) of
+                            case ( List.head new, cursor.text ) of
                                 ( Nothing, _ ) ->
                                     new
 
@@ -204,21 +308,21 @@ handleText parse stackTop tc =
                                     [ AST.join first_ (List.drop 1 new ++ [ parse text ]) ]
 
                         CodeType ->
-                            [ Element (Name "code") (Text stackTop.content MetaData.dummy) MetaData.dummy ] ++ tc.parsed
+                            [ Element (Name "code") (Text stackTopData.content MetaData.dummy) MetaData.dummy ] ++ cursor.parsed
 
                         InlineMathType ->
-                            [ Element (Name "math2") (Text stackTop.content MetaData.dummy) MetaData.dummy ] ++ tc.parsed
+                            [ Element (Name "math2") (Text stackTopData.content MetaData.dummy) MetaData.dummy ] ++ cursor.parsed
 
                         QuotedType ->
-                            [ Text (Library.Utility.unquote stackTop.content) MetaData.dummy ] ++ tc.parsed
+                            [ Text (Library.Utility.unquote stackTopData.content) MetaData.dummy ] ++ cursor.parsed
             in
-            { tc
+            { cursor
                 | parsed = parsed
 
                 --, complete = complete
-                , stack = List.drop 1 tc.stack
-                , scanPoint = tc.scanPoint + 1
-                , count = tc.count + 1
+                , stack = List.drop 1 cursor.stack
+                , scanPoint = cursor.scanPoint + 1
+                , count = cursor.count + 1
                 , text = ""
                 , scannerType = NormalScan
             }
@@ -243,9 +347,9 @@ handleFunction parse tc stackTop fname args =
             MetaData.dummy
         ]
 
-    else if stackTop.precedingText /= [] then
+    else if precedingText stackTop /= [] then
         [ Element (AST.Name fname) (EList args MetaData.dummy) MetaData.dummy ]
-            ++ List.map parse (List.filter (\s -> s /= "") stackTop.precedingText)
+            ++ List.map parse (List.filter (\s -> s /= "") (precedingText stackTop))
             ++ tc.parsed
 
     else
@@ -277,22 +381,22 @@ commit_ tc =
         top :: restOfStack ->
             let
                 complete_ =
-                    case top.expect.endSymbol of
+                    case endSymbol top of
                         Nothing ->
                             let
                                 parsed_ =
-                                    parsed ++ [ Text top.content MetaData.dummy ]
+                                    parsed ++ [ Text (content top |> Maybe.withDefault "@NOTHING") MetaData.dummy ]
                             in
-                            if String.left 1 top.expect.beginSymbol == "#" then
+                            if String.left 1 (beginSymbol top) == "#" then
                                 handleHeadings tc top parsed_
 
-                            else if top.expect.beginSymbol == ":" then
+                            else if beginSymbol top == ":" then
                                 handleLineCommand tc parsed_
 
                             else
                                 let
                                     errorMessage =
-                                        StackError top.scanPoint tc.scanPoint ("((unknown delimiter " ++ top.expect.beginSymbol ++ " at position " ++ String.fromInt top.scanPoint ++ "))") (String.slice top.scanPoint tc.scanPoint tc.source)
+                                        StackError (scanPoint top) tc.scanPoint ("((unknown delimiter " ++ beginSymbol top ++ " at position " ++ String.fromInt (scanPoint top) ++ "))") (String.slice (scanPoint top) tc.scanPoint tc.source)
                                 in
                                 List.reverse tc.complete ++ [ errorMessage ]
 
@@ -309,18 +413,24 @@ commit_ tc =
                 }
 
 
-handleHeadings tc top parsed_ =
-    if top.expect.beginSymbol == "#" then
-        List.reverse tc.complete ++ [ Element (AST.Name "heading") (EList (List.reverse parsed_) MetaData.dummy) MetaData.dummy ]
+handleHeadings : TextCursor -> StackItem -> List Element -> List Element
+handleHeadings tc top_ parsed_ =
+    case top_ of
+        EndMark _ ->
+            []
 
-    else if top.expect.beginSymbol == "##" then
-        List.reverse tc.complete ++ [ Element (AST.Name "heading") (EList (List.reverse parsed_) MetaData.dummy) MetaData.dummy ]
+        Expect top ->
+            if top.expect.beginSymbol == "#" then
+                List.reverse tc.complete ++ [ Element (AST.Name "heading") (EList (List.reverse parsed_) MetaData.dummy) MetaData.dummy ]
 
-    else if top.expect.beginSymbol == "###" then
-        List.reverse tc.complete ++ [ Element (AST.Name "heading") (EList (List.reverse parsed_) MetaData.dummy) MetaData.dummy ]
+            else if top.expect.beginSymbol == "##" then
+                List.reverse tc.complete ++ [ Element (AST.Name "heading") (EList (List.reverse parsed_) MetaData.dummy) MetaData.dummy ]
 
-    else
-        List.reverse tc.complete ++ [ Element (AST.Name "heading") (EList (List.reverse parsed_) MetaData.dummy) MetaData.dummy ]
+            else if top.expect.beginSymbol == "###" then
+                List.reverse tc.complete ++ [ Element (AST.Name "heading") (EList (List.reverse parsed_) MetaData.dummy) MetaData.dummy ]
+
+            else
+                List.reverse tc.complete ++ [ Element (AST.Name "heading") (EList (List.reverse parsed_) MetaData.dummy) MetaData.dummy ]
 
 
 handleLineCommand tc parsed_ =
@@ -346,8 +456,8 @@ handleLineCommand tc parsed_ =
 handleError : TextCursor -> StackItem -> List Element
 handleError tc top =
     List.reverse tc.complete
-        ++ [ Element (Name "error") (Text (" unmatched " ++ top.expect.beginSymbol ++ " ") MetaData.dummy) MetaData.dummy
-           , Text top.content MetaData.dummy
+        ++ [ Element (Name "error") (Text (" unmatched " ++ beginSymbol top ++ " ") MetaData.dummy) MetaData.dummy
+           , Text (beginSymbol top) MetaData.dummy
            ]
         ++ List.reverse tc.parsed
         ++ [ Text tc.text MetaData.dummy ]
@@ -369,7 +479,7 @@ canPop configuration tc prefix =
 
             Just stackTop ->
                 -- True
-                Maybe.map2 String.contains stackTop.expect.endSymbol (Just prefix) |> Maybe.withDefault False
+                Maybe.map2 String.contains (endSymbol stackTop) (Just prefix) |> Maybe.withDefault False
         -- TODO why should the above check be necessary?
         -- With it, we get __many__ failing tests
 

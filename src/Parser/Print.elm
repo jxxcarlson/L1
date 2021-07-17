@@ -2,7 +2,7 @@ module Parser.Print exposing (..)
 
 import Library.Console as Console
 import Library.Utility
-import Parser.TextCursor exposing (StackItem, TextCursor)
+import Parser.TextCursor exposing (StackItem, TextCursor, beginSymbol, content, precedingText, simplifyStack2)
 import Render.Text
 
 
@@ -16,6 +16,7 @@ print cursor =
         ++ printCaret
         ++ printRemaining cursor
         ++ printStack cursor.stack
+        ++ (simplifyStack2 cursor.stack |> Console.blue |> Console.bgWhite)
     )
         |> Library.Utility.normalize
         |> String.replace "[ " "["
@@ -35,7 +36,7 @@ printPreceding cursor =
             " " |> Console.blue |> Console.bgWhite
 
         Just stackTop ->
-            " " ++ (List.filter (\s -> s /= "") stackTop.precedingText |> String.join "") ++ " " |> Console.blue |> Console.bgWhite
+            " " ++ (List.filter (\s -> s /= "") (precedingText stackTop) |> String.join "") ++ " " |> Console.blue |> Console.bgWhite
 
 
 printCaret =
@@ -60,8 +61,8 @@ printComplete cursor =
 
 printStackItem : StackItem -> String
 printStackItem item =
-    item.expect.beginSymbol
-        ++ String.trim item.content
+    beginSymbol item
+        ++ String.trim (content item |> Maybe.withDefault "@NOTHING")
 
 
 printStack : List StackItem -> String
