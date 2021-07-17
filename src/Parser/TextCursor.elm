@@ -82,10 +82,6 @@ simplifyStack stack =
     List.map mark stack
 
 
-pairDict =
-    Dict String String
-
-
 simplifyStack2 : List StackItem -> String
 simplifyStack2 stack =
     String.join " " (simplifyStack stack)
