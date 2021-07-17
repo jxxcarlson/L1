@@ -57,7 +57,7 @@ when the scanPoint comes to the end of the source.
 nextCursor : Packet Element -> TextCursor -> ParserTools.Step TextCursor TextCursor
 nextCursor packet cursor =
     if cursor.count > 5 then
-        done cursor
+        done cursor "count exceeded"
 
     else
         let
@@ -79,10 +79,10 @@ nextCursor packet cursor =
         in
         case ( maybeFirstChar, maybePrefix ) of
             ( Nothing, _ ) ->
-                done cursor
+                done cursor "No prefix"
 
             ( _, Nothing ) ->
-                done cursor
+                done cursor "No first character"
 
             ( Just firstChar, Just prefix ) ->
                 if Config.notDelimiter configuration 0 firstChar then
@@ -99,11 +99,11 @@ nextCursor packet cursor =
                     pop packet cursor
 
                 else
-                    done cursor
+                    done cursor "No alternative"
 
 
-done cursor =
-    ParserTools.Done { cursor | message = "Done" }
+done cursor message =
+    ParserTools.Done { cursor | message = message }
 
 
 add cursor chompedText =
@@ -117,25 +117,21 @@ pop packet cursor =
 push cursor prefix =
     case Config.lookup configuration prefix of
         Nothing ->
-            error cursor
+            ParserTools.Loop <| TextCursor.push (TextCursor.EndMark_ prefix) { cursor | message = "PUSH Endmark " ++ prefix }
 
         Just expectation ->
-            push_ cursor expectation
+            let
+                scannerType =
+                    -- Set the scanner type
+                    if List.member expectation.etype [ CodeType, InlineMathType, QuotedType ] then
+                        VerbatimScan (expectation.beginSymbol |> Config.firstChar |> Maybe.withDefault '0')
+                        -- TODO: fix this (prefix)
+
+                    else
+                        NormalScan
+            in
+            ParserTools.Loop <| TextCursor.push (TextCursor.Expect_ expectation) { cursor | message = "PUSH", scannerType = scannerType }
 
 
 error cursor =
     ParserTools.Done { cursor | message = "Unexpected error: no corresponding expectation" }
-
-
-push_ cursor expectation =
-    let
-        scannerType =
-            -- Set the scanner type
-            if List.member expectation.etype [ CodeType, InlineMathType, QuotedType ] then
-                VerbatimScan (expectation.beginSymbol |> Config.firstChar |> Maybe.withDefault '0')
-                -- TODO: fix this (prefix)
-
-            else
-                NormalScan
-    in
-    ParserTools.Loop <| TextCursor.push expectation { cursor | message = "PUSH", scannerType = scannerType }

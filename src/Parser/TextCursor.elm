@@ -1,6 +1,6 @@
 module Parser.TextCursor exposing
     ( TextCursor, init
-    , ScannerType(..), StackItem, add, advance, beginSymbol, canPop, canPush, commit, configuration, content, pop, push, simpleStackItem, simplifyStack, simplifyStack2
+    , ProtoStackItem(..), ScannerType(..), StackItem(..), add, advance, beginSymbol, canPop, canPush, commit, configuration, content, pop, push, simpleStackItem, simplifyStack, simplifyStack2
     )
 
 {-| TextCursor is the data structure used by Parser.parseLoop.
@@ -113,6 +113,11 @@ type StackItem
     | EndMark String
 
 
+type ProtoStackItem
+    = Expect_ Expectation
+    | EndMark_ String
+
+
 mark : StackItem -> String
 mark stackItem =
     case stackItem of
@@ -154,7 +159,7 @@ beginSymbol si =
             ""
 
         EndMark str ->
-            "@NOTHING (2)"
+            str
 
 
 endSymbol : StackItem -> Maybe String
@@ -233,8 +238,8 @@ add str tc =
 
 {-| A
 -}
-push : Expectation -> TextCursor -> TextCursor
-push expectation tc =
+push : ProtoStackItem -> TextCursor -> TextCursor
+push proto tc =
     let
         newText =
             -- TODO: thnks about scanPoint
@@ -249,7 +254,12 @@ push expectation tc =
 
         --  |> Debug.log "scanPointIncrement"
         newStackItem =
-            Expect { expect = expectation, content = newContent, count = tc.count, scanPoint = tc.scanPoint + scanPointIncrement }
+            case proto of
+                Expect_ expectation ->
+                    Expect { expect = expectation, content = newContent, count = tc.count, scanPoint = tc.scanPoint + scanPointIncrement }
+
+                EndMark_ prefix ->
+                    EndMark prefix
     in
     { tc
         | count = tc.count + 1

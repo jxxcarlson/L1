@@ -2,7 +2,7 @@ module Parser.Print exposing (..)
 
 import Library.Console as Console
 import Library.Utility
-import Parser.TextCursor exposing (StackItem, TextCursor, beginSymbol, content, simplifyStack2)
+import Parser.TextCursor exposing (StackItem(..), TextCursor, beginSymbol, content, simplifyStack2)
 import Render.Text
 
 
@@ -60,8 +60,16 @@ printComplete cursor =
 
 printStackItem : StackItem -> String
 printStackItem item =
-    beginSymbol item
-        ++ String.trim (content item |> Maybe.withDefault "@NOTHING (3)")
+    case item of
+        Expect _ ->
+            beginSymbol item
+                ++ String.trim (content item |> Maybe.withDefault "@NOTHING (3)")
+
+        TextItem data ->
+            data.content
+
+        EndMark str ->
+            str
 
 
 enclose delimiter str =
