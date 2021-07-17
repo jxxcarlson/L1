@@ -257,39 +257,46 @@ add parse_ str tc =
 
         -- , stack = TextItem { content = str } :: tc.stack
         , scanPoint = tc.scanPoint + String.length str
-        , complete = parse_ str :: tc.complete
+        , complete = parse_ str :: tc.parsed ++ tc.complete
+        , parsed = []
     }
 
 
 {-| A
 -}
-push : ProtoStackItem -> TextCursor -> TextCursor
-push proto tc =
+push : String -> ProtoStackItem -> TextCursor -> TextCursor
+push prefix proto tc =
     let
         newText =
             -- TODO: thnks about scanPoint
             advance tc (String.dropLeft (tc.scanPoint + 1) tc.source)
-                |> Debug.log "NEW TEXT"
+                |> Debug.log (Console.magenta "NEW TEXT")
 
         newContent =
             newText.content
 
         scanPointIncrement =
-            1 + newText.finish - newText.start
+            String.length prefix + newText.finish - newText.start
 
         --  |> Debug.log "scanPointIncrement"
-        newStackItem =
+        newStack =
             case proto of
                 Expect_ expectation ->
-                    Expect { expect = expectation, content = newContent, count = tc.count, scanPoint = tc.scanPoint + scanPointIncrement }
+                    Expect
+                        { expect = expectation
+                        , content = newContent
+                        , count = tc.count
+                        , scanPoint = tc.scanPoint + scanPointIncrement
+                        }
+                        :: tc.stack
 
-                EndMark_ prefix ->
-                    EndMark prefix
+                EndMark_ prefix_ ->
+                    TextItem { content = newContent } :: EndMark prefix_ :: tc.stack
     in
     { tc
         | count = tc.count + 1
         , scanPoint = tc.scanPoint + scanPointIncrement
-        , stack = newStackItem :: tc.stack -- |> Debug.log "PUSH, STACK"
+        , stack = newStack |> Debug.log (Console.magenta "PUSH, STACK")
     }
 
 
@@ -326,7 +333,7 @@ pop parse prefix cursor =
                         | stack = []
                         , parsed = parse data :: cursor.parsed
                         , count = cursor.count + 1
-                        , scanPoint = cursor.scanPoint + 1 + (adv.finish - adv.start)
+                        , scanPoint = cursor.scanPoint + 1 -- + (adv.finish - adv.start)
                     }
 
                 TextItem _ ->
@@ -545,7 +552,7 @@ remaining source text that begins with character c what we expect?
 -}
 canPop : Configuration -> TextCursor -> String -> Bool
 canPop configuration_ tc prefix =
-    isReducibleWith prefix tc.stack |> Debug.log (Console.magenta "canPop")
+    isReducibleWith prefix tc.stack
 
 
 
@@ -586,13 +593,32 @@ canPush configuration_ tc prefix =
         _ =
             Debug.log (Console.magenta "canPush, prefix") prefix
     in
-    (Config.isBeginSymbol configuration_ tc.scanPoint prefix
+    if prefix == "" then
+        False
+
+    else if canPush_ configuration_ tc prefix then
+        True
+
+    else
+        canPush_ configuration_ tc (String.dropLeft 1 prefix)
+
+
+
+--(Config.isBeginSymbol configuration_ tc.scanPoint prefix
+--    || (Config.isEndSymbol configuration_ tc.scanPoint prefix
+--            && not
+--                (isReducibleWith prefix tc.stack |> Debug.log (Console.magenta "isReducibleWith"))
+--       )
+--)
+--    |> Debug.log (Console.magenta "canPush")
+
+
+canPush_ configuration_ tc prefix =
+    Config.isBeginSymbol configuration_ tc.scanPoint prefix
         || (Config.isEndSymbol configuration_ tc.scanPoint prefix
                 && not
                     (isReducibleWith prefix tc.stack |> Debug.log (Console.magenta "isReducibleWith"))
            )
-    )
-        |> Debug.log (Console.magenta "canPush")
 
 
 

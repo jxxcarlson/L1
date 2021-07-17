@@ -117,7 +117,7 @@ pop parser prefix cursor =
 push cursor prefix =
     case Config.lookup configuration prefix of
         Nothing ->
-            ParserTools.Loop <| TextCursor.push (TextCursor.EndMark_ prefix) { cursor | message = "PUSH Endmark " ++ prefix }
+            ParserTools.Loop <| TextCursor.push prefix (TextCursor.EndMark_ prefix) { cursor | message = "PUSH Endmark " ++ prefix }
 
         Just expectation ->
             let
@@ -130,7 +130,8 @@ push cursor prefix =
                     else
                         NormalScan
             in
-            ParserTools.Loop <| TextCursor.push (TextCursor.Expect_ expectation) { cursor | message = "PUSH", scannerType = scannerType }
+            ParserTools.Loop <|
+                TextCursor.push prefix (TextCursor.Expect_ expectation) { cursor | message = "PUSH", scannerType = scannerType }
 
 
 error cursor =
