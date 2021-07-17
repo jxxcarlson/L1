@@ -1,4 +1,4 @@
-module Parser.Driver exposing (packet, parse, parseLoop, pl)
+module Parser.Driver exposing (parse, parseLoop, pl)
 
 import Parser.AST as AST exposing (Element(..))
 import Parser.Advanced as PA
@@ -8,25 +8,15 @@ import Parser.Parser as Parser
 import Parser.TextCursor exposing (TextCursor)
 
 
-{-| The value of Loop.Packet that we need here
--}
-packet : Loop.Packet Element
-packet =
-    { parser = \str -> Parser.parse 0 str
-    , getLength = AST.length
-    , handleError = Nothing
-    }
+parseLoop : (String -> Element) -> Int -> String -> TextCursor
+parseLoop parse_ generation str =
+    Loop.parseLoop parse_ generation str
 
 
-parseLoop : Int -> String -> TextCursor
-parseLoop generation str =
-    Loop.parseLoop packet generation str
-
-
-parse : Int -> String -> List Element
-parse generation str =
+parse : (String -> Element) -> Int -> String -> List Element
+parse parse_ generation str =
     str
-        |> parseLoop generation
+        |> parseLoop parse_ generation
         |> .complete
 
 
@@ -36,7 +26,7 @@ pl : String -> List AST.Element_
 pl str =
     let
         tc =
-            parseLoop 0 str
+            parseLoop (Parser.parse 0) 0 str
     in
     tc |> .complete |> List.map AST.simplify
 

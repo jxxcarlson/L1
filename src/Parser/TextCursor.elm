@@ -26,6 +26,11 @@ isReducible stack =
     stack |> simplifyStack |> Check.reduces
 
 
+isReducibleWith : String -> List StackItem -> Bool
+isReducibleWith str stack =
+    stack |> simplifyStack |> (\st -> st ++ [ str ]) |> Check.reduces
+
+
 simplifyStack : List StackItem -> List String
 simplifyStack stack =
     List.map mark stack
@@ -116,6 +121,24 @@ type StackItem
 type ProtoStackItem
     = Expect_ Expectation
     | EndMark_ String
+
+
+show : StackItem -> String
+show item =
+    case item of
+        Expect data ->
+            data.expect.beginSymbol ++ data.content
+
+        TextItem data ->
+            data.content
+
+        EndMark str ->
+            str
+
+
+showStack : List StackItem -> String
+showStack stack =
+    List.map show stack |> String.join " "
 
 
 mark : StackItem -> String
@@ -268,8 +291,8 @@ push proto tc =
     }
 
 
-pop : (String -> Element) -> TextCursor -> TextCursor
-pop parse cursor =
+pop : (String -> Element) -> String -> TextCursor -> TextCursor
+pop parse prefix cursor =
     -- The cursors' scanPoint is pointing at a character that
     -- signal the end of an element, e.g., ']' in the
     -- case of language L1.  It is time to pop the stack
@@ -281,8 +304,28 @@ pop parse cursor =
 
         Just stackTop_ ->
             case stackTop_ of
-                Expect stackTopData ->
-                    handleText parse stackTopData cursor
+                Expect _ ->
+                    let
+                        data =
+                            showStack (List.reverse cursor.stack)
+                                ++ prefix
+                                |> Debug.log (Console.magenta "STACK")
+
+                        newParsed =
+                            parse data |> AST.simplify |> Debug.log (Console.magenta "newParsed")
+
+                        _ =
+                            Debug.log (Console.magenta "(SCP, REM)") ( cursor.scanPoint, String.dropLeft cursor.scanPoint cursor.source )
+
+                        adv =
+                            Debug.log (Console.magenta "ADVANCE") <| advance { cursor | scanPoint = cursor.scanPoint + 1 } (String.dropLeft (cursor.scanPoint + 1) cursor.source)
+                    in
+                    { cursor
+                        | stack = []
+                        , parsed = parse data :: cursor.parsed
+                        , count = cursor.count + 1
+                        , scanPoint = cursor.scanPoint + 1 + (adv.finish - adv.start)
+                    }
 
                 TextItem _ ->
                     -- TODO: fix
@@ -292,8 +335,12 @@ pop parse cursor =
                     { cursor | count = cursor.count + 1 }
 
 
-handleText : (String -> Element) -> StackItemData -> TextCursor -> TextCursor
-handleText parse stackTopData cursor =
+handleText : (String -> Element) -> String -> StackItemData -> TextCursor -> TextCursor
+handleText parse prefix stackTopData cursor =
+    let
+        _ =
+            Debug.log (Console.magenta "IN handleText, STACK") cursor.stack
+    in
     case List.head cursor.stack of
         Nothing ->
             { cursor | count = cursor.count + 1, scanPoint = cursor.scanPoint + 1 }
@@ -314,6 +361,9 @@ handleText parse stackTopData cursor =
                     case stackTopData.expect.etype of
                         ElementType ->
                             let
+                                reallyNew =
+                                    ""
+
                                 new =
                                     handleFunction parse cursor stackTop_ fname args
                             in
@@ -371,13 +421,13 @@ handleFunction parse tc stackTop fname args =
         [ AST.join (Element (AST.Name fname) (EList args MetaData.dummy) MetaData.dummy) tc.parsed ]
 
 
-commit : TextCursor -> TextCursor
-commit cursor =
-    cursor |> commit_ |> (\tc2 -> { tc2 | complete = List.reverse tc2.complete })
+commit : (String -> Element) -> TextCursor -> TextCursor
+commit parse cursor =
+    cursor |> commit_ parse |> (\tc2 -> { tc2 | complete = List.reverse tc2.complete })
 
 
-commit_ : TextCursor -> TextCursor
-commit_ tc =
+commit_ : (String -> Element) -> TextCursor -> TextCursor
+commit_ parse tc =
     let
         parsed =
             if tc.text == "" then
@@ -385,6 +435,9 @@ commit_ tc =
 
             else
                 AST.Text tc.text MetaData.dummy :: tc.parsed
+
+        newParsed =
+            parse (showStack tc.stack)
 
         complete =
             parsed ++ tc.complete
@@ -400,7 +453,7 @@ commit_ tc =
                         Nothing ->
                             let
                                 parsed_ =
-                                    parsed ++ [ Text (content top |> Maybe.withDefault "@NOTHING (4)") MetaData.dummy ]
+                                    newParsed :: tc.parsed |> Debug.log (Console.magenta "parsed_")
                             in
                             if String.left 1 (beginSymbol top) == "#" then
                                 handleHeadings tc top parsed_
@@ -409,16 +462,16 @@ commit_ tc =
                                 handleLineCommand tc parsed_
 
                             else
-                                let
-                                    errorMessage =
-                                        StackError (scanPoint top) tc.scanPoint ("((unknown delimiter " ++ beginSymbol top ++ " at position " ++ String.fromInt (scanPoint top) ++ "))") (String.slice (scanPoint top) tc.scanPoint tc.source)
-                                in
-                                List.reverse tc.complete ++ [ errorMessage ]
+                                --let
+                                --    errorMessage =
+                                --        StackError (scanPoint top) tc.scanPoint ("((unknown delimiter " ++ beginSymbol top ++ " at position " ++ String.fromInt (scanPoint top) ++ "))") (String.slice (scanPoint top) tc.scanPoint tc.source)
+                                --in
+                                List.reverse parsed_
 
                         Just _ ->
                             handleError tc top
             in
-            commit
+            commit parse
                 { tc
                     | count = 1 + tc.count
                     , text = ""
@@ -490,7 +543,7 @@ remaining source text that begins with character c what we expect?
 -}
 canPop : Configuration -> TextCursor -> String -> Bool
 canPop configuration_ tc prefix =
-    isReducible tc.stack
+    isReducibleWith prefix tc.stack |> Debug.log (Console.magenta "canPop")
 
 
 
@@ -534,7 +587,7 @@ canPush configuration_ tc prefix =
     (Config.isBeginSymbol configuration_ tc.scanPoint prefix
         || (Config.isEndSymbol configuration_ tc.scanPoint prefix
                 && not
-                    (isReducible tc.stack |> Debug.log (Console.magenta "isReducible"))
+                    (isReducibleWith prefix tc.stack |> Debug.log (Console.magenta "isReducibleWith"))
            )
     )
         |> Debug.log (Console.magenta "canPush")

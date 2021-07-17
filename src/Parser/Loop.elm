@@ -27,12 +27,12 @@ on each pass. See module Parser.TextCursor for definitions. The TextCursor
 is initialized with source text. When parseLoop concludes, it also carries
 the AST of the processed source.
 -}
-parseLoop : Packet Element -> Int -> String -> TextCursor
-parseLoop packet generation str =
+parseLoop : (String -> Element) -> Int -> String -> TextCursor
+parseLoop parser generation str =
     let
         result =
-            ParserTools.loop (TextCursor.init generation str) (nextCursor packet)
-                |> TextCursor.commit
+            ParserTools.loop (TextCursor.init generation str) (nextCursor parser)
+                |> TextCursor.commit parser
                 |> (\tc_ -> { tc_ | message = "COMM" })
 
         _ =
@@ -54,8 +54,8 @@ that parseLoop is guaranteed to terminate. The program terminates
 when the scanPoint comes to the end of the source.
 
 -}
-nextCursor : Packet Element -> TextCursor -> ParserTools.Step TextCursor TextCursor
-nextCursor packet cursor =
+nextCursor : (String -> Element) -> TextCursor -> ParserTools.Step TextCursor TextCursor
+nextCursor parser cursor =
     if cursor.count > 5 then
         done cursor "count exceeded"
 
@@ -96,7 +96,7 @@ nextCursor packet cursor =
                     push cursor prefix
 
                 else if TextCursor.canPop configuration cursor prefix then
-                    pop packet cursor
+                    pop parser prefix cursor
 
                 else
                     done cursor "No alternative"
@@ -110,8 +110,8 @@ add cursor chompedText =
     ParserTools.Loop <| TextCursor.add chompedText.content { cursor | message = "ADD" }
 
 
-pop packet cursor =
-    ParserTools.Loop <| TextCursor.pop packet.parser { cursor | message = "POP", scannerType = NormalScan }
+pop parser prefix cursor =
+    ParserTools.Loop <| TextCursor.pop parser prefix { cursor | message = "POP", scannerType = NormalScan }
 
 
 push cursor prefix =
