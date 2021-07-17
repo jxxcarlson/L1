@@ -1,22 +1,6 @@
 module Parser.TextCursor exposing
     ( TextCursor, init
-    ,  ScannerType(..)
-      , StackItem
-      , add
-      , beginSymbol
-      , canPop
-      , canPush
-      , commit
-      , content
-      , isBalanced
-      , pop
-      , precedingText
-      , push
-      , simpleStackItem
-        --, ErrorStatus(..)
-      , simplifyStack
-      , simplifyStack2
-
+    , ScannerType(..), StackItem, add, advance, beginSymbol, canPop, canPush, commit, configuration, content, pop, push, simpleStackItem, simplifyStack, simplifyStack2
     )
 
 {-| TextCursor is the data structure used by Parser.parseLoop.
@@ -25,11 +9,76 @@ module Parser.TextCursor exposing
 
 -}
 
+import Library.Console as Console
+import Library.ParserTools as ParserTools
 import Library.Utility
 import List.Extra
 import Parser.AST as AST exposing (Element(..), Name(..))
-import Parser.Config exposing (EType(..), Expectation)
+import Parser.Advanced
+import Parser.Check as Check
+import Parser.Config as Config exposing (Configuration, EType(..), Expectation)
+import Parser.Configuration as Configuration
 import Parser.MetaData as MetaData exposing (MetaData)
+
+
+isReducible : List StackItem -> Bool
+isReducible stack =
+    stack |> simplifyStack |> Check.reduces
+
+
+simplifyStack : List StackItem -> List String
+simplifyStack stack =
+    List.map mark stack
+
+
+simplifyStack2 : List StackItem -> String
+simplifyStack2 stack =
+    String.join " " (simplifyStack stack)
+
+
+configuration =
+    Config.configure Configuration.expectations
+
+
+advance : TextCursor -> String -> ParserTools.StringData
+advance cursor textToProcess =
+    case cursor.scannerType of
+        NormalScan ->
+            advanceNormal configuration cursor.scanPoint textToProcess
+
+        VerbatimScan c ->
+            advanceVerbatim c textToProcess
+
+
+{-| Return the longest prefix of str that does not contain a delimiter.
+The delimiter sets used depend upon position. One set for position = 0,
+another for position /= 0.
+-}
+advanceNormal : Configuration -> Int -> String -> ParserTools.StringData
+advanceNormal config position str =
+    case Parser.Advanced.run (ParserTools.text (Config.notDelimiter configuration position) (Config.notDelimiter configuration position)) str of
+        Ok stringData ->
+            stringData
+
+        Err _ ->
+            { content = "", finish = 0, start = 0 }
+
+
+{-| Advance, but according to different criteria, because the
+scanner type has been set to 'VerbatimScan c'
+-}
+advanceVerbatim : Char -> String -> ParserTools.StringData
+advanceVerbatim verbatimChar str =
+    let
+        predicate =
+            \c -> c /= verbatimChar
+    in
+    case Parser.Advanced.run (ParserTools.text predicate predicate) str of
+        Ok stringData ->
+            stringData
+
+        Err _ ->
+            { content = "", finish = 0, start = 0 }
 
 
 {-| TODO: give an account of what these fields do
@@ -60,6 +109,7 @@ type ScannerType
 
 type StackItem
     = Expect StackItemData
+    | TextItem { content : String }
     | EndMark String
 
 
@@ -69,22 +119,15 @@ mark stackItem =
         Expect data ->
             data.expect.beginSymbol
 
+        TextItem i ->
+            ""
+
         EndMark str ->
             str
 
 
 type alias StackItemData =
-    { expect : Expectation, content : String, precedingText : List String, count : Int, scanPoint : Int }
-
-
-simplifyStack : List StackItem -> List String
-simplifyStack stack =
-    List.map mark stack
-
-
-simplifyStack2 : List StackItem -> String
-simplifyStack2 stack =
-    String.join " " (simplifyStack stack)
+    { expect : Expectation, content : String, count : Int, scanPoint : Int }
 
 
 scanPoint : StackItem -> Int
@@ -92,6 +135,10 @@ scanPoint stackItem =
     case stackItem of
         Expect data ->
             data.scanPoint
+
+        TextItem _ ->
+            -- TODO: not a good idea
+            -1
 
         EndMark _ ->
             -1
@@ -103,8 +150,11 @@ beginSymbol si =
         Expect data ->
             data.expect.beginSymbol
 
+        TextItem item ->
+            ""
+
         EndMark str ->
-            "@NOTHING"
+            "@NOTHING (2)"
 
 
 endSymbol : StackItem -> Maybe String
@@ -112,6 +162,9 @@ endSymbol si =
     case si of
         Expect data ->
             data.expect.endSymbol
+
+        TextItem _ ->
+            Nothing
 
         EndMark str ->
             Just str
@@ -123,18 +176,11 @@ content si =
         EndMark _ ->
             Nothing
 
-        Expect data ->
+        TextItem data ->
             Just data.content
 
-
-precedingText : StackItem -> List String
-precedingText item =
-    case item of
-        Expect e ->
-            e.precedingText
-
-        EndMark _ ->
-            []
+        Expect data ->
+            Just data.content
 
 
 {-| initialize with source text
@@ -169,82 +215,46 @@ simpleStackItem stackItem =
         Expect si ->
             "Offset " ++ String.fromInt si.scanPoint ++ ": " ++ si.content
 
+        TextItem i ->
+            i.content
+
         EndMark str ->
             str
 
 
 add : String -> TextCursor -> TextCursor
 add str tc =
-    let
-        ( stringToAdd, newStack ) =
-            addContentToStack str tc.stack
-    in
     { tc
         | count = tc.count + 1
-        , text = stringToAdd ++ tc.text
-        , stack = newStack
+        , stack = TextItem { content = str } :: tc.stack
         , scanPoint = tc.scanPoint + String.length str
     }
-
-
-{-| Used by add
--}
-addContentToStack : String -> List StackItem -> ( String, List StackItem )
-addContentToStack str stack =
-    case List.head stack of
-        Nothing ->
-            ( str, stack )
-
-        Just top_ ->
-            case content top_ of
-                Nothing ->
-                    ( str, stack )
-
-                Just "" ->
-                    case top_ of
-                        Expect top ->
-                            ( "", Expect { top | content = str } :: List.drop 1 stack )
-
-                        EndMark _ ->
-                            -- TODO: is this correct?
-                            ( str, stack )
-
-                Just str_ ->
-                    ( str_, stack )
 
 
 {-| A
 -}
 push : Expectation -> TextCursor -> TextCursor
 push expectation tc =
+    let
+        newText =
+            -- TODO: thnks about scanPoint
+            advance tc (String.dropLeft (tc.scanPoint + 1) tc.source)
+                |> Debug.log "NEW TEXT"
+
+        newContent =
+            newText.content
+
+        scanPointIncrement =
+            1 + newText.finish - newText.start
+
+        --  |> Debug.log "scanPointIncrement"
+        newStackItem =
+            Expect { expect = expectation, content = newContent, count = tc.count, scanPoint = tc.scanPoint + scanPointIncrement }
+    in
     { tc
         | count = tc.count + 1
-        , scanPoint = tc.scanPoint + 1
-        , stack =
-            case List.head tc.stack of
-                Nothing ->
-                    Expect { expect = expectation, content = "", precedingText = [], count = tc.count, scanPoint = tc.scanPoint } :: tc.stack
-
-                Just stackTop ->
-                    Expect { expect = expectation, content = "", precedingText = [ tc.text ], count = tc.count, scanPoint = tc.scanPoint } :: tc.stack
-        , parsed =
-            if tc.stack == [] then
-                []
-
-            else
-                -- parsed_ vvv NEW below
-                tc.parsed
-        , complete =
-            if tc.stack == [] then
-                if tc.text == "" then
-                    []
-
-                else
-                    Text tc.text MetaData.dummy :: tc.parsed ++ tc.complete
-
-            else
-                tc.complete
-        , text = ""
+        , scanPoint = tc.scanPoint + scanPointIncrement
+        , stack = newStackItem :: tc.stack -- |> Debug.log "PUSH, STACK"
     }
 
 
@@ -264,8 +274,12 @@ pop parse cursor =
                 Expect stackTopData ->
                     handleText parse stackTopData cursor
 
+                TextItem _ ->
+                    -- TODO: fix
+                    { cursor | count = cursor.count + 1 }
+
                 EndMark _ ->
-                    cursor
+                    { cursor | count = cursor.count + 1 }
 
 
 handleText : (String -> Element) -> StackItemData -> TextCursor -> TextCursor
@@ -343,18 +357,13 @@ handleFunction parse tc stackTop fname args =
             MetaData.dummy
         ]
 
-    else if precedingText stackTop /= [] then
-        [ Element (AST.Name fname) (EList args MetaData.dummy) MetaData.dummy ]
-            ++ List.map parse (List.filter (\s -> s /= "") (precedingText stackTop))
-            ++ tc.parsed
-
     else
         [ AST.join (Element (AST.Name fname) (EList args MetaData.dummy) MetaData.dummy) tc.parsed ]
 
 
 commit : TextCursor -> TextCursor
-commit tc =
-    tc |> commit_ |> (\tc2 -> { tc2 | complete = List.reverse tc2.complete })
+commit cursor =
+    cursor |> commit_ |> (\tc2 -> { tc2 | complete = List.reverse tc2.complete })
 
 
 commit_ : TextCursor -> TextCursor
@@ -381,7 +390,7 @@ commit_ tc =
                         Nothing ->
                             let
                                 parsed_ =
-                                    parsed ++ [ Text (content top |> Maybe.withDefault "@NOTHING") MetaData.dummy ]
+                                    parsed ++ [ Text (content top |> Maybe.withDefault "@NOTHING (4)") MetaData.dummy ]
                             in
                             if String.left 1 (beginSymbol top) == "#" then
                                 handleHeadings tc top parsed_
@@ -413,6 +422,9 @@ handleHeadings : TextCursor -> StackItem -> List Element -> List Element
 handleHeadings tc top_ parsed_ =
     case top_ of
         EndMark _ ->
+            []
+
+        TextItem _ ->
             []
 
         Expect top ->
@@ -466,47 +478,56 @@ handleError tc top =
 {-| The parser has paused at charater c. If the prefix of the
 remaining source text that begins with character c what we expect?
 -}
-canPop : Parser.Config.Configuration -> TextCursor -> String -> Bool
-canPop configuration tc prefix =
-    if canPopPrecondition configuration tc prefix then
-        case List.head tc.stack of
-            Nothing ->
-                False
-
-            Just stackTop ->
-                -- True
-                Maybe.map2 String.contains (endSymbol stackTop) (Just prefix) |> Maybe.withDefault False
-        -- TODO why should the above check be necessary?
-        -- With it, we get __many__ failing tests
-
-    else
-        False
+canPop : Configuration -> TextCursor -> String -> Bool
+canPop configuration_ tc prefix =
+    isReducible tc.stack
 
 
-canPopPrecondition : Parser.Config.Configuration -> TextCursor -> String -> Bool
-canPopPrecondition configuration tc prefix =
+
+--if canPopPrecondition configuration_ tc prefix then
+--    case List.head tc.stack of
+--        Nothing ->
+--            False
+--
+--        Just stackTop ->
+--            -- True
+--            Maybe.map2 String.contains (endSymbol stackTop) (Just prefix) |> Maybe.withDefault False
+--    -- TODO why should the above check be necessary?
+--    -- With it, we get __many__ failing tests
+--
+--else
+--    False
+
+
+canPopPrecondition : Configuration -> TextCursor -> String -> Bool
+canPopPrecondition configuration_ tc prefix =
     let
         isEndSymbol =
-            Parser.Config.isEndSymbol configuration tc.scanPoint prefix
+            Config.isEndSymbol configuration_ tc.scanPoint prefix
     in
     if isEndSymbol then
         True
 
     else if String.length prefix > 1 then
-        canPopPrecondition configuration tc (String.dropLeft 1 prefix)
+        canPopPrecondition configuration_ tc (String.dropLeft 1 prefix)
 
     else
         False
 
 
-canPush : Parser.Config.Configuration -> TextCursor -> String -> Bool
-canPush configuration tc prefix =
-    Parser.Config.isBeginSymbol configuration tc.scanPoint prefix
-
-
-isBalanced : String -> Bool
-isBalanced str =
-    (List.length <| String.indices "[" str) == (List.length <| String.indices "]" str)
+canPush : Configuration -> TextCursor -> String -> Bool
+canPush configuration_ tc prefix =
+    let
+        _ =
+            Debug.log (Console.magenta "canPush, prefix") prefix
+    in
+    (Config.isBeginSymbol configuration_ tc.scanPoint prefix
+        || (Config.isEndSymbol configuration_ tc.scanPoint prefix
+                && not
+                    (isReducible tc.stack |> Debug.log (Console.magenta "isReducible"))
+           )
+    )
+        |> Debug.log (Console.magenta "canPush")
 
 
 

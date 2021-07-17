@@ -1,4 +1,4 @@
-module Parser.Balanced exposing (..)
+module Parser.Check exposing (reduces)
 
 import Dict exposing (Dict)
 import List.Extra

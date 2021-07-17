@@ -1,5 +1,6 @@
-module Parser.Loop exposing (Packet, advance, nextCursor, parseLoop)
+module Parser.Loop exposing (Packet, nextCursor, parseLoop)
 
+import Library.Console as Console
 import Library.ParserTools as ParserTools
 import Parser.AST as AST exposing (Element(..), Name(..))
 import Parser.Advanced as Parser exposing ((|.), (|=))
@@ -7,7 +8,7 @@ import Parser.Config as Config exposing (Configuration, EType(..))
 import Parser.Configuration as Configuration
 import Parser.Error exposing (Context, Problem)
 import Parser.Print
-import Parser.TextCursor as TextCursor exposing (ScannerType(..), TextCursor)
+import Parser.TextCursor as TextCursor exposing (ScannerType(..), TextCursor, configuration)
 
 
 type alias Parser a =
@@ -19,10 +20,6 @@ type alias Packet a =
     , getLength : a -> Int
     , handleError : Maybe (List (Parser.DeadEnd Context Problem) -> TextCursor -> TextCursor)
     }
-
-
-configuration =
-    Config.configure Configuration.expectations
 
 
 {-| parseLoop scans the source text from right to left, update the TextCursor
@@ -59,41 +56,50 @@ when the scanPoint comes to the end of the source.
 -}
 nextCursor : Packet Element -> TextCursor -> ParserTools.Step TextCursor TextCursor
 nextCursor packet cursor =
-    let
-        _ =
-            Debug.log (Parser.Print.print cursor) ""
+    if cursor.count > 5 then
+        done cursor
 
-        textToProcess =
-            String.dropLeft cursor.scanPoint cursor.source
+    else
+        let
+            _ =
+                Debug.log (Parser.Print.print cursor) ""
 
-        chompedText =
-            getChompedText cursor textToProcess
+            textToProcess =
+                String.dropLeft cursor.scanPoint cursor.source
 
-        maybeFirstChar =
-            String.uncons textToProcess |> Maybe.map Tuple.first
+            chompedText =
+                TextCursor.advance cursor textToProcess
 
-        maybePrefix =
-            Maybe.map ((\c -> ParserTools.prefixWith c textToProcess) >> .content) maybeFirstChar
-    in
-    case ( maybeFirstChar, maybePrefix ) of
-        ( Nothing, _ ) ->
-            done cursor
+            maybeFirstChar =
+                String.uncons textToProcess |> Maybe.map Tuple.first
 
-        ( _, Nothing ) ->
-            done cursor
-
-        ( Just firstChar, Just prefix ) ->
-            if Config.notDelimiter configuration 0 firstChar then
-                add cursor chompedText
-
-            else if TextCursor.canPop configuration cursor prefix then
-                pop packet cursor
-
-            else if TextCursor.canPush configuration cursor prefix then
-                push cursor prefix
-
-            else
+            -- |> Debug.log (Console.magenta "FIRST CH")
+            maybePrefix =
+                Maybe.map ((\c -> ParserTools.prefixWith c textToProcess) >> .content) maybeFirstChar
+        in
+        case ( maybeFirstChar, maybePrefix ) of
+            ( Nothing, _ ) ->
                 done cursor
+
+            ( _, Nothing ) ->
+                done cursor
+
+            ( Just firstChar, Just prefix ) ->
+                if Config.notDelimiter configuration 0 firstChar then
+                    add cursor chompedText
+
+                else if TextCursor.canPush configuration cursor prefix then
+                    let
+                        _ =
+                            Debug.log (Console.magenta "WILL PUSH, prefix") prefix
+                    in
+                    push cursor prefix
+
+                else if TextCursor.canPop configuration cursor prefix then
+                    pop packet cursor
+
+                else
+                    done cursor
 
 
 done cursor =
@@ -133,43 +139,3 @@ push_ cursor expectation =
                 NormalScan
     in
     ParserTools.Loop <| TextCursor.push expectation { cursor | message = "PUSH", scannerType = scannerType }
-
-
-getChompedText cursor textToProcess =
-    case cursor.scannerType of
-        NormalScan ->
-            advance configuration cursor.scanPoint textToProcess
-
-        VerbatimScan c ->
-            advanceVerbatim c textToProcess
-
-
-{-| Return the longest prefix of str that does not contain a delimiter.
-The delimiter sets used depend upon position. One set for position = 0,
-another for position /= 0.
--}
-advance : Configuration -> Int -> String -> ParserTools.StringData
-advance config position str =
-    case Parser.run (ParserTools.text (Config.notDelimiter configuration position) (Config.notDelimiter configuration position)) str of
-        Ok stringData ->
-            stringData
-
-        Err _ ->
-            { content = "", finish = 0, start = 0 }
-
-
-{-| Advance, but according to different criteria, because the
-scanner type has been set to 'VerbatimScan c'
--}
-advanceVerbatim : Char -> String -> ParserTools.StringData
-advanceVerbatim verbatimChar str =
-    let
-        predicate =
-            \c -> c /= verbatimChar
-    in
-    case Parser.run (ParserTools.text predicate predicate) str of
-        Ok stringData ->
-            stringData
-
-        Err _ ->
-            { content = "", finish = 0, start = 0 }

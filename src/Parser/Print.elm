@@ -2,25 +2,26 @@ module Parser.Print exposing (..)
 
 import Library.Console as Console
 import Library.Utility
-import Parser.TextCursor exposing (StackItem, TextCursor, beginSymbol, content, precedingText, simplifyStack2)
+import Parser.TextCursor exposing (StackItem, TextCursor, beginSymbol, content, simplifyStack2)
 import Render.Text
 
 
 print : TextCursor -> String
 print cursor =
-    (printMessage cursor
+    printMessage cursor
+        ++ printScanPoint cursor
         ++ printComplete cursor
         ++ printCursorText cursor
-        ++ printPreceding cursor
         ++ printParsed cursor
         ++ printCaret
         ++ printRemaining cursor
         ++ printStack cursor.stack
-        ++ (simplifyStack2 cursor.stack |> Console.blue |> Console.bgWhite)
-    )
-        |> Library.Utility.normalize
-        |> String.replace "[ " "["
-        |> String.trim
+
+
+
+--|> Library.Utility.normalize
+-- |> String.replace "[ " "["
+-- |> String.trim
 
 
 printMessage cursor =
@@ -29,14 +30,12 @@ printMessage cursor =
         ++ " :: "
 
 
-printPreceding : TextCursor -> String
-printPreceding cursor =
-    case List.head cursor.stack of
-        Nothing ->
-            " " |> Console.blue |> Console.bgWhite
-
-        Just stackTop ->
-            " " ++ (List.filter (\s -> s /= "") (precedingText stackTop) |> String.join "") ++ " " |> Console.blue |> Console.bgWhite
+printScanPoint cursor =
+    let
+        firstChar =
+            String.slice cursor.scanPoint (cursor.scanPoint + 1) cursor.source
+    in
+    String.fromInt cursor.scanPoint ++ firstChar |> String.padRight 5 '.' |> Console.magenta
 
 
 printCaret =
@@ -62,12 +61,16 @@ printComplete cursor =
 printStackItem : StackItem -> String
 printStackItem item =
     beginSymbol item
-        ++ String.trim (content item |> Maybe.withDefault "@NOTHING")
+        ++ String.trim (content item |> Maybe.withDefault "@NOTHING (3)")
+
+
+enclose delimiter str =
+    delimiter ++ str ++ delimiter
 
 
 printStack : List StackItem -> String
 printStack items =
-    " " ++ (List.map printStackItem (List.reverse items) |> String.join " ") |> Console.bgMagenta |> Console.black
+    " " ++ ((List.map printStackItem (List.reverse items) |> String.join " ") |> Console.bgMagenta |> Console.black) ++ " "
 
 
 magenta : String -> String
