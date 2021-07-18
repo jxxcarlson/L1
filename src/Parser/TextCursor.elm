@@ -283,8 +283,8 @@ push : String -> ProtoStackItem -> TextCursor -> TextCursor
 push prefix proto tc =
     let
         newText =
-            -- TODO: thnks about scanPoint
-            advance tc (String.dropLeft (tc.scanPoint + 1) tc.source)
+            -- TODO: think about scanPoint
+            advance tc (String.dropLeft (tc.scanPoint + String.length prefix) tc.source)
 
         --|> Debug.log (Console.magenta "NEW TEXT")
         newContent =
