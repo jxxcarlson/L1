@@ -10,6 +10,8 @@ text =
 
 
 
+
+
 [image caption:Camperdown-Prospect-Park-Brooklyn https://upload.wikimedia.org/wikipedia/commons/2/20/Camperdown_Elm_Prospect_Park_Brooklyn.jpg]
 
 # Fault-Tolerant Parsing
@@ -72,7 +74,7 @@ still rendered in bold.  Ergo, the parser was able to continue after the error, 
 
 To understand the scan/parse process, we consider an isomorphic but simpler example, the string `a [x b] [y c] d`.  As we scan from left to right, with the scannner head represented by `^`, we try to recognize and parse as man subunits as possible, keeping them ready in case they are needed to fit all the pieces of the puzzle together at a later time.  The first line in the image below is the starting state, with the pointer to the left of the data.  Unprocessed data is highlighted in green.  At step (1), the pointer moves to the right to just before the left bracket, which is one of the two delimiters in [b L1], The text `a` is saved in `cursor.text`, which is highlighted in yellow.  At step (2) the scanner has encountered an opening for an [b L1] element.  It knows that `a` is completely processed; it is therefore saved in `cursor.complete`, which is highlighted in blue.  At the same time, the  left bracket, which is in an unfulfilled state, is pushed onto the stack (magenta) for later use.
 
-[image "https://noteimages.s3.amazonaws.com/parser-L1-1.png"]
+[image https://noteimages.s3.amazonaws.com/parser-L1-1.png]
 
 
 At step (3), the pointer moves to the next delimiter, placing the intervening text in the `.content` field of the item on top of the stack.  At step (4) something new happens.  The parser recognizes the right bracket which can close the data on the top of the stack. It appends the right bracket to the content of the top of the stack, parses it, and pushes it the list `cursor.parsed` (cyan).  This is the POP operation.  In step (5), a blank space is moved into `cursor.text`.  Not so interesting.
@@ -102,13 +104,16 @@ The key fact is that the opening bracket of `[x b` was never closed.  There are 
 
 where `((c.stack))` means [i make a  valid element whose text comes from] `c.stack`.  The image below shows what the parser knows as it enters the commit phase.
 
-[image "https://noteimages.s3.amazonaws.com/parser-L1-2.png"]
+[image https://noteimages.s3.amazonaws.com/parser-L1-2.png]
+
 
 
 ## References
 
 
 [link "Error recovery with parser combinators"  "https://eyalkalderon.com/blog/nom-error-recovery/"]
+
+
 
 
 

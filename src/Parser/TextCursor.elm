@@ -352,10 +352,6 @@ pop parse prefix cursor =
             { cursor | count = cursor.count + 1, scanPoint = cursor.scanPoint + 1, scannerType = NormalScan }
 
         Just stackTop_ ->
-            let
-                _ =
-                    Debug.log (Console.yellow "POP, ETYPE") (etype stackTop_)
-            in
             case stackTop_ of
                 Expect _ ->
                     handlePop parse prefix stackTop_ cursor
@@ -695,17 +691,6 @@ canPush1 configuration_ tc prefix =
         canPush configuration_ tc (String.dropLeft 1 prefix)
     )
         |> Debug.log (Console.cyan "canPush")
-
-
-
---  |> Debug.log (Console.magenta "canPush, prefix " ++ prefix)
---(Config.isBeginSymbol configuration_ tc.scanPoint prefix
---    || (Config.isEndSymbol configuration_ tc.scanPoint prefix
---            && not
---                (isReducibleWith prefix tc.stack |> Debug.log (Console.magenta "isReducibleWith"))
---       )
---)
---    |> Debug.log (Console.magenta "canPush")
 
 
 canPush2 configuration_ tc prefix =
