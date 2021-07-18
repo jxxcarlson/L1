@@ -1,7 +1,12 @@
-module Parser.Check exposing (reduces)
+module Parser.Check exposing (make, reduces)
 
 import Dict exposing (Dict)
 import List.Extra
+
+
+make : String -> List String
+make str =
+    String.split "" str
 
 
 pairDict : Dict String String

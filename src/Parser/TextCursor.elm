@@ -667,10 +667,27 @@ canPopPrecondition configuration_ tc prefix =
 
 canPush : Configuration -> TextCursor -> String -> { value : Bool, prefix : String }
 canPush configuration_ tc prefix =
+    if Config.isVerbatimSymbol prefix then
+        let
+            _ =
+                Debug.log (Console.yellow "Stack top") (List.head tc.stack)
+        in
+        if Just prefix == (List.head tc.stack |> Maybe.map beginSymbol) then
+            { value = False, prefix = prefix } |> Debug.log (Console.yellow "B 1")
+
+        else
+            { value = True, prefix = prefix } |> Debug.log (Console.yellow "B 2")
+
+    else
+        canPush1 configuration_ tc prefix |> Debug.log (Console.yellow "B 3")
+
+
+canPush1 : Configuration -> TextCursor -> String -> { value : Bool, prefix : String }
+canPush1 configuration_ tc prefix =
     (if prefix == "" then
         { value = False, prefix = "" }
 
-     else if canPush_ configuration_ tc prefix then
+     else if canPush2 configuration_ tc prefix then
         { value = True, prefix = prefix }
 
      else
@@ -690,7 +707,7 @@ canPush configuration_ tc prefix =
 --    |> Debug.log (Console.magenta "canPush")
 
 
-canPush_ configuration_ tc prefix =
+canPush2 configuration_ tc prefix =
     Config.isBeginSymbol configuration_ tc.scanPoint prefix
         || (Config.isEndSymbol configuration_ tc.scanPoint prefix
                 && isNotReducibleWith prefix tc.stack

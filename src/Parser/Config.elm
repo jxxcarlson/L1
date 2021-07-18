@@ -7,6 +7,7 @@ module Parser.Config exposing
     , firstChar
     , isBeginSymbol
     , isEndSymbol
+    , isVerbatimSymbol
     , lookup
     , name
     , notDelimiter
@@ -72,6 +73,11 @@ type alias Configuration =
     , verbatimChars : List Char
     , expectationsDict : ExpectationsDict
     }
+
+
+isVerbatimSymbol : String -> Bool
+isVerbatimSymbol str =
+    List.member str [ "$", "\"", "`", "```" ]
 
 
 lookup : Configuration -> String -> Maybe Expectation

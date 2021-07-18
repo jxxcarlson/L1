@@ -11,61 +11,62 @@ suite : Test
 suite =
     skip <|
         describe "The Driver.parseLoop function"
-            [ test "pure text input" <|
+            [ test "1. pure text input" <|
                 \_ ->
                     "foo"
                         |> pl
                         |> Expect.equal [ Text_ "foo" ]
-            , test "simple element" <|
+            , test "2. simple element" <|
                 \_ ->
                     "[foo]"
                         |> pl
                         |> Expect.equal [ Element_ (Name "foo") (EList_ []) ]
-            , test "element with two interior pieces" <|
+            , test "3. element with two interior pieces" <|
                 \_ ->
                     "[i foo]"
                         |> pl
                         |> Expect.equal [ Element_ (Name "i") (EList_ [ Text_ "foo" ]) ]
-            , test "nested elements" <|
+            , test "4. nested elements" <|
                 \_ ->
                     "[i [b foo]]"
                         |> pl
                         |> Expect.equal [ Element_ (Name "i") (EList_ [ Element_ (Name "b") (EList_ [ Text_ "foo " ]) ]) ]
-            , test "abc [foo]" <|
+            , test "5. abc [foo]" <|
                 \_ ->
                     "abc [foo]"
                         |> pl
                         |> Expect.equal [ Text_ "abc ", Element_ (Name "foo") (EList_ []) ]
-            , test "simple element preceded and followed by text" <|
+            , test "6. simple element preceded and followed by text" <|
                 \_ ->
                     "abc [foo] def"
                         |> pl
                         |> Expect.equal [ Text_ "abc ", Element_ (Name "foo") (EList_ []), Text_ " def" ]
-            , -- only <|
-              test "abc def [foo] ghi jkl [bar] mno pqr" <|
+            , test "7. abc def [foo] ghi jkl [bar] mno pqr" <|
                 \_ ->
                     "abc def [foo] ghi jkl [bar] mno pqr"
                         |> pl
                         |> Expect.equal
                             [ Text_ "abc def ", Element_ (Name "foo") (EList_ []), Text_ " ghi jkl ", Element_ (Name "bar") (EList_ []), Text_ " mno pqr" ]
-            , test "[x [i a] [j b]]" <|
-                \_ ->
-                    "[x [i a] [j b]]"
-                        |> pl
-                        |> Expect.equal
-                            [ Element_ (Name "x") (EList_ [ Element_ (Name "i") (EList_ [ Text_ "a" ]), Text_ " ", Element_ (Name "j") (EList_ [ Text_ "b" ]) ]) ]
-            , test "like a list, but with preceding and following text" <|
+            , skip <|
+                test "8. [x [i a] [j b]]" <|
+                    \_ ->
+                        "[x [i a] [j b]]"
+                            |> pl
+                            |> Expect.equal
+                                [ Element_ (Name "x") (EList_ [ Element_ (Name "i") (EList_ [ Text_ "a" ]), Text_ " ", Element_ (Name "j") (EList_ [ Text_ "b" ]) ]) ]
+            , test "9. like a list, but with preceding and following text" <|
                 \_ ->
                     "abc [x [i a] [j b]] def"
                         |> pl
                         |> Expect.equal
                             [ Text_ "abc ", Element_ (Name "x") (EList_ [ Element_ (Name "i") (EList_ [ Text_ "a" ]), Text_ " ", Element_ (Name "j") (EList_ [ Text_ "b" ]) ]), Text_ " def" ]
-            , test "like a list, but with preceding and following text, including newlines" <|
-                \_ ->
-                    "abc\n [x [i a] [j b]] \n\ndef"
-                        |> pl
-                        |> Expect.equal
-                            [ Text_ "abc\n ", Element_ (Name "x") (EList_ [ Element_ (Name "i") (EList_ [ Text_ "a" ]), Text_ " ", Element_ (Name "j") (EList_ [ Text_ "b" ]) ]), Text_ " \n\ndef" ]
+            , only <|
+                test "like a list, but with preceding and following text, including newlines" <|
+                    \_ ->
+                        "abc\n [x [i a] [j b]] \n\ndef"
+                            |> pl
+                            |> Expect.equal
+                                [ Text_ "abc\n ", Element_ (Name "x") (EList_ [ Element_ (Name "i") (EList_ [ Text_ "a" ]), Text_ " ", Element_ (Name "j") (EList_ [ Text_ "b" ]) ]), Text_ " \n\ndef" ]
             , test "fontRGB (1)" <|
                 \_ ->
                     "[fontRGB 255 0 255 foo bar]"
