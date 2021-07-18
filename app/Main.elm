@@ -12,6 +12,7 @@ import Html exposing (Html)
 import Html.Keyed
 import Parser.Document
 import Parser.Driver
+import Parser.Parser
 import Render.Elm
 import Render.Markdown
 
@@ -64,7 +65,7 @@ init flags =
 
 render : Int -> String -> List (Element Msg)
 render k str =
-    Render.Elm.renderList renderArgs (Parser.Driver.parse k str)
+    Render.Elm.renderList renderArgs (Parser.Driver.parse (Parser.Parser.parse k) k str)
 
 
 renderDocument : Int -> String -> List (List (Element Msg))
