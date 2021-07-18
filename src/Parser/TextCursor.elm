@@ -55,8 +55,8 @@ advance cursor textToProcess =
     case cursor.scannerType of
         NormalScan ->
             advanceNormal configuration
-                (Debug.log (Console.yellow "advance, scanpoint") cursor.scanPoint)
-                (Debug.log (Console.yellow "advance, text") textToProcess)
+                cursor.scanPoint
+                textToProcess
 
         VerbatimScan c ->
             advanceVerbatim c textToProcess
@@ -304,7 +304,7 @@ push prefix proto tc =
             newText.content
 
         scanPointIncrement =
-            String.length prefix + newText.finish - newText.start
+            String.length prefix + newText.finish - newText.start |> Debug.log (Console.yellow "PUSH, scanpoint increment")
 
         --  |> Debug.log "scanPointIncrement"
         newStack =
