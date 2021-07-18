@@ -86,4 +86,19 @@ suite =
                     "\"a^2\""
                         |> pl
                         |> Expect.equal [ Text_ "a^2" ]
+            , test "# Images" <|
+                \_ ->
+                    "# Images"
+                        |> pl
+                        |> Expect.equal [ Element_ (Name "heading") (EList_ [ Text_ "# Images" ]) ]
+            , test "## Images" <|
+                \_ ->
+                    "## Images"
+                        |> pl
+                        |> Expect.equal [ Element_ (Name "heading") (EList_ [ Text_ "## Images" ]) ]
+            , test "[i w:8 p:l https://foo.bar]" <|
+                \_ ->
+                    "[i w:8 p:l https://foo.bar]"
+                        |> pl
+                        |> Expect.equal [ Element_ (Name "i") (EList_ [ Text_ "w:8 p:l https://foo.bar" ]) ]
             ]

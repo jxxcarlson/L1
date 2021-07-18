@@ -54,7 +54,9 @@ advance : TextCursor -> String -> ParserTools.StringData
 advance cursor textToProcess =
     case cursor.scannerType of
         NormalScan ->
-            advanceNormal configuration cursor.scanPoint textToProcess
+            advanceNormal configuration
+                (Debug.log (Console.yellow "advance, scanpoint") cursor.scanPoint)
+                (Debug.log (Console.yellow "advance, text") textToProcess)
 
         VerbatimScan c ->
             advanceVerbatim c textToProcess
@@ -66,7 +68,18 @@ another for position /= 0.
 -}
 advanceNormal : Configuration -> Int -> String -> ParserTools.StringData
 advanceNormal config position str =
-    case Parser.Advanced.run (ParserTools.text (Config.notDelimiter configuration position) (Config.notDelimiter configuration position)) str of
+    let
+        _ =
+            Debug.log (Console.cyan "advanceNormal, str") str
+
+        delimiterTypes =
+            if String.slice 0 1 str == ":" then
+                Config.AllDelimiters
+
+            else
+                Config.InteriorDelimiters
+    in
+    case Parser.Advanced.run (ParserTools.text (Config.notDelimiter configuration delimiterTypes) (Config.notDelimiter configuration delimiterTypes)) str of
         Ok stringData ->
             stringData
 

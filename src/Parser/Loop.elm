@@ -85,7 +85,7 @@ nextCursor parser cursor =
                 done cursor "No first character"
 
             ( Just firstChar, Just prefix ) ->
-                if Config.notDelimiter configuration 0 firstChar then
+                if Config.notDelimiter configuration Config.AllDelimiters firstChar then
                     add parser cursor chompedText
 
                 else if (TextCursor.canPush configuration cursor prefix).value then

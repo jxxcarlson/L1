@@ -1,5 +1,6 @@
 module Parser.Config exposing
     ( Configuration
+    , DelimiterTypes(..)
     , EType(..)
     , Expectation
     , MarkPosition(..)
@@ -37,6 +38,11 @@ type EType
 type MarkPosition
     = AtBeginning
     | Anywhere
+
+
+type DelimiterTypes
+    = AllDelimiters
+    | InteriorDelimiters
 
 
 name : EType -> String
@@ -137,13 +143,14 @@ configure configDef =
     }
 
 
-notDelimiter : Configuration -> Int -> Char -> Bool
-notDelimiter config position c =
-    if position == 0 then
-        not (List.member c config.delimiters)
+notDelimiter : Configuration -> DelimiterTypes -> Char -> Bool
+notDelimiter config delimiterTypes c =
+    case delimiterTypes of
+        AllDelimiters ->
+            not (List.member c config.delimiters)
 
-    else
-        not (List.member c config.interiorDelimiters)
+        InteriorDelimiters ->
+            not (List.member c config.interiorDelimiters)
 
 
 isBeginSymbol : Configuration -> Int -> String -> Bool
