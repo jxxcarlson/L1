@@ -56,7 +56,7 @@ when the scanPoint comes to the end of the source.
 -}
 nextCursor : (String -> Element) -> TextCursor -> ParserTools.Step TextCursor TextCursor
 nextCursor parser cursor =
-    if cursor.count > 5 then
+    if cursor.count > 15 then
         done cursor "count exceeded"
 
     else

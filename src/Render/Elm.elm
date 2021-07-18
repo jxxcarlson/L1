@@ -8,12 +8,12 @@ import Html exposing (Html)
 import Html.Attributes as HA
 import Html.Keyed
 import Json.Encode
+import Library.Utility as Utility
 import Parser.AST as AST exposing (Element(..), Element_(..), Name(..))
 import Parser.Advanced
 import Parser.Error exposing (Context(..), Problem(..))
 import Parser.MetaData as MetaData
 import Parser.Utility
-import Utility.Utility as Utility
 
 
 type alias ParseError =

@@ -30,8 +30,7 @@ suite =
                 \_ ->
                     "[i [b foo]]"
                         |> pl
-                        --|> Expect.equal [Element_ (Name ("i ")) [] (Element_ (Name "b") [] (EList_ [Raw_ "foo"]))]
-                        |> Expect.equal [ Element_ (Name "i") (EList_ [ Element_ (Name "b") (EList_ [ Text_ "foo" ]) ]) ]
+                        |> Expect.equal [ Element_ (Name "i") (EList_ [ Element_ (Name "b") (EList_ [ Text_ "foo " ]) ]) ]
             , test "abc [foo]" <|
                 \_ ->
                     "abc [foo]"
@@ -42,7 +41,8 @@ suite =
                     "abc [foo] def"
                         |> pl
                         |> Expect.equal [ Text_ "abc ", Element_ (Name "foo") (EList_ []), Text_ " def" ]
-            , test "simple element preceded and followed by text (2)" <|
+            , -- only <|
+              test "abc def [foo] ghi jkl [bar] mno pqr" <|
                 \_ ->
                     "abc def [foo] ghi jkl [bar] mno pqr"
                         |> pl

@@ -66,4 +66,9 @@ suite =
                     "[a b [c d] e [f g]]"
                         |> pl
                         |> Expect.equal [ Element_ (Name "a") (EList_ [ Text_ "b  ", Element_ (Name "c") (EList_ [ Text_ "d " ]), Text_ "  e  ", Element_ (Name "f") (EList_ [ Text_ "g " ]) ]) ]
+            , test "abc def [foo] ghi jkl [bar] mno pqr" <|
+                \_ ->
+                    "abc def [foo] ghi jkl [bar] mno pqr"
+                        |> pl
+                        |> Expect.equal [ Text_ "abc def ", Element_ (Name "foo") (EList_ []), Text_ " ghi jkl ", Element_ (Name "bar") (EList_ []), Text_ " mno pqr" ]
             ]
