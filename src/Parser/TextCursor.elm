@@ -31,9 +31,14 @@ isReducibleWith str stack =
     stack |> simplifyStack |> (\st -> st ++ [ str ]) |> Check.reduces
 
 
+isNotReducibleWith : String -> List StackItem -> Bool
+isNotReducibleWith str stack =
+    stack |> simplifyStack |> (\st -> st ++ [ str ]) |> Check.reduces |> not
+
+
 simplifyStack : List StackItem -> List String
 simplifyStack stack =
-    List.map mark stack
+    List.map mark stack |> List.filter (\s -> s /= "000")
 
 
 simplifyStack2 : List StackItem -> String
@@ -148,7 +153,7 @@ mark stackItem =
             data.expect.beginSymbol
 
         TextItem i ->
-            ""
+            "000"
 
         EndMark str ->
             str
@@ -291,7 +296,11 @@ push prefix proto tc =
                         :: tc.stack
 
                 EndMark_ prefix_ ->
-                    TextItem { content = newContent } :: EndMark prefix_ :: tc.stack
+                    if newContent == "" then
+                        EndMark prefix_ :: tc.stack
+
+                    else
+                        TextItem { content = newContent } :: EndMark prefix_ :: tc.stack
     in
     { tc
         | count = tc.count + 1
@@ -307,6 +316,10 @@ pop parse prefix cursor =
     -- case of language L1.  It is time to pop the stack
     -- and update the cursor.  We split this operation into
     -- two case, depending on whether cursor.text is empty.
+    let
+        _ =
+            Debug.log (Console.cyan "POP, prefix") prefix
+    in
     case List.head cursor.stack of
         Nothing ->
             { cursor | count = cursor.count + 1, scanPoint = cursor.scanPoint + 1, scannerType = NormalScan }
@@ -314,34 +327,72 @@ pop parse prefix cursor =
         Just stackTop_ ->
             case stackTop_ of
                 Expect _ ->
-                    let
-                        data =
-                            showStack (List.reverse cursor.stack)
-                                ++ prefix
-                                |> Debug.log (Console.magenta "STACK")
+                    handlePop parse prefix cursor
 
-                        newParsed =
-                            parse data |> AST.simplify |> Debug.log (Console.magenta "newParsed")
-
-                        _ =
-                            Debug.log (Console.magenta "(SCP, REM)") ( cursor.scanPoint, String.dropLeft cursor.scanPoint cursor.source )
-
-                        adv =
-                            Debug.log (Console.magenta "ADVANCE") <| advance { cursor | scanPoint = cursor.scanPoint + 1 } (String.dropLeft (cursor.scanPoint + 1) cursor.source)
-                    in
-                    { cursor
-                        | stack = []
-                        , parsed = parse data :: cursor.parsed
-                        , count = cursor.count + 1
-                        , scanPoint = cursor.scanPoint + 1 -- + (adv.finish - adv.start)
-                    }
-
+                --let
+                --    data =
+                --        showStack (List.reverse cursor.stack)
+                --            ++ prefix
+                --
+                --    _ =
+                --        data |> Debug.log (Console.cyan "POP, STACK")
+                --
+                --    newParsed =
+                --        parse data |> AST.simplify |> Debug.log (Console.magenta "newParsed")
+                --
+                --    _ =
+                --        Debug.log (Console.magenta "(SCP, REM)") ( cursor.scanPoint, String.dropLeft cursor.scanPoint cursor.source )
+                --
+                --    adv =
+                --        Debug.log (Console.magenta "ADVANCE") <| advance { cursor | scanPoint = cursor.scanPoint + 1 } (String.dropLeft (cursor.scanPoint + 1) cursor.source)
+                --in
+                --{ cursor
+                --    | stack = []
+                --    , parsed = parse data :: cursor.parsed
+                --    , count = cursor.count + 1
+                --    , scanPoint = cursor.scanPoint + 1 -- + (adv.finish - adv.start)
+                --}
                 TextItem _ ->
                     -- TODO: fix
+                    let
+                        _ =
+                            Debug.log (Console.cyan "POP TextItem, prefix") prefix
+                    in
                     { cursor | count = cursor.count + 1 }
 
                 EndMark _ ->
-                    { cursor | count = cursor.count + 1 }
+                    let
+                        _ =
+                            Debug.log (Console.cyan "POP EndMark, prefix") prefix
+                    in
+                    handlePop parse prefix cursor
+
+
+handlePop : (String -> Element) -> String -> TextCursor -> TextCursor
+handlePop parse prefix cursor =
+    let
+        data =
+            showStack (List.reverse cursor.stack)
+                ++ prefix
+
+        _ =
+            data |> Debug.log (Console.cyan "POP, STACK")
+
+        newParsed =
+            parse data |> AST.simplify |> Debug.log (Console.magenta "newParsed")
+
+        _ =
+            Debug.log (Console.magenta "(SCP, REM)") ( cursor.scanPoint, String.dropLeft cursor.scanPoint cursor.source )
+
+        adv =
+            Debug.log (Console.magenta "ADVANCE") <| advance { cursor | scanPoint = cursor.scanPoint + 1 } (String.dropLeft (cursor.scanPoint + 1) cursor.source)
+    in
+    { cursor
+        | stack = []
+        , parsed = parse data :: cursor.parsed
+        , count = cursor.count + 1
+        , scanPoint = cursor.scanPoint + 1 -- + (adv.finish - adv.start)
+    }
 
 
 handleText : (String -> Element) -> String -> StackItemData -> TextCursor -> TextCursor
@@ -552,7 +603,7 @@ remaining source text that begins with character c what we expect?
 -}
 canPop : Configuration -> TextCursor -> String -> Bool
 canPop configuration_ tc prefix =
-    isReducibleWith prefix tc.stack
+    isReducibleWith prefix tc.stack |> Debug.log (Console.magenta "canPop")
 
 
 
@@ -587,23 +638,20 @@ canPopPrecondition configuration_ tc prefix =
         False
 
 
-canPush : Configuration -> TextCursor -> String -> Bool
+canPush : Configuration -> TextCursor -> String -> { value : Bool, prefix : String }
 canPush configuration_ tc prefix =
-    let
-        _ =
-            Debug.log (Console.magenta "canPush, prefix") prefix
-    in
     if prefix == "" then
-        False
+        { value = False, prefix = "" }
 
     else if canPush_ configuration_ tc prefix then
-        True
+        { value = True, prefix = prefix }
 
     else
-        canPush_ configuration_ tc (String.dropLeft 1 prefix)
+        canPush configuration_ tc (String.dropLeft 1 prefix)
 
 
 
+--  |> Debug.log (Console.magenta "canPush, prefix " ++ prefix)
 --(Config.isBeginSymbol configuration_ tc.scanPoint prefix
 --    || (Config.isEndSymbol configuration_ tc.scanPoint prefix
 --            && not
@@ -614,11 +662,12 @@ canPush configuration_ tc prefix =
 
 
 canPush_ configuration_ tc prefix =
-    Config.isBeginSymbol configuration_ tc.scanPoint prefix
-        || (Config.isEndSymbol configuration_ tc.scanPoint prefix
-                && not
-                    (isReducibleWith prefix tc.stack |> Debug.log (Console.magenta "isReducibleWith"))
+    (Config.isBeginSymbol configuration_ tc.scanPoint prefix
+        || ((Config.isEndSymbol configuration_ tc.scanPoint prefix |> Debug.log (Console.magenta "isEndSymbol, prefix = " ++ prefix))
+                && (isNotReducibleWith prefix tc.stack |> Debug.log (Console.magenta "isNotReducible with prefix = " ++ prefix))
            )
+    )
+        |> Debug.log (Console.magenta "canPush_, prefix = " ++ prefix)
 
 
 

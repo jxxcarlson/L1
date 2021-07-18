@@ -88,17 +88,21 @@ nextCursor parser cursor =
                 if Config.notDelimiter configuration 0 firstChar then
                     add parser cursor chompedText
 
-                else if TextCursor.canPush configuration cursor prefix then
+                else if (TextCursor.canPush configuration cursor prefix).value then
                     let
-                        _ =
-                            Debug.log (Console.magenta "WILL PUSH, prefix") prefix
+                        realPrefix =
+                            (TextCursor.canPush configuration cursor prefix).prefix |> Debug.log (Console.magenta "CAN PUSH, realPrefix")
                     in
-                    push cursor prefix
+                    push cursor realPrefix
 
                 else if TextCursor.canPop configuration cursor prefix then
                     pop parser prefix cursor
 
                 else
+                    let
+                        _ =
+                            Debug.log (Console.magenta "DONE, stack") (cursor.stack |> Parser.Print.printStack)
+                    in
                     done cursor "No alternative"
 
 
@@ -117,7 +121,7 @@ pop parser prefix cursor =
 push cursor prefix =
     case Config.lookup configuration prefix of
         Nothing ->
-            ParserTools.Loop <| TextCursor.push prefix (TextCursor.EndMark_ prefix) { cursor | message = "PUSH Endmark " ++ prefix }
+            ParserTools.Loop <| TextCursor.push (Debug.log (Console.cyan "PUSHING MARK with prefix") prefix) (TextCursor.EndMark_ prefix) { cursor | message = "PUSH Endmark " ++ prefix }
 
         Just expectation ->
             let
@@ -131,7 +135,7 @@ push cursor prefix =
                         NormalScan
             in
             ParserTools.Loop <|
-                TextCursor.push prefix (TextCursor.Expect_ expectation) { cursor | message = "PUSH", scannerType = scannerType }
+                TextCursor.push (Debug.log (Console.cyan "PUSHING with prefix") prefix) (TextCursor.Expect_ expectation) { cursor | message = "PUSH", scannerType = scannerType }
 
 
 error cursor =

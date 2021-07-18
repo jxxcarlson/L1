@@ -51,4 +51,19 @@ suite =
                     "u [a b] x [c d]"
                         |> pl
                         |> Expect.equal [ Text_ "u ", Element_ (Name "a") (EList_ [ Text_ "b" ]), Text_ " x ", Element_ (Name "c") (EList_ [ Text_ "d" ]) ]
+            , test "[x [a b]]" <|
+                \_ ->
+                    "[x [a b]]"
+                        |> pl
+                        |> Expect.equal [ Element_ (Name "x") (EList_ [ Element_ (Name "a") (EList_ [ Text_ "b " ]) ]) ]
+            , test "a b [c d] e [f g]" <|
+                \_ ->
+                    "a b [c d] e [f g]"
+                        |> pl
+                        |> Expect.equal [ Text_ "a b ", Element_ (Name "c") (EList_ [ Text_ "d" ]), Text_ " e ", Element_ (Name "f") (EList_ [ Text_ "g" ]) ]
+            , test "[a b [c d] e [f g]]" <|
+                \_ ->
+                    "[a b [c d] e [f g]]"
+                        |> pl
+                        |> Expect.equal [ Element_ (Name "a") (EList_ [ Text_ "b  ", Element_ (Name "c") (EList_ [ Text_ "d " ]), Text_ "  e  ", Element_ (Name "f") (EList_ [ Text_ "g " ]) ]) ]
             ]

@@ -2,7 +2,7 @@ module Parser.Print exposing (..)
 
 import Library.Console as Console
 import Library.Utility
-import Parser.TextCursor exposing (StackItem(..), TextCursor, beginSymbol, content, simplifyStack2)
+import Parser.TextCursor exposing (StackItem(..), TextCursor, beginSymbol, content, simplifyStack)
 import Render.Text
 
 
@@ -16,6 +16,7 @@ print cursor =
         ++ printCaret
         ++ printRemaining cursor
         ++ printStack cursor.stack
+        ++ printSimplifiedStack cursor.stack
 
 
 
@@ -79,6 +80,11 @@ enclose delimiter str =
 printStack : List StackItem -> String
 printStack items =
     " " ++ ((List.map printStackItem (List.reverse items) |> String.join " ") |> Console.bgMagenta |> Console.black) ++ " "
+
+
+printSimplifiedStack : List StackItem -> String
+printSimplifiedStack items =
+    " " ++ (items |> List.reverse |> simplifyStack |> String.join "" |> Console.bgCyan |> Console.black) ++ " "
 
 
 magenta : String -> String

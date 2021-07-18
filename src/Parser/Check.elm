@@ -34,13 +34,13 @@ symbolValue str =
     > reduces ["[","[","]","[","]","]"] -- "balanced" list
       True
 
-    > reduce ["[","[","]","[","]"] -- "unbalanced"
+    > reduces ["[","[","]","[","]"] -- "unbalanced"
       False
 
 -}
 reduces : List String -> Bool
 reduces symbolList =
-    case reduceAux (Just symbolList) of
+    (case reduceAux (Just symbolList) of
         Nothing ->
             False
 
@@ -49,6 +49,8 @@ reduces symbolList =
 
         _ ->
             False
+    )
+        |> Debug.log ("REDUCES " ++ (symbolList |> String.join ","))
 
 
 reduceAux : Maybe (List String) -> Maybe (List String)
