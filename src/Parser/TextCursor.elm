@@ -360,10 +360,27 @@ handlePop parse prefix stackTop cursor =
         data =
             showStack (List.reverse cursor.stack)
                 ++ prefix
+
+        parsed =
+            case etype stackTop of
+                Just ElementType ->
+                    parse data
+
+                Just CodeType ->
+                    Element (Name "code") (Text (content stackTop |> Maybe.withDefault "") MetaData.dummy) MetaData.dummy
+
+                Just InlineMathType ->
+                    Element (Name "math2") (Text (content stackTop |> Maybe.withDefault "") MetaData.dummy) MetaData.dummy
+
+                Just QuotedType ->
+                    Text (Library.Utility.unquote (content stackTop |> Maybe.withDefault "")) MetaData.dummy
+
+                Nothing ->
+                    parse data
     in
     { cursor
         | stack = []
-        , parsed = parse data :: cursor.parsed
+        , parsed = parsed :: cursor.parsed
         , count = cursor.count + 1
         , scanPoint = cursor.scanPoint + 1 -- + (adv.finish - adv.start)
     }

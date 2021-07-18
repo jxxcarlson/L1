@@ -71,4 +71,19 @@ suite =
                     "abc def [foo] ghi jkl [bar] mno pqr"
                         |> pl
                         |> Expect.equal [ Text_ "abc def ", Element_ (Name "foo") (EList_ []), Text_ " ghi jkl ", Element_ (Name "bar") (EList_ []), Text_ " mno pqr" ]
+            , test "$a^2$" <|
+                \_ ->
+                    "$a^2$"
+                        |> pl
+                        |> Expect.equal [ Element_ (Name "math2") (Text_ "a^2") ]
+            , test "`a^2`" <|
+                \_ ->
+                    "`a^2`"
+                        |> pl
+                        |> Expect.equal [ Element_ (Name "code") (Text_ "a^2") ]
+            , test "\"a^2\"" <|
+                \_ ->
+                    "\"a^2\""
+                        |> pl
+                        |> Expect.equal [ Text_ "a^2" ]
             ]
