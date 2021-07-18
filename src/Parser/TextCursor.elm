@@ -1,6 +1,6 @@
 module Parser.TextCursor exposing
     ( TextCursor, init
-    , ProtoStackItem(..), ScannerType(..), StackItem(..), add, advance, beginSymbol, canPop, canPush, commit, configuration, content, pop, push, simpleStackItem, simplifyStack, simplifyStack2
+    , ProtoStackItem(..), ScannerType(..), StackItem(..), add, advance, beginSymbol, canPop, canPush, commit, configuration, content, etype, pop, push, simpleStackItem, simplifyStack, simplifyStack2
     )
 
 {-| TextCursor is the data structure used by Parser.parseLoop.
@@ -203,6 +203,16 @@ endSymbol si =
             Just str
 
 
+etype : StackItem -> Maybe EType
+etype si =
+    case si of
+        Expect data ->
+            Just data.expect.etype
+
+        _ ->
+            Nothing
+
+
 content : StackItem -> Maybe String
 content si =
     case si of
@@ -329,66 +339,27 @@ pop parse prefix cursor =
             { cursor | count = cursor.count + 1, scanPoint = cursor.scanPoint + 1, scannerType = NormalScan }
 
         Just stackTop_ ->
+            let
+                _ =
+                    Debug.log (Console.yellow "POP, ETYPE") (etype stackTop_)
+            in
             case stackTop_ of
                 Expect _ ->
-                    handlePop parse prefix cursor
+                    handlePop parse prefix stackTop_ cursor
 
-                --let
-                --    data =
-                --        showStack (List.reverse cursor.stack)
-                --            ++ prefix
-                --
-                --    _ =
-                --        data |> Debug.log (Console.cyan "POP, STACK")
-                --
-                --    newParsed =
-                --        parse data |> AST.simplify |> Debug.log (Console.magenta "newParsed")
-                --
-                --    _ =
-                --        Debug.log (Console.magenta "(SCP, REM)") ( cursor.scanPoint, String.dropLeft cursor.scanPoint cursor.source )
-                --
-                --    adv =
-                --        Debug.log (Console.magenta "ADVANCE") <| advance { cursor | scanPoint = cursor.scanPoint + 1 } (String.dropLeft (cursor.scanPoint + 1) cursor.source)
-                --in
-                --{ cursor
-                --    | stack = []
-                --    , parsed = parse data :: cursor.parsed
-                --    , count = cursor.count + 1
-                --    , scanPoint = cursor.scanPoint + 1 -- + (adv.finish - adv.start)
-                --}
                 TextItem _ ->
-                    -- TODO: fix
-                    --let
-                    --    _ =
-                    --        Debug.log (Console.cyan "POP TextItem, prefix") prefix
-                    --in
                     { cursor | count = cursor.count + 1 }
 
                 EndMark _ ->
-                    --let
-                    --    _ =
-                    --        Debug.log (Console.cyan "POP EndMark, prefix") prefix
-                    --in
-                    handlePop parse prefix cursor
+                    handlePop parse prefix stackTop_ cursor
 
 
-handlePop : (String -> Element) -> String -> TextCursor -> TextCursor
-handlePop parse prefix cursor =
+handlePop : (String -> Element) -> String -> StackItem -> TextCursor -> TextCursor
+handlePop parse prefix stackTop cursor =
     let
         data =
             showStack (List.reverse cursor.stack)
                 ++ prefix
-
-        --_ =
-        --    data |> Debug.log (Console.cyan "POP, STACK")
-        newParsed =
-            parse data |> AST.simplify
-
-        --|> Debug.log (Console.magenta "newParsed")
-        --_ =
-        --    Debug.log (Console.magenta "(SCP, REM)") ( cursor.scanPoint, String.dropLeft cursor.scanPoint cursor.source )
-        adv =
-            advance { cursor | scanPoint = cursor.scanPoint + 1 } (String.dropLeft (cursor.scanPoint + 1) cursor.source)
     in
     { cursor
         | stack = []
