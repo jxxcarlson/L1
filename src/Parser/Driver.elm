@@ -20,8 +20,8 @@ parse parse_ generation str =
         |> .complete
 
 
-pl_ : String -> List AST.Element
-pl_ str =
+pl : String -> List AST.Element
+pl str =
     let
         tc =
             parseLoop (Parser.parse 0) 0 str
@@ -31,8 +31,8 @@ pl_ str =
 
 {-| Used for testing
 -}
-pl : String -> List AST.Element_
-pl str =
+pl_ : String -> List AST.Element_
+pl_ str =
     let
         tc =
             parseLoop (Parser.parse 0) 0 str
