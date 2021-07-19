@@ -80,12 +80,12 @@ suite =
                 \_ ->
                     "`a^2`"
                         |> pl
-                        |> Expect.equal [ Element_ (Name "code") (Text_ "a^2") ]
+                        |> Expect.equal [ Verbatim_ Code "a^2" ]
             , test "\"a^2\"" <|
                 \_ ->
                     "\"a^2\""
                         |> pl
-                        |> Expect.equal [ Text_ "a^2" ]
+                        |> Expect.equal [ Verbatim_ Quoted "a^2" ]
             , test "# Images" <|
                 \_ ->
                     "# Images"
