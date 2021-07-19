@@ -1,4 +1,4 @@
-module Parser.Branch exposing (..)
+module Parser.Branch exposing (Operation(..), branch)
 
 import Library.Console as Console
 import Parser.Config as Config exposing (Configuration)
