@@ -83,19 +83,19 @@ nextCursor parser cursor =
             ( _, Nothing ) ->
                 exit parser cursor "COMM3"
 
-            ( Just firstChar, Just prefix ) ->
-                case branch Configuration.configuration cursor firstChar prefix of
+            ( Just firstChar, Just prefixx ) ->
+                case branch Configuration.configuration cursor firstChar prefixx of
                     ADD ->
                         add parser cursor chompedText
 
-                    PUSH prefix_ ->
-                        push cursor prefix_
+                    PUSH data ->
+                        push cursor data
 
                     POP ->
-                        pop parser prefix cursor
+                        pop parser prefixx cursor
 
                     SHORTCIRCUIT ->
-                        shortcircuit prefix cursor
+                        shortcircuit prefixx cursor
 
                     COMMIT ->
                         exit parser cursor "COMM4"
@@ -117,10 +117,14 @@ pop parser prefix cursor =
     ParserTools.Loop <| TextCursor.pop parser prefix { cursor | message = "POP", scannerType = NormalScan }
 
 
-push cursor prefix =
+push : TextCursor -> { prefix : String, isMatch : Bool } -> ParserTools.Step TextCursor TextCursor
+push cursor ({ prefix, isMatch } as prefixData) =
     case Config.lookup Configuration.configuration prefix of
         Nothing ->
-            ParserTools.Loop <| TextCursor.push (Debug.log (Console.cyan "PUSHING MARK with prefix") prefix) (TextCursor.EndMark_ prefix) { cursor | message = "PUSH Endmark " ++ prefix }
+            ParserTools.Loop <|
+                TextCursor.push (Debug.log (Console.cyan "PUSHING MARK with prefix") prefixData)
+                    (TextCursor.EndMark_ prefix)
+                    { cursor | message = "PUSH Endmark " ++ prefix }
 
         Just expectation ->
             let
@@ -134,7 +138,7 @@ push cursor prefix =
                         NormalScan
             in
             ParserTools.Loop <|
-                TextCursor.push (Debug.log (Console.cyan "PUSHING with prefix") prefix) (TextCursor.Expect_ expectation) { cursor | message = "PUSH", scannerType = scannerType }
+                TextCursor.push (Debug.log (Console.cyan "PUSHING with prefix") prefixData) (TextCursor.Expect_ expectation) { cursor | message = "PUSH", scannerType = scannerType }
 
 
 shortcircuit prefix cursor =

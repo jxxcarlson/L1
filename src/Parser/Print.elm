@@ -29,6 +29,7 @@ print cursor =
 printMessage cursor =
     (String.fromInt cursor.count |> String.padLeft 2 '.')
         ++ (cursor.message |> String.padLeft 6 '.')
+        ++ Debug.toString cursor.scannerType
         ++ " :: "
         |> Console.bgCyan
         |> Console.blue

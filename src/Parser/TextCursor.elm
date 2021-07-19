@@ -123,7 +123,9 @@ advanceVerbatim : Char -> String -> ParserTools.StringData
 advanceVerbatim verbatimChar str =
     (let
         predicate =
-            \c -> c /= verbatimChar && c /= ']'
+            \c -> c /= verbatimChar
+
+        -- && c /= ']'
      in
      case Parser.Advanced.run (ParserTools.text predicate predicate) str of
         Ok stringData ->
@@ -149,12 +151,17 @@ add parse_ str tc =
 
 {-| A
 -}
-push : String -> ProtoStackItem -> TextCursor -> TextCursor
-push prefix proto tc =
+push : { prefix : String, isMatch : Bool } -> ProtoStackItem -> TextCursor -> TextCursor
+push ({ prefix, isMatch } as prefixData) proto tc =
     let
+        newText : ParserTools.StringData
         newText =
-            -- TODO: think about scanPoint
-            advance tc (String.dropLeft (tc.scanPoint + String.length prefix) tc.source)
+            if isMatch then
+                -- TODO: think about scanPoint
+                { start = 0, finish = 0, content = "" }
+
+            else
+                advance tc (String.dropLeft (tc.scanPoint + String.length prefix) tc.source)
 
         --|> Debug.log (Console.magenta "NEW TEXT")
         newContent =
