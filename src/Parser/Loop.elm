@@ -86,6 +86,7 @@ nextCursor parser cursor =
 
             ( Just firstChar, Just prefix ) ->
                 if Config.notDelimiter configuration Config.AllDelimiters firstChar then
+                    -- ADD
                     add parser cursor chompedText
 
                 else if (TextCursor.canPush configuration cursor prefix).value then
@@ -93,9 +94,11 @@ nextCursor parser cursor =
                         realPrefix =
                             (TextCursor.canPush configuration cursor prefix).prefix |> Debug.log (Console.magenta "CAN PUSH, realPrefix")
                     in
+                    -- PUSH
                     push cursor realPrefix
 
                 else if TextCursor.canPop configuration cursor prefix then
+                    -- POP
                     pop parser prefix cursor
 
                 else
@@ -103,6 +106,7 @@ nextCursor parser cursor =
                         _ =
                             Debug.log (Console.magenta "DONE, stack") (cursor.stack |> Parser.Print.printStack)
                     in
+                    -- DONE
                     done cursor "No alternative"
 
 
