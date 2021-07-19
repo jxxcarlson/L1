@@ -1,4 +1,6 @@
-module Render.Elm exposing (convertRGB, render, renderList)
+module Render.Elm exposing (..)
+
+{- (convertRGB, render, renderList) -}
 
 import Dict exposing (Dict)
 import Element as E exposing (column, el, fill, paddingEach, paragraph, px, rgb, rgb255, row, spacing, text)
