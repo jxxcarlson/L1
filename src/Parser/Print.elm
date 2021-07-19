@@ -28,10 +28,10 @@ print cursor =
 
 printMessage cursor =
     (String.fromInt cursor.count |> String.padLeft 2 '.')
-        ++ (cursor.message |> String.padLeft 5 '.')
+        ++ (cursor.message |> String.padLeft 6 '.')
         ++ " :: "
-        |> Console.bgBlue
-        |> Console.red
+        |> Console.bgCyan
+        |> Console.blue
 
 
 printScanPoint cursor =
