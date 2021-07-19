@@ -50,7 +50,7 @@ listParser generation lineNumber =
 
 parser : Int -> Parser Element
 parser generation =
-    Parser.oneOf [ primitiveElement generation, mathElement generation, plainText generation ]
+    Parser.oneOf [ primitiveElement generation, mathElement generation, quotedElement generation, codeElement generation, plainText generation ]
 
 
 {-|
@@ -85,6 +85,30 @@ mathElement generation =
             |. dollarSign
             |= string [ '$' ]
             |. dollarSign
+            |= Parser.getOffset
+            |= Parser.getSource
+
+
+codeElement generation =
+    Parser.inContext CElement <|
+        -- TODO: is this correct?
+        Parser.succeed (\start content end source -> Verbatim Code content (meta generation start end))
+            |= Parser.getOffset
+            |. backTick
+            |= string [ '`' ]
+            |. backTick
+            |= Parser.getOffset
+            |= Parser.getSource
+
+
+quotedElement generation =
+    Parser.inContext CElement <|
+        -- TODO: is this correct?
+        Parser.succeed (\start content end source -> Verbatim Quoted content (meta generation start end))
+            |= Parser.getOffset
+            |. quoteMark
+            |= string [ '"' ]
+            |. quoteMark
             |= Parser.getOffset
             |= Parser.getSource
 
@@ -168,16 +192,16 @@ rawText_ stopChars =
         |= Parser.getSource
 
 
-comma_ =
-    Parser.symbol (Parser.Token "," ExpectingComma)
-
-
-comma =
-    T.first comma_ Parser.spaces
-
-
 dollarSign =
     Parser.symbol (Parser.Token "$" ExpectingDollarSign)
+
+
+quoteMark =
+    Parser.symbol (Parser.Token "\"" ExpectingQuoteMark)
+
+
+backTick =
+    Parser.symbol (Parser.Token "`" ExpectingBackTick)
 
 
 leftBracket =

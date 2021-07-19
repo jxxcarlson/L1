@@ -60,7 +60,7 @@ textListWithPredicate predicate =
 
 isLanguageChar : Char -> Bool
 isLanguageChar c =
-    c == '$' || c == '[' || c == ']' || c == '\\'
+    c == '"' || c == '`' || c == '$' || c == '[' || c == ']' || c == '\\'
 
 
 isExtendedLanguageChar : Char -> Bool

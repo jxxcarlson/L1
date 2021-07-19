@@ -109,7 +109,7 @@ renderVerbatim renderArgs verbatimType content =
             code1 renderArgs content
 
         Quoted ->
-            el [] (text content)
+            el [] (text <| "\"" ++ content ++ "\"")
 
 
 renderWithDictionary : RenderArgs -> String -> List String -> Element -> E.Element msg
