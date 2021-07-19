@@ -11,7 +11,7 @@ import Html.Attributes as HA
 import Html.Keyed
 import Json.Encode
 import Library.Utility as Utility
-import Parser.AST as AST exposing (Element(..), Element_(..), Name(..))
+import Parser.AST as AST exposing (Element(..), Element_(..), Name(..), VerbatimType(..))
 import Parser.Advanced
 import Parser.Error exposing (Context(..), Problem(..))
 import Parser.MetaData as MetaData
@@ -80,6 +80,9 @@ render renderArgs element =
         Element (Name name) body _ ->
             renderWithDictionary renderArgs name [] body
 
+        Verbatim verbatimType str _ ->
+            renderVerbatim renderArgs verbatimType str
+
         Element Undefined body _ ->
             E.el [] (text <| "Undefined element")
 
@@ -96,6 +99,20 @@ render renderArgs element =
             el [] (text <| "EMPTY")
 
 
+renderVerbatim : RenderArgs -> VerbatimType -> String -> E.Element msg
+renderVerbatim renderArgs verbatimType content =
+    case verbatimType of
+        Math ->
+            mathText renderArgs InlineMathMode content
+
+        Code ->
+            code1 renderArgs content
+
+        Quoted ->
+            el [] (text content)
+
+
+renderWithDictionary : RenderArgs -> String -> List String -> Element -> E.Element msg
 renderWithDictionary renderArgs name args body =
     case Dict.get name renderElementDict of
         Just f ->
@@ -171,6 +188,18 @@ gray renderArgs _ _ body =
 quoted : FRender msg
 quoted renderArgs _ _ body =
     render renderArgs body
+
+
+code1 : RenderArgs -> String -> E.Element msg
+code1 renderArgs content =
+    el
+        [ Font.family
+            [ Font.typeface "Inconsolata"
+            , Font.monospace
+            ]
+        , Font.color codeColor
+        ]
+        (text <| " " ++ content)
 
 
 code : FRender msg

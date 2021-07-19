@@ -22,6 +22,9 @@ print element =
             else
                 "[" ++ name ++ " " ++ print body ++ "]"
 
+        Verbatim _ content _ ->
+            content
+
         Element Undefined body _ ->
             "[" ++ "undefined" ++ print body ++ "]"
 
@@ -49,6 +52,9 @@ print_ element =
 
         Element_ Undefined body ->
             "[" ++ "undefined" ++ print_ body ++ "]"
+
+        Verbatim_ _ content ->
+            content
 
         EList_ elements ->
             String.join " " (List.map print_ elements)

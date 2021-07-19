@@ -5,7 +5,7 @@ import Html exposing (Html)
 import Html.Attributes as HA
 import Html.Keyed
 import Json.Encode
-import Parser.AST as AST exposing (Element(..), Element_(..), Name(..))
+import Parser.AST as AST exposing (Element(..), Element_(..), Name(..), VerbatimType(..))
 import Parser.Advanced
 import Parser.Document
 import Parser.Error exposing (Context(..), Problem(..))
@@ -94,6 +94,9 @@ transform renderArgs element =
         Element (Name name) body _ ->
             renderWithDictionary renderArgs name [] body
 
+        Verbatim verbatimType content _ ->
+            renderVerbatim verbatimType content
+
         Element Undefined body _ ->
             "Undefined element"
 
@@ -108,6 +111,18 @@ transform renderArgs element =
 
         Empty ->
             "EMPTY"
+
+
+renderVerbatim verbatimType content =
+    case verbatimType of
+        Math ->
+            "$" ++ content ++ "$"
+
+        Code ->
+            "`" ++ content ++ "`"
+
+        Quoted ->
+            content
 
 
 renderWithDictionary renderArgs name args body =

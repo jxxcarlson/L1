@@ -2,6 +2,7 @@ module Parser.AST exposing
     ( Element(..)
     , Element_(..)
     , Name(..)
+    , VerbatimType(..)
     , body
     , body_
     , getText
@@ -27,10 +28,17 @@ import Parser.MetaData exposing (MetaData)
 type Element
     = Text String MetaData
     | Element Name Element MetaData
+    | Verbatim VerbatimType String MetaData
     | EList (List Element) MetaData
     | Problem (List ParseError) String
     | StackError Int Int String String --- errorTextStart errorTextEnd message errorText
     | Empty
+
+
+type VerbatimType
+    = Code
+    | Math
+    | Quoted
 
 
 toStringList : Element -> List String
@@ -41,6 +49,9 @@ toStringList element =
 
         Element _ body__ _ ->
             toStringList body__
+
+        Verbatim _ s _ ->
+            [ s ]
 
         EList elements _ ->
             List.map getText elements
@@ -68,6 +79,9 @@ toList element =
 
         Element _ body__ _ ->
             toList body__
+
+        Verbatim _ str _ ->
+            [ element ]
 
         EList elements _ ->
             elements
@@ -117,6 +131,7 @@ type Name
 type Element_
     = Text_ String
     | Element_ Name Element_
+    | Verbatim_ VerbatimType String
     | EList_ (List Element_)
     | Problem_ Problem String
     | StackError_ Int Int String String -- errorTextStart errorTextEnd message errorText
@@ -141,6 +156,9 @@ position element =
         Element _ _ meta ->
             meta.position
 
+        Verbatim _ _ meta ->
+            meta.position
+
         EList _ meta ->
             meta.position
 
@@ -162,6 +180,9 @@ simplify element =
 
         Element name el _ ->
             Element_ name (simplify el)
+
+        Verbatim name content _ ->
+            Verbatim_ name content
 
         EList elementList _ ->
             EList_ (List.map simplify elementList)
