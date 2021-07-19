@@ -4,7 +4,7 @@ import Library.Console as Console
 import Library.ParserTools as ParserTools
 import Parser.AST as AST exposing (Element(..), Name(..))
 import Parser.Advanced as Parser exposing ((|.), (|=))
-import Parser.Branch as Branch
+import Parser.Branch as Branch exposing (Operation(..), branch)
 import Parser.Config as Config exposing (Configuration, EType(..))
 import Parser.Configuration as Configuration
 import Parser.Error exposing (Context, Problem)
@@ -86,29 +86,18 @@ nextCursor parser cursor =
                 done cursor "No first character"
 
             ( Just firstChar, Just prefix ) ->
-                if Config.notDelimiter Configuration.configuration Config.AllDelimiters firstChar then
-                    -- ADD
-                    add parser cursor chompedText
+                case branch Configuration.configuration cursor firstChar prefix of
+                    ADD ->
+                        add parser cursor chompedText
 
-                else if (Branch.canPush Configuration.configuration cursor prefix).value then
-                    let
-                        realPrefix =
-                            (Branch.canPush Configuration.configuration cursor prefix).prefix |> Debug.log (Console.magenta "CAN PUSH, realPrefix")
-                    in
-                    -- PUSH
-                    push cursor realPrefix
+                    PUSH prefix_ ->
+                        push cursor prefix_
 
-                else if Branch.canPop Configuration.configuration cursor prefix then
-                    -- POP
-                    pop parser prefix cursor
+                    POP ->
+                        pop parser prefix cursor
 
-                else
-                    let
-                        _ =
-                            Debug.log (Console.magenta "DONE, stack") (cursor.stack |> Parser.Print.printStack)
-                    in
-                    -- DONE
-                    done cursor "No alternative"
+                    COMMIT ->
+                        done cursor "No alternative"
 
 
 done cursor message =
