@@ -5,6 +5,7 @@ module Parser.AST exposing
     , body
     , body_
     , getText
+    , getTextList
     , indexedMap
     , join
     , joinText
@@ -95,6 +96,11 @@ getText element =
 
         _ ->
             ""
+
+
+getTextList : Element -> List String
+getTextList element =
+    getText element |> String.words
 
 
 type alias ParseError =

@@ -204,33 +204,15 @@ fontRGB renderArgs _ _ body =
 
 link : FRender msg
 link renderArgs name args body =
-    let
-        bodyStrings : List String
-        bodyStrings =
-            -- getText body |> Maybe.withDefault "missing url"
-            case body of
-                EList elements _ ->
-                    List.map AST.getText elements
+    case AST.getTextList body of
+        label :: url :: rest ->
+            E.newTabLink []
+                { url = url
+                , label = el [ Font.color linkColor, Font.italic ] (text <| label)
+                }
 
-                _ ->
-                    [ "missing", "stuff" ]
-
-        ( label, url ) =
-            case bodyStrings of
-                label_ :: url_ :: rest ->
-                    ( label_, url_ )
-
-                url_ :: [] ->
-                    ( url_, url_ )
-
-                [] ->
-                    ( "no label", "https://nowhere.com" )
-    in
-    E.newTabLink []
-        { url = url
-        , label = el [ Font.color linkColor, Font.italic ] (text <| Utility.unquote label)
-        }
-        |> padLeft
+        _ ->
+            E.el [] (text "Invalid link")
 
 
 padLeft : E.Element msg -> E.Element msg

@@ -28,7 +28,7 @@ isReducible stack =
 
 isReducibleWith : String -> List StackItem -> Bool
 isReducibleWith str stack =
-    stack |> simplifyStack |> (\st -> st ++ [ str ]) |> Check.reduces
+    stack |> simplifyStack |> (\st -> st ++ [ str ]) |> Debug.log (Console.yellow "SIMPLIFIED STACK") |> Check.reduces
 
 
 isNotReducibleWith : String -> List StackItem -> Bool
@@ -627,6 +627,10 @@ remaining source text that begins with character c what we expect?
 -}
 canPop : Configuration -> TextCursor -> String -> Bool
 canPop configuration_ tc prefix =
+    let
+        _ =
+            Debug.log (Console.cyan "canPop, isReducibleWith") ( prefix, tc.stack |> simplifyStack )
+    in
     isReducibleWith prefix tc.stack |> Debug.log (Console.cyan "canPop")
 
 

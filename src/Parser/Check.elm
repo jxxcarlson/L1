@@ -45,7 +45,7 @@ symbolValue str =
 -}
 reduces : List String -> Bool
 reduces symbolList =
-    case reduceAux (Just symbolList) of
+    case reduceAux (Just (List.filter (\s -> not (List.member s [ "$", "`", "\"" ])) symbolList)) of
         Nothing ->
             False
 
