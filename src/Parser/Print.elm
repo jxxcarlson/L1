@@ -29,6 +29,8 @@ printMessage cursor =
     (String.fromInt cursor.count |> String.padLeft 2 '.')
         ++ (cursor.message |> String.padLeft 5 '.')
         ++ " :: "
+        |> Console.bgBlue
+        |> Console.red
 
 
 printScanPoint cursor =
