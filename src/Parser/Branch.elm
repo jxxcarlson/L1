@@ -1,4 +1,4 @@
-module Parser.Branch exposing (Operation(..), branch)
+module Parser.Branch exposing (Operation(..), branch, canPop, canPush)
 
 import Library.Console as Console
 import Parser.Config as Config exposing (Configuration)
@@ -18,16 +18,16 @@ branch : Config.Configuration -> TextCursor -> Char -> String -> Operation
 branch configuration_ tc firstChar prefix_ =
     let
         { value, prefix } =
-            canPush configuration_ tc prefix_
+            canPush configuration_ tc prefix_ |> Debug.log (Console.magenta "CAN PUSH, (value, realPrefix)")
     in
     if Config.notDelimiter Configuration.configuration Config.AllDelimiters firstChar then
         ADD
 
-    else if canPop configuration_ tc prefix_ then
-        POP
-
     else if value then
         PUSH prefix
+
+    else if canPop configuration_ tc prefix_ then
+        POP
 
     else
         COMMIT
