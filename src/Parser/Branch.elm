@@ -24,6 +24,13 @@ branch configuration_ tc firstChar prefix_ =
      if List.member prefix [ ":", "#", "##", "###", "####", "```" ] then
         SHORTCIRCUIT
 
+     else if
+        Stack.isReducible tc.stack
+            && Maybe.map (Stack.beginSymbol >> Config.isVerbatimSymbol) (List.head tc.stack)
+            == Just True
+     then
+        POP
+
      else if Config.notDelimiter Configuration.configuration Config.AllDelimiters firstChar then
         ADD
 
