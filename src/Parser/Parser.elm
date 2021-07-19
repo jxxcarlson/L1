@@ -142,7 +142,6 @@ itemParser generation =
         Parser.succeed (\start elements end source -> Element (Name "item") (EList elements (meta generation start end)) (meta generation start end))
             |= Parser.getOffset
             |. colonMark
-            |. Parser.chompIf (\c -> c == ' ') ExpectingSpace
             |. Parser.chompWhile (\c -> c == ' ')
             |= listParser generation 0
             |= Parser.getOffset
