@@ -22,6 +22,61 @@ import Parser.Parser as Parser
 import Parser.Stack as Stack exposing (StackItem)
 
 
+{-| TODO: give an account of what these fields do
+-}
+type alias TextCursor =
+    { count : Int
+    , generation : Int
+    , scanPoint : Int
+    , length : Int
+
+    ---
+    , source : String
+    , text : String
+    , parsed : List Element -- might be incorporated later
+    , complete : List Element -- no changes will be made
+    , stack : List StackItem -- a stack of unclosed elements
+    , scannerType : ScannerType
+
+    ---
+    , message : String
+    }
+
+
+type ScannerType
+    = NormalScan
+    | VerbatimScan Char
+
+
+type ProtoStackItem
+    = Expect_ Expectation
+    | EndMark_ String
+
+
+{-| initialize with source text
+-}
+init : Int -> String -> TextCursor
+init generation source =
+    { count = 0
+    , generation = generation
+
+    --
+    , scanPoint = 0
+    , length = String.length source
+    , scannerType = NormalScan
+
+    --
+    , source = source
+    , text = ""
+    , parsed = []
+    , complete = []
+    , stack = []
+
+    --
+    , message = "STAR"
+    }
+
+
 advance : TextCursor -> String -> ParserTools.StringData
 advance cursor textToProcess =
     case cursor.scannerType of
@@ -78,61 +133,6 @@ advanceVerbatim verbatimChar str =
             { content = "", finish = 0, start = 0 }
     )
         |> Debug.log (Console.yellow "advanceVerbatim with char " ++ String.fromChar verbatimChar)
-
-
-{-| TODO: give an account of what these fields do
--}
-type alias TextCursor =
-    { count : Int
-    , generation : Int
-    , scanPoint : Int
-    , length : Int
-
-    ---
-    , source : String
-    , text : String
-    , parsed : List Element -- might be incorporated later
-    , complete : List Element -- no changes will be made
-    , stack : List StackItem -- a stack of unclosed elements
-    , scannerType : ScannerType
-
-    ---
-    , message : String
-    }
-
-
-type ScannerType
-    = NormalScan
-    | VerbatimScan Char
-
-
-type ProtoStackItem
-    = Expect_ Expectation
-    | EndMark_ String
-
-
-{-| initialize with source text
--}
-init : Int -> String -> TextCursor
-init generation source =
-    { count = 0
-    , generation = generation
-
-    --
-    , scanPoint = 0
-    , length = String.length source
-    , scannerType = NormalScan
-
-    --
-    , source = source
-    , text = ""
-    , parsed = []
-    , complete = []
-    , stack = []
-
-    --
-    , message = "STAR"
-    }
 
 
 add : (String -> Element) -> String -> TextCursor -> TextCursor
@@ -239,32 +239,6 @@ commit parse cursor =
     cursor |> commit_ parse |> (\tc2 -> { tc2 | complete = List.reverse tc2.complete })
 
 
-
----- XXXXX ----
-
-
-commit2_ : (String -> Element) -> TextCursor -> TextCursor
-commit2_ parse tc =
-    case tc.stack of
-        [] ->
-            { tc | parsed = [], complete = tc.parsed }
-
-        top :: restOfStack ->
-            if Stack.isReducible tc.stack then
-                let
-                    stackData =
-                        Debug.log (Console.bgBlue "COMM, stack") (tc.stack |> List.reverse |> List.map Stack.show |> String.join "")
-                in
-                { tc | complete = parse stackData :: tc.complete }
-
-            else
-                tc
-
-
-
----- XXXXX ----
-
-
 commit_ : (String -> Element) -> TextCursor -> TextCursor
 commit_ parse tc =
     let
@@ -293,6 +267,9 @@ commit_ parse tc =
             if List.member (Stack.beginSymbol top) [ "#", "##", "###", "####" ] then
                 handleHeadings2 tc
 
+            else if Stack.beginSymbol top == ":" then
+                handleItem tc
+
             else if Stack.isReducible tc.stack then
                 handledUnfinished parse tc
 
@@ -315,11 +292,7 @@ handleTheRest parse tc top restOfStack newParsed =
 
                         --|> Debug.log (Console.magenta "parsed_")
                     in
-                    if Stack.beginSymbol top == ":" then
-                        handleLineCommand tc parsed_
-
-                    else
-                        List.reverse parsed_
+                    List.reverse parsed_
 
                 Just _ ->
                     handleError tc top
@@ -349,6 +322,22 @@ handleHeadings2 tc =
 
         parsed_ =
             case Parser.parseHeading tc.generation stackData of
+                Ok goodstuff ->
+                    goodstuff
+
+                Err _ ->
+                    Text ("Error on '" ++ stackData ++ "'") MetaData.dummy
+    in
+    { tc | complete = parsed_ :: tc.complete }
+
+
+handleItem tc =
+    let
+        stackData =
+            Debug.log (Console.bgBlue "COMM, stack") (tc.stack |> List.reverse |> List.map Stack.show |> String.join "")
+
+        parsed_ =
+            case Parser.parseItem tc.generation stackData of
                 Ok goodstuff ->
                     goodstuff
 

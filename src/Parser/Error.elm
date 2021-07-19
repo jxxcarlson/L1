@@ -9,6 +9,7 @@ type Problem
     | ExpectingEscape
     | ExpectingHashMark
     | ExpectingSpace
+    | ExpectingColon
     | ExpectingQuoteMark
     | ExpectingBackTick
     | UnHandledError Int
