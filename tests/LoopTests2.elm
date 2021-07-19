@@ -2,7 +2,7 @@ module LoopTests2 exposing (..)
 
 import Expect exposing (Expectation)
 import Fuzz exposing (Fuzzer, int, list, string)
-import Parser.AST exposing (Element_(..), Name(..), simplify)
+import Parser.AST exposing (Element_(..), Name(..), VerbatimType(..), simplify)
 import Parser.Driver exposing (pl)
 import Test exposing (..)
 
@@ -75,7 +75,7 @@ suite =
                 \_ ->
                     "$a^2$"
                         |> pl
-                        |> Expect.equal [ Element_ (Name "math2") (Text_ "a^2") ]
+                        |> Expect.equal [ Verbatim_ Math "a^2" ]
             , test "`a^2`" <|
                 \_ ->
                     "`a^2`"

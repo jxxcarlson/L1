@@ -4,7 +4,7 @@ module Parser.Error exposing (Context(..), Problem(..), heading)
 type Problem
     = ExpectingLeftBracket
     | ExpectingRightBracket
-    | ExpectingPipe
+    | ExpectingDollarSign
     | EndOfInput
     | ExpectingEscape
     | ExpectingComma
@@ -20,9 +20,6 @@ heading problem =
 
         ExpectingLeftBracket ->
             "Missing left bracket?"
-
-        ExpectingPipe ->
-            "Missing pipe symbol?"
 
         _ ->
             "Error in"

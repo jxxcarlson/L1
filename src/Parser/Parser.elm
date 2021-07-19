@@ -2,7 +2,7 @@ module Parser.Parser exposing (parse, parseList, parseSimple)
 
 import Library.ParserTools as T
 import Library.StringParser as XString
-import Parser.AST as AST exposing (Element(..), Name(..))
+import Parser.AST as AST exposing (Element(..), Name(..), VerbatimType(..))
 import Parser.Advanced as Parser exposing ((|.), (|=))
 import Parser.Error exposing (Context(..), Problem(..))
 import Parser.Loc as Loc exposing (Position)
@@ -50,7 +50,7 @@ listParser generation lineNumber =
 
 parser : Int -> Parser Element
 parser generation =
-    Parser.oneOf [ primitiveElement generation, plainText generation ]
+    Parser.oneOf [ primitiveElement generation, mathElement generation, plainText generation ]
 
 
 {-|
@@ -73,6 +73,18 @@ primitiveElement generation =
             |= argsAndBody generation
             |. Parser.spaces
             |. rightBracket
+            |= Parser.getOffset
+            |= Parser.getSource
+
+
+mathElement generation =
+    Parser.inContext CElement <|
+        -- TODO: is this correct?
+        Parser.succeed (\start content end source -> Verbatim Math content (meta generation start end))
+            |= Parser.getOffset
+            |. dollarSign
+            |= string [ '$' ]
+            |. dollarSign
             |= Parser.getOffset
             |= Parser.getSource
 
@@ -164,8 +176,8 @@ comma =
     T.first comma_ Parser.spaces
 
 
-pipeSymbol =
-    Parser.symbol (Parser.Token "|" ExpectingPipe)
+dollarSign =
+    Parser.symbol (Parser.Token "$" ExpectingDollarSign)
 
 
 leftBracket =

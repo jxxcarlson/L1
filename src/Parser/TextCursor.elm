@@ -219,31 +219,13 @@ handlePop : (String -> Element) -> String -> StackItem -> TextCursor -> TextCurs
 handlePop parse prefix stackTop cursor =
     let
         data =
-            Stack.showStack (List.reverse cursor.stack)
-                ++ prefix
-
-        parsed =
-            case Stack.etype stackTop of
-                Just ElementType ->
-                    parse data
-
-                Just CodeType ->
-                    Element (Name "code") (Text (Stack.content stackTop |> Maybe.withDefault "") MetaData.dummy) MetaData.dummy
-
-                Just InlineMathType ->
-                    Element (Name "math2") (Text (Stack.content stackTop |> Maybe.withDefault "") MetaData.dummy) MetaData.dummy
-
-                Just QuotedType ->
-                    Text (Library.Utility.unquote (Stack.content stackTop |> Maybe.withDefault "")) MetaData.dummy
-
-                Nothing ->
-                    parse data
+            Stack.showStack (List.reverse cursor.stack) ++ prefix
     in
     { cursor
         | stack = []
-        , parsed = parsed :: cursor.parsed
+        , parsed = parse data :: cursor.parsed
         , count = cursor.count + 1
-        , scanPoint = cursor.scanPoint + 1 -- + (adv.finish - adv.start)
+        , scanPoint = cursor.scanPoint + 1
     }
 
 
