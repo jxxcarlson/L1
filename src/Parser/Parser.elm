@@ -1,4 +1,4 @@
-module Parser.Parser exposing (hashMarks, parse, parseHeading, parseItem, parseList, parseSimple)
+module Parser.Parser exposing (hashMarks, parse, parseHeading, parseItem, parseList, parseSimple, parser)
 
 import Library.ParserTools as T
 import Library.StringParser as XString
