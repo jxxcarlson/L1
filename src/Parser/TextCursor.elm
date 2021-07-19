@@ -1,6 +1,6 @@
 module Parser.TextCursor exposing
     ( TextCursor, init
-    , ProtoStackItem(..), ScannerType(..), add, advance, commit, pop, push
+    , ProtoStackItem(..), ScannerType(..), add, advance, advanceNormal, commit, pop, push
     )
 
 {-| TextCursor is the data structure used by Parser.parseLoop.
@@ -39,7 +39,7 @@ another for position /= 0.
 -}
 advanceNormal : Configuration -> Int -> String -> ParserTools.StringData
 advanceNormal config position str =
-    let
+    (let
         _ =
             Debug.log (Console.cyan "advanceNormal, str") str
 
@@ -49,13 +49,15 @@ advanceNormal config position str =
 
             else
                 Config.InteriorDelimiters
-    in
-    case Parser.Advanced.run (ParserTools.text (Config.notDelimiter Configuration.configuration delimiterTypes) (Config.notDelimiter Configuration.configuration delimiterTypes)) str of
+     in
+     case Parser.Advanced.run (ParserTools.text (Config.notDelimiter Configuration.configuration delimiterTypes) (Config.notDelimiter Configuration.configuration delimiterTypes)) str of
         Ok stringData ->
             stringData
 
         Err _ ->
             { content = "", finish = 0, start = 0 }
+    )
+        |> Debug.log (Console.yellow "advanceNormal from " ++ String.fromInt position)
 
 
 {-| Advance, but according to different criteria, because the
@@ -63,16 +65,18 @@ scanner type has been set to 'VerbatimScan c'
 -}
 advanceVerbatim : Char -> String -> ParserTools.StringData
 advanceVerbatim verbatimChar str =
-    let
+    (let
         predicate =
-            \c -> c /= verbatimChar
-    in
-    case Parser.Advanced.run (ParserTools.text predicate predicate) str of
+            \c -> c /= verbatimChar && c /= ']'
+     in
+     case Parser.Advanced.run (ParserTools.text predicate predicate) str of
         Ok stringData ->
             stringData
 
         Err _ ->
             { content = "", finish = 0, start = 0 }
+    )
+        |> Debug.log (Console.yellow "advanceVerbatim with char " ++ String.fromChar verbatimChar)
 
 
 {-| TODO: give an account of what these fields do
@@ -153,7 +157,7 @@ push prefix proto tc =
 
         --|> Debug.log (Console.magenta "NEW TEXT")
         newContent =
-            newText.content
+            newText.content |> Debug.log (Console.yellow "newContent")
 
         scanPointIncrement =
             String.length prefix + newText.finish - newText.start |> Debug.log (Console.yellow "PUSH, scanpoint increment")
@@ -227,92 +231,6 @@ handlePop parse prefix stackTop cursor =
         , count = cursor.count + 1
         , scanPoint = cursor.scanPoint + 1
     }
-
-
-handleText : (String -> Element) -> String -> Stack.StackItemData -> TextCursor -> TextCursor
-handleText parse prefix stackTopData cursor =
-    --let
-    --    _ =
-    --        Debug.log (Console.magenta "IN handleText, STACK") cursor.stack
-    --in
-    case List.head cursor.stack of
-        Nothing ->
-            { cursor | count = cursor.count + 1, scanPoint = cursor.scanPoint + 1 }
-
-        Just stackTop_ ->
-            let
-                ( fname, args_ ) =
-                    Stack.content stackTop_
-                        |> Maybe.map String.words
-                        |> Maybe.andThen List.Extra.uncons
-                        |> Maybe.withDefault ( "fname", [] )
-
-                args =
-                    List.map (\a -> Text a MetaData.dummy) args_
-
-                parsed : List Element
-                parsed =
-                    case stackTopData.expect.etype of
-                        ElementType ->
-                            let
-                                reallyNew =
-                                    ""
-
-                                new =
-                                    handleFunction parse cursor stackTop_ fname args
-                            in
-                            case ( List.head new, cursor.text ) of
-                                ( Nothing, _ ) ->
-                                    new
-
-                                ( _, "" ) ->
-                                    new
-
-                                ( Just first_, text ) ->
-                                    [ AST.join first_ (List.drop 1 new ++ [ parse text ]) ]
-
-                        CodeType ->
-                            [ Element (Name "code") (Text stackTopData.content MetaData.dummy) MetaData.dummy ] ++ cursor.parsed
-
-                        InlineMathType ->
-                            [ Element (Name "math2") (Text stackTopData.content MetaData.dummy) MetaData.dummy ] ++ cursor.parsed
-
-                        QuotedType ->
-                            [ Text (Library.Utility.unquote stackTopData.content) MetaData.dummy ] ++ cursor.parsed
-            in
-            { cursor
-                | parsed = parsed
-
-                --, complete = complete
-                , stack = List.drop 1 cursor.stack
-                , scanPoint = cursor.scanPoint + 1
-                , count = cursor.count + 1
-                , text = ""
-                , scannerType = NormalScan
-            }
-
-
-handleFunction : (String -> Element) -> TextCursor -> StackItem -> String -> List Element -> List Element
-handleFunction parse tc stackTop fname args =
-    if fname == "" then
-        let
-            data =
-                args ++ List.reverse tc.parsed
-        in
-        if data == [] then
-            []
-
-        else
-            [ EList (args ++ List.reverse tc.parsed) MetaData.dummy ]
-
-    else if args == [] then
-        [ Element (AST.Name fname)
-            (EList (List.reverse tc.parsed) MetaData.dummy)
-            MetaData.dummy
-        ]
-
-    else
-        [ AST.join (Element (AST.Name fname) (EList args MetaData.dummy) MetaData.dummy) tc.parsed ]
 
 
 commit : (String -> Element) -> TextCursor -> TextCursor
@@ -399,6 +317,10 @@ commit_ parse tc =
                 }
 
 
+
+-- LANGUAGE HANDLERS
+
+
 handleHeadings : TextCursor -> StackItem -> List Element -> List Element
 handleHeadings tc top_ parsed_ =
     case top_ of
@@ -409,13 +331,7 @@ handleHeadings tc top_ parsed_ =
             []
 
         Stack.Expect top ->
-            if top.expect.beginSymbol == "#" then
-                List.reverse tc.complete ++ [ Element (AST.Name "heading") (EList (List.reverse parsed_) MetaData.dummy) MetaData.dummy ]
-
-            else if top.expect.beginSymbol == "##" then
-                List.reverse tc.complete ++ [ Element (AST.Name "heading") (EList (List.reverse parsed_) MetaData.dummy) MetaData.dummy ]
-
-            else if top.expect.beginSymbol == "###" then
+            if List.member top.expect.beginSymbol [ "#", "##", "###" ] then
                 List.reverse tc.complete ++ [ Element (AST.Name "heading") (EList (List.reverse parsed_) MetaData.dummy) MetaData.dummy ]
 
             else
@@ -450,8 +366,3 @@ handleError tc top =
            ]
         ++ List.reverse tc.parsed
         ++ [ Text tc.text MetaData.dummy ]
-
-
-
--- PREDICATES
--- PRINT
