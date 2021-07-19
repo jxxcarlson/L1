@@ -52,21 +52,21 @@ Below are some Markdown-like examples.   Compare the source and rendered text to
 
 ### Links
 
-[item [link NYT https://nytimes.com]]
+:[link NYT https://nytimes.com]
 
 ### Code
 
-[item code: `a[i] = b[i] + 1`.]
+:code: `a[i] = b[i] + 1`.
 
-[item This is [red red meat].  [gray (We shouldn't eat so much of it.)]]
+:This is [red red meat].  [gray (We shouldn't eat so much of it.)]
 
 
 
 ### Math
 
-[item Pythagoras said that $a^2 + b^2 = c^2$. Wow! What a dude!!]
+:Pythagoras said that $a^2 + b^2 = c^2$. Wow! What a dude!!
 
-[item In class, we learned that]
+:In class, we learned that]
 
 [mathblock \\int_0^1 x^n dx = \\frac{1}{n+1}]
 

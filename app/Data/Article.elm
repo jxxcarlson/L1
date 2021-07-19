@@ -24,16 +24,16 @@ The strategy for fault-tolerant parsing discussed here is based on Matt Griffith
 
 The Camperdown parser can be configured for applications ranging from Markdown-style languages to a kind of mini-LaTeX to interactive story-telling (see XXX).  The aim here is to present the main ideas of Camperdown in a simple yet nontrivial context that will be helpful both on its own and as a warmup to understanding and using Camperdown itself. The  codebase for [b L1] is small, with the core `textCursor` module, the largest of the bunch,  weighing in at 400 lines of code and the others at less than half that. Here are a few sentences in [b L1]:
 
-[item (a) `This [highlight is [b not] a very good] test.`]
+: (a) `This [highlight is [b not] a very good] test.`
 
-[item (b) `Pythagoras said that $a^2 + b^2 = c^2$. Wow! What a dude!!`]
+: "(b) `Pythagoras said that $a^2 + b^2 = c^2$. Wow! What a dude!!`
 
 
 These are rendered
 
-[item (a) This [highlight is [b not] a very good] test.]
+:(a) This [highlight is [b not] a very good] test.
 
-[item (b) Pythagoras said that $a^2 + b^2 = c^2$. Wow! What a dude!!]
+:(b) Pythagoras said that $a^2 + b^2 = c^2$. Wow! What a dude!!
 
 
 
@@ -53,19 +53,19 @@ For [b L1], we use an especially simple algorithm for partitioning the text: pie
 
 To explain the  scanning/cursor idea, let us consider the two snippets
 
-(a) `This [i is] a [b real] test!`
+:(a) `This [i is] a [b real] test!`
 
 and
 
-(b) `This [i is a [b real] test!`
+:(b) `This [i is a [b real] test!`
 
 They are rendered as
 
-This [i is] a [b real] test!
+:(a) This [i is] a [b real] test!
 
 and
 
-(b) This [i is a [b real] test
+:(b) This [i is a [b real] test
 
 In the second case the error is called out;  moreover, the word [i real] is
 still rendered in bold.  Ergo, the parser was able to continue after the error, providing us with as good  a result as can be expected.
@@ -86,7 +86,7 @@ The next move of the pointer brings us to an opening bracket.  We know what to d
 The stack in now empty, indicating no errors.
 There is one last operation, COMMIT.  In the the case of an empty stack, its role is to put the various parts of the cursor in the correct order —
 
-:item `cursor.complete ++ cursor.parsed ++ (parse cursor.text)`
+: `cursor.complete ++ cursor.parsed ++ (parse cursor.text)`
 
 The very last element is a parsed version of `cursor.text`, and `++` is concatentation of lists.
 
@@ -96,11 +96,11 @@ The very last element is a parsed version of `cursor.text`, and `++` is concaten
 
 Of course, it may happen that there are errors, as in the text
 
-:item `a [x b [y c] d`
+: `a [x b [y c] d`
 
 The key fact is that the opening bracket of `[x b` was never closed.  There are multiple solutions to the problem of turnng this into valid text, among which are `a [x] b [y c] d` and `a [x b] [y c] d`.  We have to pick a solution and a general rule for finding it.  Fortunately, the parser has collected enough information to do this. As it enters the commit phase, it knows the initial position of the never-closed  data `[x b`.  It can therefore assemble the following:
 
-:item `c.complete ++ c.parsed ++ ((c.stack)) ++ (parse c.text)`
+: `c.complete ++ c.parsed ++ ((c.stack)) ++ (parse c.text)`
 
 where `((c.stack))` means [i make a  valid element whose text comes from] `c.stack`.  The image below shows what the parser knows as it enters the commit phase.
 
