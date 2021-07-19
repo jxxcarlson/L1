@@ -45,22 +45,6 @@ canPop configuration_ tc prefix =
     Stack.isReducibleWith prefix tc.stack |> Debug.log (Console.cyan "canPop")
 
 
-
---if canPopPrecondition configuration_ tc prefix then
---    case List.head tc.stack of
---        Nothing ->
---            False
---
---        Just stackTop ->
---            -- True
---            Maybe.map2 String.contains (endSymbol stackTop) (Just prefix) |> Maybe.withDefault False
---    -- TODO why should the above check be necessary?
---    -- With it, we get __many__ failing tests
---
---else
---    False
-
-
 canPopPrecondition : Configuration -> TextCursor -> String -> Bool
 canPopPrecondition configuration_ tc prefix =
     let
@@ -81,13 +65,18 @@ canPush : Configuration -> TextCursor -> String -> { value : Bool, prefix : Stri
 canPush configuration_ tc prefix =
     if Config.isVerbatimSymbol prefix then
         if Just prefix == (List.head tc.stack |> Maybe.map Stack.beginSymbol) then
-            { value = False, prefix = prefix } |> Debug.log (Console.yellow "B 1")
+            --if Config.isVerbatimSymbol prefix then
+            --    { value = True, prefix = prefix } |> Debug.log (Console.yellow "B 1")
+            --
+            --else
+            -- TODO: think about the above
+            { value = False, prefix = prefix } |> Debug.log (Console.yellow "B 2")
 
         else
-            { value = True, prefix = prefix } |> Debug.log (Console.yellow "B 2")
+            { value = True, prefix = prefix } |> Debug.log (Console.yellow "B 3")
 
     else
-        canPush1 configuration_ tc prefix |> Debug.log (Console.yellow "B 3")
+        canPush1 configuration_ tc prefix |> Debug.log (Console.yellow "B 4")
 
 
 canPush1 : Configuration -> TextCursor -> String -> { value : Bool, prefix : String }
