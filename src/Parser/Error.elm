@@ -7,6 +7,8 @@ type Problem
     | ExpectingDollarSign
     | EndOfInput
     | ExpectingEscape
+    | ExpectingHashMark
+    | ExpectingSpace
     | ExpectingQuoteMark
     | ExpectingBackTick
     | UnHandledError Int

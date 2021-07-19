@@ -106,8 +106,13 @@ suite =
                     "[a $b$]"
                         |> pl_
                         |> Expect.equal [ Element_ (Name "a") (EList_ [ Verbatim_ Math "b " ]) ]
+            , test "abc $x^2$ def" <|
+                \_ ->
+                    "abc $x^2$ def"
+                        |> pl_
+                        |> Expect.equal [ Text_ "abc ", Verbatim_ Math "x^2", Text_ "def" ]
             ]
 
 
 
--- "[a $b$]"
+-- "abc $x^2$ def"

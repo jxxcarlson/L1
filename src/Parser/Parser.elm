@@ -1,4 +1,4 @@
-module Parser.Parser exposing (parse, parseList, parseSimple)
+module Parser.Parser exposing (hashMarks, parse, parseHeading, parseList, parseSimple)
 
 import Library.ParserTools as T
 import Library.StringParser as XString
@@ -36,6 +36,11 @@ parse generation str =
 
 parseSimple =
     parse 0 >> AST.simplify
+
+
+parseHeading : Int -> String -> Result (List ParseError) Element
+parseHeading generation str =
+    Parser.run (headingParser generation) str
 
 
 parseList : Int -> Int -> String -> Result (List ParseError) (List Element)
@@ -111,6 +116,28 @@ quotedElement generation =
             |. quoteMark
             |= Parser.getOffset
             |= Parser.getSource
+
+
+headingParser generation =
+    Parser.inContext CElement <|
+        -- TODO: is this correct?
+        Parser.succeed (\start n elements end source -> Element (Name ("heading" ++ String.fromInt n)) (EList elements (meta generation start end)) (meta generation start end))
+            |= Parser.getOffset
+            |= hashMarks
+            |. Parser.chompIf (\c -> c == ' ') ExpectingSpace
+            |. Parser.chompWhile (\c -> c == ' ')
+            |= listParser generation 0
+            |= Parser.getOffset
+            |= Parser.getSource
+
+
+hashMarks : Parser Int
+hashMarks =
+    Parser.succeed (\start end -> end - start)
+        |= Parser.getOffset
+        |. hashMark
+        |. Parser.chompWhile (\c -> c == '#')
+        |= Parser.getOffset
 
 
 elementName =
@@ -194,6 +221,10 @@ rawText_ stopChars =
 
 dollarSign =
     Parser.symbol (Parser.Token "$" ExpectingDollarSign)
+
+
+hashMark =
+    Parser.symbol (Parser.Token "#" ExpectingHashMark)
 
 
 quoteMark =

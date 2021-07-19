@@ -18,6 +18,7 @@ import Parser.Advanced
 import Parser.Config as Config exposing (Configuration, EType(..), Expectation)
 import Parser.Configuration as Configuration
 import Parser.MetaData as MetaData exposing (MetaData)
+import Parser.Parser as Parser
 import Parser.Stack as Stack exposing (StackItem)
 
 
@@ -250,7 +251,11 @@ commit2_ parse tc =
 
         top :: restOfStack ->
             if Stack.isReducible tc.stack then
-                { tc | complete = tc.complete ++ List.map (Stack.show >> parse) tc.stack }
+                let
+                    stackData =
+                        Debug.log (Console.bgBlue "COMM, stack") (tc.stack |> List.reverse |> List.map Stack.show |> String.join "")
+                in
+                { tc | complete = parse stackData :: tc.complete }
 
             else
                 tc
@@ -282,43 +287,75 @@ commit_ parse tc =
 
         top :: restOfStack ->
             let
-                complete_ =
-                    case Stack.endSymbol top of
-                        Nothing ->
-                            let
-                                parsed_ =
-                                    newParsed :: tc.parsed
-
-                                --|> Debug.log (Console.magenta "parsed_")
-                            in
-                            if String.left 1 (Stack.beginSymbol top) == "#" then
-                                handleHeadings tc top parsed_
-
-                            else if Stack.beginSymbol top == ":" then
-                                handleLineCommand tc parsed_
-
-                            else
-                                --let
-                                --    errorMessage =
-                                --        StackError (scanPoint top) tc.scanPoint ("((unknown delimiter " ++ beginSymbol top ++ " at position " ++ String.fromInt (scanPoint top) ++ "))") (String.slice (scanPoint top) tc.scanPoint tc.source)
-                                --in
-                                List.reverse parsed_
-
-                        Just _ ->
-                            handleError tc top
+                _ =
+                    Debug.log (Console.yellow "TOP") <| Stack.beginSymbol top
             in
-            commit parse
-                { tc
-                    | count = 1 + tc.count
-                    , text = ""
-                    , stack = restOfStack
-                    , parsed = []
-                    , complete = complete_
-                }
+            if List.member (Stack.beginSymbol top) [ "#", "##", "###", "####" ] then
+                handleHeadings2 tc
+
+            else if Stack.isReducible tc.stack then
+                handledUnfinished parse tc
+
+            else
+                handleTheRest parse tc top restOfStack newParsed
 
 
 
 -- LANGUAGE HANDLERS
+
+
+handleTheRest parse tc top restOfStack newParsed =
+    let
+        complete_ =
+            case Stack.endSymbol top of
+                Nothing ->
+                    let
+                        parsed_ =
+                            newParsed :: tc.parsed
+
+                        --|> Debug.log (Console.magenta "parsed_")
+                    in
+                    if Stack.beginSymbol top == ":" then
+                        handleLineCommand tc parsed_
+
+                    else
+                        List.reverse parsed_
+
+                Just _ ->
+                    handleError tc top
+    in
+    commit parse
+        { tc
+            | count = 1 + tc.count
+            , text = ""
+            , stack = restOfStack
+            , parsed = []
+            , complete = complete_
+        }
+
+
+handledUnfinished parse tc =
+    let
+        stackData =
+            Debug.log (Console.bgBlue "COMM, stack") (tc.stack |> List.reverse |> List.map Stack.show |> String.join "")
+    in
+    { tc | complete = parse stackData :: tc.complete }
+
+
+handleHeadings2 tc =
+    let
+        stackData =
+            Debug.log (Console.bgBlue "COMM, stack") (tc.stack |> List.reverse |> List.map Stack.show |> String.join "")
+
+        parsed_ =
+            case Parser.parseHeading tc.generation stackData of
+                Ok goodstuff ->
+                    goodstuff
+
+                Err _ ->
+                    Text ("Error on '" ++ stackData ++ "'") MetaData.dummy
+    in
+    { tc | complete = parsed_ :: tc.complete }
 
 
 handleHeadings : TextCursor -> StackItem -> List Element -> List Element

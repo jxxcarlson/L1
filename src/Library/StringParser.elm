@@ -1,4 +1,9 @@
-module Library.StringParser exposing (isNonLanguageChar, isNotExtendedLanguageChar, textListWithPredicate, textWithPredicate)
+module Library.StringParser exposing
+    ( isNonLanguageChar
+    , isNotExtendedLanguageChar
+    , textListWithPredicate
+    , textWithPredicate
+    )
 
 {-| Grammar:
 
