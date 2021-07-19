@@ -86,15 +86,6 @@ argsAndBody generation =
     Parser.inContext CArgsAndBody <| elementBody generation
 
 
-elementArgs =
-    Parser.inContext CArgs <|
-        T.between pipeSymbol innerElementArgs pipeSymbol
-
-
-innerElementArgs =
-    T.manySeparatedBy comma (string [ ',', '|' ])
-
-
 metaOfList generation list =
     { generation = generation, position = list |> List.map (\el -> AST.position el) |> Loc.positionOfList }
 
@@ -102,18 +93,6 @@ metaOfList generation list =
 elementBody generation =
     Parser.inContext CBody <|
         Parser.lazy (\_ -> T.many (parser generation) |> Parser.map (\list -> EList list (metaOfList generation list)))
-
-
-argsAndBody_ generation =
-    Parser.succeed (\args body_ -> ( args, body_ ))
-        |= elementArgs
-        |. Parser.spaces
-        |= elementBody generation
-
-
-bodyOnly generation =
-    Parser.succeed (\body_ -> ( [], body_ ))
-        |= elementBody generation
 
 
 
