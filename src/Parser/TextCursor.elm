@@ -665,10 +665,6 @@ canPopPrecondition configuration_ tc prefix =
 canPush : Configuration -> TextCursor -> String -> { value : Bool, prefix : String }
 canPush configuration_ tc prefix =
     if Config.isVerbatimSymbol prefix then
-        let
-            _ =
-                Debug.log (Console.yellow "Stack top") (List.head tc.stack)
-        in
         if Just prefix == (List.head tc.stack |> Maybe.map beginSymbol) then
             { value = False, prefix = prefix } |> Debug.log (Console.yellow "B 1")
 
