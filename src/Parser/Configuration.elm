@@ -1,6 +1,10 @@
-module Parser.Configuration exposing (expectations)
+module Parser.Configuration exposing (configuration)
 
-import Parser.Config exposing (EType(..), Expectation, MarkPosition(..))
+import Parser.Config as Config exposing (EType(..), Expectation, MarkPosition(..))
+
+
+configuration =
+    Config.configure expectations
 
 
 {-| The actual configuration used by the parser is derived from a List Expectation

@@ -4,11 +4,12 @@ import Library.Console as Console
 import Library.ParserTools as ParserTools
 import Parser.AST as AST exposing (Element(..), Name(..))
 import Parser.Advanced as Parser exposing ((|.), (|=))
+import Parser.Branch as Branch
 import Parser.Config as Config exposing (Configuration, EType(..))
 import Parser.Configuration as Configuration
 import Parser.Error exposing (Context, Problem)
 import Parser.Print
-import Parser.TextCursor as TextCursor exposing (ScannerType(..), TextCursor, configuration)
+import Parser.TextCursor as TextCursor exposing (ScannerType(..), TextCursor)
 
 
 type alias Parser a =
@@ -85,19 +86,19 @@ nextCursor parser cursor =
                 done cursor "No first character"
 
             ( Just firstChar, Just prefix ) ->
-                if Config.notDelimiter configuration Config.AllDelimiters firstChar then
+                if Config.notDelimiter Configuration.configuration Config.AllDelimiters firstChar then
                     -- ADD
                     add parser cursor chompedText
 
-                else if (TextCursor.canPush configuration cursor prefix).value then
+                else if (Branch.canPush Configuration.configuration cursor prefix).value then
                     let
                         realPrefix =
-                            (TextCursor.canPush configuration cursor prefix).prefix |> Debug.log (Console.magenta "CAN PUSH, realPrefix")
+                            (Branch.canPush Configuration.configuration cursor prefix).prefix |> Debug.log (Console.magenta "CAN PUSH, realPrefix")
                     in
                     -- PUSH
                     push cursor realPrefix
 
-                else if TextCursor.canPop configuration cursor prefix then
+                else if Branch.canPop Configuration.configuration cursor prefix then
                     -- POP
                     pop parser prefix cursor
 
@@ -123,7 +124,7 @@ pop parser prefix cursor =
 
 
 push cursor prefix =
-    case Config.lookup configuration prefix of
+    case Config.lookup Configuration.configuration prefix of
         Nothing ->
             ParserTools.Loop <| TextCursor.push (Debug.log (Console.cyan "PUSHING MARK with prefix") prefix) (TextCursor.EndMark_ prefix) { cursor | message = "PUSH Endmark " ++ prefix }
 

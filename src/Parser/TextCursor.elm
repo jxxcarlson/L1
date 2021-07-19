@@ -1,6 +1,6 @@
 module Parser.TextCursor exposing
     ( TextCursor, init
-    , ProtoStackItem(..), ScannerType(..), add, advance, canPop, canPush, commit, configuration, pop, push
+    , ProtoStackItem(..), ScannerType(..), add, advance, commit, pop, push
     )
 
 {-| TextCursor is the data structure used by Parser.parseLoop.
@@ -15,22 +15,17 @@ import Library.Utility
 import List.Extra
 import Parser.AST as AST exposing (Element(..), Name(..))
 import Parser.Advanced
-import Parser.Check as Check
 import Parser.Config as Config exposing (Configuration, EType(..), Expectation)
 import Parser.Configuration as Configuration
 import Parser.MetaData as MetaData exposing (MetaData)
 import Parser.Stack as Stack exposing (StackItem)
 
 
-configuration =
-    Config.configure Configuration.expectations
-
-
 advance : TextCursor -> String -> ParserTools.StringData
 advance cursor textToProcess =
     case cursor.scannerType of
         NormalScan ->
-            advanceNormal configuration
+            advanceNormal Configuration.configuration
                 cursor.scanPoint
                 textToProcess
 
@@ -55,7 +50,7 @@ advanceNormal config position str =
             else
                 Config.InteriorDelimiters
     in
-    case Parser.Advanced.run (ParserTools.text (Config.notDelimiter configuration delimiterTypes) (Config.notDelimiter configuration delimiterTypes)) str of
+    case Parser.Advanced.run (ParserTools.text (Config.notDelimiter Configuration.configuration delimiterTypes) (Config.notDelimiter Configuration.configuration delimiterTypes)) str of
         Ok stringData ->
             stringData
 
@@ -477,85 +472,4 @@ handleError tc top =
 
 
 -- PREDICATES
-
-
-{-| The parser has paused at charater c. If the prefix of the
-remaining source text that begins with character c what we expect?
--}
-canPop : Configuration -> TextCursor -> String -> Bool
-canPop configuration_ tc prefix =
-    let
-        _ =
-            Debug.log (Console.cyan "canPop, isReducibleWith") ( prefix, tc.stack |> Stack.simplifyStack )
-    in
-    Stack.isReducibleWith prefix tc.stack |> Debug.log (Console.cyan "canPop")
-
-
-
---if canPopPrecondition configuration_ tc prefix then
---    case List.head tc.stack of
---        Nothing ->
---            False
---
---        Just stackTop ->
---            -- True
---            Maybe.map2 String.contains (endSymbol stackTop) (Just prefix) |> Maybe.withDefault False
---    -- TODO why should the above check be necessary?
---    -- With it, we get __many__ failing tests
---
---else
---    False
-
-
-canPopPrecondition : Configuration -> TextCursor -> String -> Bool
-canPopPrecondition configuration_ tc prefix =
-    let
-        isEndSymbol =
-            Config.isEndSymbol configuration_ tc.scanPoint prefix
-    in
-    if isEndSymbol then
-        True
-
-    else if String.length prefix > 1 then
-        canPopPrecondition configuration_ tc (String.dropLeft 1 prefix)
-
-    else
-        False
-
-
-canPush : Configuration -> TextCursor -> String -> { value : Bool, prefix : String }
-canPush configuration_ tc prefix =
-    if Config.isVerbatimSymbol prefix then
-        if Just prefix == (List.head tc.stack |> Maybe.map Stack.beginSymbol) then
-            { value = False, prefix = prefix } |> Debug.log (Console.yellow "B 1")
-
-        else
-            { value = True, prefix = prefix } |> Debug.log (Console.yellow "B 2")
-
-    else
-        canPush1 configuration_ tc prefix |> Debug.log (Console.yellow "B 3")
-
-
-canPush1 : Configuration -> TextCursor -> String -> { value : Bool, prefix : String }
-canPush1 configuration_ tc prefix =
-    (if prefix == "" then
-        { value = False, prefix = "" }
-
-     else if canPush2 configuration_ tc prefix then
-        { value = True, prefix = prefix }
-
-     else
-        canPush configuration_ tc (String.dropLeft 1 prefix)
-    )
-        |> Debug.log (Console.cyan "canPush")
-
-
-canPush2 configuration_ tc prefix =
-    Config.isBeginSymbol configuration_ tc.scanPoint prefix
-        || (Config.isEndSymbol configuration_ tc.scanPoint prefix
-                && Stack.isNotReducibleWith prefix tc.stack
-           )
-
-
-
 -- PRINT
