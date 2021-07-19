@@ -11,26 +11,32 @@ type Operation
     = ADD
     | PUSH String
     | POP
+    | SHORTCIRCUIT
     | COMMIT
 
 
 branch : Config.Configuration -> TextCursor -> Char -> String -> Operation
 branch configuration_ tc firstChar prefix_ =
-    let
+    (let
         { value, prefix } =
             canPush configuration_ tc prefix_ |> Debug.log (Console.magenta "CAN PUSH, (value, realPrefix)")
-    in
-    if Config.notDelimiter Configuration.configuration Config.AllDelimiters firstChar then
+     in
+     if List.member prefix [ ":", "#", "##", "###", "####", "```" ] then
+        SHORTCIRCUIT
+
+     else if Config.notDelimiter Configuration.configuration Config.AllDelimiters firstChar then
         ADD
 
-    else if value then
+     else if value then
         PUSH prefix
 
-    else if canPop configuration_ tc prefix_ then
+     else if canPop configuration_ tc prefix_ then
         POP
 
-    else
+     else
         COMMIT
+    )
+        |> Debug.log (Console.cyan "BRANCH")
 
 
 {-| The parser has paused at character c. If the prefix of the

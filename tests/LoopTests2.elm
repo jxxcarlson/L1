@@ -90,12 +90,12 @@ suite =
                 \_ ->
                     "# Images"
                         |> pl_
-                        |> Expect.equal [ Element_ (Name "heading") (EList_ [ Text_ "# Images" ]) ]
+                        |> Expect.equal [ Element_ (Name "heading1") (EList_ [ Text_ "Images" ]) ]
             , test "## Images" <|
                 \_ ->
                     "## Images"
                         |> pl_
-                        |> Expect.equal [ Element_ (Name "heading") (EList_ [ Text_ "## Images" ]) ]
+                        |> Expect.equal [ Element_ (Name "heading2") (EList_ [ Text_ "Images" ]) ]
             , test "[i w:8 p:l https://foo.bar]" <|
                 \_ ->
                     "[i w:8 p:l https://foo.bar]"

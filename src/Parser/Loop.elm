@@ -94,6 +94,9 @@ nextCursor parser cursor =
                     POP ->
                         pop parser prefix cursor
 
+                    SHORTCIRCUIT ->
+                        shortcircuit prefix cursor
+
                     COMMIT ->
                         exit parser cursor "COMM4"
 
@@ -132,6 +135,21 @@ push cursor prefix =
             in
             ParserTools.Loop <|
                 TextCursor.push (Debug.log (Console.cyan "PUSHING with prefix") prefix) (TextCursor.Expect_ expectation) { cursor | message = "PUSH", scannerType = scannerType }
+
+
+shortcircuit prefix cursor =
+    let
+        _ =
+            Debug.log (Console.bgBlue "SHORTCIRCUIT") prefix
+    in
+    if List.member prefix [ "#", "##", "###", "####" ] then
+        ParserTools.Done <| TextCursor.handleHeadings2 cursor
+
+    else if prefix == ":" then
+        ParserTools.Done <| TextCursor.handleItem cursor
+
+    else
+        ParserTools.Done cursor
 
 
 error cursor =

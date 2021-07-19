@@ -1,6 +1,6 @@
 module Parser.TextCursor exposing
     ( TextCursor, init
-    , ProtoStackItem(..), ScannerType(..), add, advance, advanceNormal, commit, pop, push
+    , ProtoStackItem(..), ScannerType(..), add, advance, advanceNormal, commit, handleHeadings2, handleItem, pop, push
     )
 
 {-| TextCursor is the data structure used by Parser.parseLoop.
@@ -264,13 +264,7 @@ commit_ parse tc =
                 _ =
                     Debug.log (Console.yellow "TOP") <| Stack.beginSymbol top
             in
-            if List.member (Stack.beginSymbol top) [ "#", "##", "###", "####" ] then
-                handleHeadings2 tc
-
-            else if Stack.beginSymbol top == ":" then
-                handleItem tc
-
-            else if Stack.isReducible tc.stack then
+            if Stack.isReducible tc.stack then
                 handledUnfinished parse tc
 
             else
@@ -317,32 +311,26 @@ handledUnfinished parse tc =
 
 handleHeadings2 tc =
     let
-        stackData =
-            Debug.log (Console.bgBlue "COMM, stack") (tc.stack |> List.reverse |> List.map Stack.show |> String.join "")
-
         parsed_ =
-            case Parser.parseHeading tc.generation stackData of
+            case Parser.parseHeading tc.generation tc.source of
                 Ok goodstuff ->
                     goodstuff
 
                 Err _ ->
-                    Text ("Error on '" ++ stackData ++ "'") MetaData.dummy
+                    Text ("Error on '" ++ tc.source ++ "'") MetaData.dummy
     in
     { tc | complete = parsed_ :: tc.complete }
 
 
 handleItem tc =
     let
-        stackData =
-            Debug.log (Console.bgBlue "COMM, stack") (tc.stack |> List.reverse |> List.map Stack.show |> String.join "")
-
         parsed_ =
-            case Parser.parseItem tc.generation stackData of
+            case Parser.parseItem tc.generation tc.source of
                 Ok goodstuff ->
                     goodstuff
 
                 Err _ ->
-                    Text ("Error on '" ++ stackData ++ "'") MetaData.dummy
+                    Text ("Error on '" ++ tc.source ++ "'") MetaData.dummy
     in
     { tc | complete = parsed_ :: tc.complete }
 
