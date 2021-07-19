@@ -33,7 +33,7 @@ branch configuration_ tc firstChar prefix_ =
         COMMIT
 
 
-{-| The parser has paused at charater c. If the prefix of the
+{-| The parser has paused at character c. If the prefix of the
 remaining source text that begins with character c what we expect?
 -}
 canPop : Configuration -> TextCursor -> String -> Bool
@@ -65,12 +65,12 @@ canPush : Configuration -> TextCursor -> String -> { value : Bool, prefix : Stri
 canPush configuration_ tc prefix =
     if Config.isVerbatimSymbol prefix then
         if Just prefix == (List.head tc.stack |> Maybe.map Stack.beginSymbol) then
-            --if Config.isVerbatimSymbol prefix then
-            --    { value = True, prefix = prefix } |> Debug.log (Console.yellow "B 1")
-            --
-            --else
-            -- TODO: think about the above
-            { value = False, prefix = prefix } |> Debug.log (Console.yellow "B 2")
+            if Config.isVerbatimSymbol prefix then
+                { value = True, prefix = prefix } |> Debug.log (Console.yellow "B 1")
+
+            else
+                -- TODO: think about the above
+                { value = False, prefix = prefix } |> Debug.log (Console.yellow "B 2")
 
         else
             { value = True, prefix = prefix } |> Debug.log (Console.yellow "B 3")
