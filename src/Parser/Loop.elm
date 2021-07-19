@@ -34,7 +34,6 @@ parseLoop parser generation str =
         result =
             ParserTools.loop (TextCursor.init generation str) (nextCursor parser)
                 |> TextCursor.commit parser
-                |> (\tc_ -> { tc_ | message = "COMM" })
 
         _ =
             Debug.log (Parser.Print.print result) "-"
@@ -58,7 +57,7 @@ when the scanPoint comes to the end of the source.
 nextCursor : (String -> Element) -> TextCursor -> ParserTools.Step TextCursor TextCursor
 nextCursor parser cursor =
     if cursor.count > 15 then
-        done cursor "count exceeded"
+        exit parser cursor "COMM1"
 
     else
         let
@@ -74,16 +73,15 @@ nextCursor parser cursor =
             maybeFirstChar =
                 String.uncons textToProcess |> Maybe.map Tuple.first
 
-            -- |> Debug.log (Console.magenta "FIRST CH")
             maybePrefix =
                 Maybe.map ((\c -> ParserTools.prefixWith c textToProcess) >> .content) maybeFirstChar
         in
         case ( maybeFirstChar, maybePrefix ) of
             ( Nothing, _ ) ->
-                done cursor "No prefix"
+                exit parser cursor "COMM2"
 
             ( _, Nothing ) ->
-                done cursor "No first character"
+                exit parser cursor "COMM3"
 
             ( Just firstChar, Just prefix ) ->
                 case branch Configuration.configuration cursor firstChar prefix of
@@ -97,10 +95,14 @@ nextCursor parser cursor =
                         pop parser prefix cursor
 
                     COMMIT ->
-                        done cursor "No alternative"
+                        exit parser cursor "COMM4"
 
 
-done cursor message =
+exit parser cursor message =
+    let
+        _ =
+            Debug.log (Console.red <| String.fromInt cursor.count ++ "EXIT Loop, (" ++ message ++ ")")
+    in
     ParserTools.Done { cursor | message = message }
 
 
