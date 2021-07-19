@@ -61,7 +61,10 @@ renderElementDict =
         , ( "mb", mathblock )
         , ( "link", link )
         , ( "image", image )
-        , ( "heading", heading )
+        , ( "heading1", heading1 )
+        , ( "heading2", heading2 )
+        , ( "heading3", heading3 )
+        , ( "heading4", heading4 )
         , ( "item", item )
         ]
 
@@ -253,36 +256,36 @@ padLeft element =
 --    E.paddingEach { left = k, right = 0, top = 0, bottom = 0 }
 
 
-heading : FRender msg
-heading renderArgs name args body =
-    let
-        text =
-            getText body |> Maybe.withDefault "TITLE"
+heading1 : FRender msg
+heading1 renderArgs name args body =
+    column [ Font.size (headerFontSize 1), headerPadding 1 ] [ render renderArgs body ]
 
-        level =
-            text
-                |> String.words
-                |> List.filter (\s -> String.left 1 s == "#")
-                |> List.head
-                |> Maybe.withDefault ""
-                |> String.length
 
-        prefix =
-            String.repeat level "#"
+heading2 : FRender msg
+heading2 renderArgs name args body =
+    column [ Font.size (headerFontSize 2), headerPadding 2 ] [ render renderArgs body ]
 
-        title =
-            String.replace prefix "" text
 
-        factor =
-            min 1.8 (sqrt (sqrt (toFloat level + 1)))
+heading3 : FRender msg
+heading3 renderArgs name args body =
+    column [ Font.size (headerFontSize 1), headerPadding 3 ] [ render renderArgs body ]
 
-        fontSize =
-            round (24 / factor)
 
-        headerPadding =
-            E.paddingEach { top = round (12 / factor), bottom = 0, left = 0, right = 0 }
-    in
-    column [ Font.size fontSize, headerPadding ] [ E.text title ]
+heading4 : FRender msg
+heading4 renderArgs name args body =
+    column [ Font.size (headerFontSize 1), headerPadding 4 ] [ render renderArgs body ]
+
+
+getFactor level =
+    min 1.8 (sqrt (sqrt (toFloat level)))
+
+
+headerFontSize level =
+    round (24 / getFactor level)
+
+
+headerPadding level =
+    E.paddingEach { top = round (12 / getFactor level), bottom = 0, left = 0, right = 0 }
 
 
 item : FRender msg
