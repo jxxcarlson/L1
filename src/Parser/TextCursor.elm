@@ -1,6 +1,6 @@
 module Parser.TextCursor exposing
     ( TextCursor, init
-    , ProtoStackItem(..), ScannerType(..), StackItem(..), add, advance, beginSymbol, canPop, canPush, commit, configuration, content, etype, pop, push, simpleStackItem, simplifyStack, simplifyStack2
+    , ProtoStackItem(..), ScannerType(..), add, advance, canPop, canPush, commit, configuration, pop, push
     )
 
 {-| TextCursor is the data structure used by Parser.parseLoop.
@@ -19,31 +19,7 @@ import Parser.Check as Check
 import Parser.Config as Config exposing (Configuration, EType(..), Expectation)
 import Parser.Configuration as Configuration
 import Parser.MetaData as MetaData exposing (MetaData)
-
-
-isReducible : List StackItem -> Bool
-isReducible stack =
-    stack |> simplifyStack |> Check.reduces
-
-
-isReducibleWith : String -> List StackItem -> Bool
-isReducibleWith str stack =
-    stack |> simplifyStack |> (\st -> st ++ [ str ]) |> Debug.log (Console.yellow "SIMPLIFIED STACK") |> Check.reduces
-
-
-isNotReducibleWith : String -> List StackItem -> Bool
-isNotReducibleWith str stack =
-    stack |> simplifyStack |> (\st -> st ++ [ str ]) |> Check.reduces |> not
-
-
-simplifyStack : List StackItem -> List String
-simplifyStack stack =
-    List.map mark stack |> List.filter (\s -> s /= "000")
-
-
-simplifyStack2 : List StackItem -> String
-simplifyStack2 stack =
-    String.join " " (simplifyStack stack)
+import Parser.Stack as Stack exposing (StackItem)
 
 
 configuration =
@@ -130,113 +106,9 @@ type ScannerType
     | VerbatimScan Char
 
 
-type StackItem
-    = Expect StackItemData
-    | TextItem { content : String }
-    | EndMark String
-
-
 type ProtoStackItem
     = Expect_ Expectation
     | EndMark_ String
-
-
-show : StackItem -> String
-show item =
-    case item of
-        Expect data ->
-            data.expect.beginSymbol ++ data.content
-
-        TextItem data ->
-            data.content
-
-        EndMark str ->
-            str
-
-
-showStack : List StackItem -> String
-showStack stack =
-    List.map show stack |> String.join " "
-
-
-mark : StackItem -> String
-mark stackItem =
-    case stackItem of
-        Expect data ->
-            data.expect.beginSymbol
-
-        TextItem i ->
-            "000"
-
-        EndMark str ->
-            str
-
-
-type alias StackItemData =
-    { expect : Expectation, content : String, count : Int, scanPoint : Int }
-
-
-scanPoint : StackItem -> Int
-scanPoint stackItem =
-    case stackItem of
-        Expect data ->
-            data.scanPoint
-
-        TextItem _ ->
-            -- TODO: not a good idea
-            -1
-
-        EndMark _ ->
-            -1
-
-
-beginSymbol : StackItem -> String
-beginSymbol si =
-    case si of
-        Expect data ->
-            data.expect.beginSymbol
-
-        TextItem item ->
-            ""
-
-        EndMark str ->
-            str
-
-
-endSymbol : StackItem -> Maybe String
-endSymbol si =
-    case si of
-        Expect data ->
-            data.expect.endSymbol
-
-        TextItem _ ->
-            Nothing
-
-        EndMark str ->
-            Just str
-
-
-etype : StackItem -> Maybe EType
-etype si =
-    case si of
-        Expect data ->
-            Just data.expect.etype
-
-        _ ->
-            Nothing
-
-
-content : StackItem -> Maybe String
-content si =
-    case si of
-        EndMark _ ->
-            Nothing
-
-        TextItem data ->
-            Just data.content
-
-        Expect data ->
-            Just data.content
 
 
 {-| initialize with source text
@@ -261,21 +133,6 @@ init generation source =
     --
     , message = "STAR"
     }
-
-
-{-| for testing by humans
--}
-simpleStackItem : StackItem -> String
-simpleStackItem stackItem =
-    case stackItem of
-        Expect si ->
-            "Offset " ++ String.fromInt si.scanPoint ++ ": " ++ si.content
-
-        TextItem i ->
-            i.content
-
-        EndMark str ->
-            str
 
 
 add : (String -> Element) -> String -> TextCursor -> TextCursor
@@ -310,7 +167,7 @@ push prefix proto tc =
         newStack =
             case proto of
                 Expect_ expectation ->
-                    Expect
+                    Stack.Expect
                         { expect = expectation
                         , content = newContent
                         , count = tc.count
@@ -320,10 +177,10 @@ push prefix proto tc =
 
                 EndMark_ prefix_ ->
                     if newContent == "" then
-                        EndMark prefix_ :: tc.stack
+                        Stack.EndMark prefix_ :: tc.stack
 
                     else
-                        TextItem { content = newContent } :: EndMark prefix_ :: tc.stack
+                        Stack.TextItem { content = newContent } :: Stack.EndMark prefix_ :: tc.stack
     in
     { tc
         | count = tc.count + 1
@@ -353,13 +210,13 @@ pop parse prefix cursor =
 
         Just stackTop_ ->
             case stackTop_ of
-                Expect _ ->
+                Stack.Expect _ ->
                     handlePop parse prefix stackTop_ cursor
 
-                TextItem _ ->
+                Stack.TextItem _ ->
                     { cursor | count = cursor.count + 1 }
 
-                EndMark _ ->
+                Stack.EndMark _ ->
                     handlePop parse prefix stackTop_ cursor
 
 
@@ -367,22 +224,22 @@ handlePop : (String -> Element) -> String -> StackItem -> TextCursor -> TextCurs
 handlePop parse prefix stackTop cursor =
     let
         data =
-            showStack (List.reverse cursor.stack)
+            Stack.showStack (List.reverse cursor.stack)
                 ++ prefix
 
         parsed =
-            case etype stackTop of
+            case Stack.etype stackTop of
                 Just ElementType ->
                     parse data
 
                 Just CodeType ->
-                    Element (Name "code") (Text (content stackTop |> Maybe.withDefault "") MetaData.dummy) MetaData.dummy
+                    Element (Name "code") (Text (Stack.content stackTop |> Maybe.withDefault "") MetaData.dummy) MetaData.dummy
 
                 Just InlineMathType ->
-                    Element (Name "math2") (Text (content stackTop |> Maybe.withDefault "") MetaData.dummy) MetaData.dummy
+                    Element (Name "math2") (Text (Stack.content stackTop |> Maybe.withDefault "") MetaData.dummy) MetaData.dummy
 
                 Just QuotedType ->
-                    Text (Library.Utility.unquote (content stackTop |> Maybe.withDefault "")) MetaData.dummy
+                    Text (Library.Utility.unquote (Stack.content stackTop |> Maybe.withDefault "")) MetaData.dummy
 
                 Nothing ->
                     parse data
@@ -395,7 +252,7 @@ handlePop parse prefix stackTop cursor =
     }
 
 
-handleText : (String -> Element) -> String -> StackItemData -> TextCursor -> TextCursor
+handleText : (String -> Element) -> String -> Stack.StackItemData -> TextCursor -> TextCursor
 handleText parse prefix stackTopData cursor =
     --let
     --    _ =
@@ -408,7 +265,7 @@ handleText parse prefix stackTopData cursor =
         Just stackTop_ ->
             let
                 ( fname, args_ ) =
-                    content stackTop_
+                    Stack.content stackTop_
                         |> Maybe.map String.words
                         |> Maybe.andThen List.Extra.uncons
                         |> Maybe.withDefault ( "fname", [] )
@@ -497,8 +354,8 @@ commit2_ parse tc =
             { tc | parsed = [], complete = tc.parsed }
 
         top :: restOfStack ->
-            if isReducible tc.stack then
-                { tc | complete = tc.complete ++ List.map (show >> parse) tc.stack }
+            if Stack.isReducible tc.stack then
+                { tc | complete = tc.complete ++ List.map (Stack.show >> parse) tc.stack }
 
             else
                 tc
@@ -519,7 +376,7 @@ commit_ parse tc =
                 AST.Text tc.text MetaData.dummy :: tc.parsed
 
         newParsed =
-            parse (showStack tc.stack)
+            parse (Stack.showStack tc.stack)
 
         complete =
             parsed ++ tc.complete
@@ -531,7 +388,7 @@ commit_ parse tc =
         top :: restOfStack ->
             let
                 complete_ =
-                    case endSymbol top of
+                    case Stack.endSymbol top of
                         Nothing ->
                             let
                                 parsed_ =
@@ -539,10 +396,10 @@ commit_ parse tc =
 
                                 --|> Debug.log (Console.magenta "parsed_")
                             in
-                            if String.left 1 (beginSymbol top) == "#" then
+                            if String.left 1 (Stack.beginSymbol top) == "#" then
                                 handleHeadings tc top parsed_
 
-                            else if beginSymbol top == ":" then
+                            else if Stack.beginSymbol top == ":" then
                                 handleLineCommand tc parsed_
 
                             else
@@ -568,13 +425,13 @@ commit_ parse tc =
 handleHeadings : TextCursor -> StackItem -> List Element -> List Element
 handleHeadings tc top_ parsed_ =
     case top_ of
-        EndMark _ ->
+        Stack.EndMark _ ->
             []
 
-        TextItem _ ->
+        Stack.TextItem _ ->
             []
 
-        Expect top ->
+        Stack.Expect top ->
             if top.expect.beginSymbol == "#" then
                 List.reverse tc.complete ++ [ Element (AST.Name "heading") (EList (List.reverse parsed_) MetaData.dummy) MetaData.dummy ]
 
@@ -611,8 +468,8 @@ handleLineCommand tc parsed_ =
 handleError : TextCursor -> StackItem -> List Element
 handleError tc top =
     List.reverse tc.complete
-        ++ [ Element (Name "error") (Text (" unmatched " ++ beginSymbol top ++ " ") MetaData.dummy) MetaData.dummy
-           , Text (beginSymbol top) MetaData.dummy
+        ++ [ Element (Name "error") (Text (" unmatched " ++ Stack.beginSymbol top ++ " ") MetaData.dummy) MetaData.dummy
+           , Text (Stack.beginSymbol top) MetaData.dummy
            ]
         ++ List.reverse tc.parsed
         ++ [ Text tc.text MetaData.dummy ]
@@ -629,9 +486,9 @@ canPop : Configuration -> TextCursor -> String -> Bool
 canPop configuration_ tc prefix =
     let
         _ =
-            Debug.log (Console.cyan "canPop, isReducibleWith") ( prefix, tc.stack |> simplifyStack )
+            Debug.log (Console.cyan "canPop, isReducibleWith") ( prefix, tc.stack |> Stack.simplifyStack )
     in
-    isReducibleWith prefix tc.stack |> Debug.log (Console.cyan "canPop")
+    Stack.isReducibleWith prefix tc.stack |> Debug.log (Console.cyan "canPop")
 
 
 
@@ -669,7 +526,7 @@ canPopPrecondition configuration_ tc prefix =
 canPush : Configuration -> TextCursor -> String -> { value : Bool, prefix : String }
 canPush configuration_ tc prefix =
     if Config.isVerbatimSymbol prefix then
-        if Just prefix == (List.head tc.stack |> Maybe.map beginSymbol) then
+        if Just prefix == (List.head tc.stack |> Maybe.map Stack.beginSymbol) then
             { value = False, prefix = prefix } |> Debug.log (Console.yellow "B 1")
 
         else
@@ -696,7 +553,7 @@ canPush1 configuration_ tc prefix =
 canPush2 configuration_ tc prefix =
     Config.isBeginSymbol configuration_ tc.scanPoint prefix
         || (Config.isEndSymbol configuration_ tc.scanPoint prefix
-                && isNotReducibleWith prefix tc.stack
+                && Stack.isNotReducibleWith prefix tc.stack
            )
 
 

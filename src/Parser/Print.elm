@@ -2,7 +2,8 @@ module Parser.Print exposing (..)
 
 import Library.Console as Console
 import Library.Utility
-import Parser.TextCursor exposing (StackItem(..), TextCursor, beginSymbol, content, simplifyStack)
+import Parser.Stack as Stack
+import Parser.TextCursor exposing (TextCursor)
 import Render.Text
 
 
@@ -61,17 +62,17 @@ printComplete cursor =
     cursor.complete |> List.map Render.Text.print |> String.join " " |> (\x -> x ++ " ") |> Console.bgBlue
 
 
-printStackItem : StackItem -> String
+printStackItem : Stack.StackItem -> String
 printStackItem item =
     case item of
-        Expect _ ->
-            beginSymbol item
-                ++ String.trim (content item |> Maybe.withDefault "@NOTHING (3)")
+        Stack.Expect _ ->
+            Stack.beginSymbol item
+                ++ String.trim (Stack.content item |> Maybe.withDefault "@NOTHING (3)")
 
-        TextItem data ->
+        Stack.TextItem data ->
             data.content
 
-        EndMark str ->
+        Stack.EndMark str ->
             str
 
 
@@ -79,14 +80,14 @@ enclose delimiter str =
     delimiter ++ str ++ delimiter
 
 
-printStack : List StackItem -> String
+printStack : List Stack.StackItem -> String
 printStack items =
     " " ++ ((List.map printStackItem (List.reverse items) |> String.join " ") |> Console.bgMagenta |> Console.black) ++ " "
 
 
-printSimplifiedStack : List StackItem -> String
+printSimplifiedStack : List Stack.StackItem -> String
 printSimplifiedStack items =
-    " " ++ (items |> List.reverse |> simplifyStack |> String.join "" |> Console.bgCyan |> Console.black) ++ " "
+    " " ++ (items |> List.reverse |> Stack.simplifyStack |> String.join "" |> Console.bgCyan |> Console.black) ++ " "
 
 
 magenta : String -> String
