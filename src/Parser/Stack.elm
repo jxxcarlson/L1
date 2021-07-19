@@ -1,4 +1,17 @@
-module Parser.Stack exposing (..)
+module Parser.Stack exposing
+    ( StackItem(..)
+    , StackItemData
+    , beginSymbol
+    , content
+    , endSymbol
+    , etype
+    , isNotReducibleWith
+    , isReducible
+    , isReducibleWith
+    , show
+    , showStack
+    , simplifyStack
+    )
 
 import Library.Console as Console
 import Parser.Check as Check
