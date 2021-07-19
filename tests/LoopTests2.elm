@@ -110,7 +110,7 @@ suite =
                 \_ ->
                     "abc $x^2$ def"
                         |> pl_
-                        |> Expect.equal [ Text_ "abc ", Verbatim_ Math "x^2", Text_ "def" ]
+                        |> Expect.equal [ Text_ "abc ", Verbatim_ Math "x^2", Text_ " def" ]
             ]
 
 
