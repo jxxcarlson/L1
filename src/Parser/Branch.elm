@@ -17,33 +17,35 @@ type Operation
 
 branch : Config.Configuration -> TextCursor -> Char -> String -> Operation
 branch configuration_ tc firstChar prefix_ =
-    (let
+    let
         { value, prefix, isMatch } =
-            canPush configuration_ tc prefix_ |> Debug.log (Console.magenta "CAN PUSH, (value, realPrefix)")
-     in
-     if List.member prefix [ ":", "#", "##", "###", "####", "```" ] then
+            canPush configuration_ tc prefix_
+    in
+    if List.member prefix [ ":", "#", "##", "###", "####", "```" ] then
         SHORTCIRCUIT
 
-     else if
+    else if
         Stack.isReducible tc.stack
             && Maybe.map (Stack.beginSymbol >> Config.isVerbatimSymbol) (List.head tc.stack)
             == Just True
-     then
+    then
         POP
 
-     else if Config.notDelimiter Configuration.configuration Config.AllDelimiters firstChar then
+    else if Config.notDelimiter Configuration.configuration Config.AllDelimiters firstChar then
         ADD
 
-     else if value then
+    else if value then
         PUSH { prefix = prefix, isMatch = isMatch }
 
-     else if canPop configuration_ tc prefix_ then
+    else if canPop configuration_ tc prefix_ then
         POP
 
-     else
+    else
         COMMIT
-    )
-        |> Debug.log (Console.cyan "BRANCH")
+
+
+
+--|> Debug.log (Console.cyan "BRANCH")
 
 
 {-| The parser has paused at character c. If the prefix of the
@@ -79,31 +81,29 @@ canPush configuration_ tc prefix =
     if Config.isVerbatimSymbol prefix then
         if Just prefix == (List.head tc.stack |> Maybe.map Stack.beginSymbol) then
             if Config.isVerbatimSymbol prefix then
-                { value = True, prefix = prefix, isMatch = True } |> Debug.log (Console.yellow "B 1")
+                { value = True, prefix = prefix, isMatch = True }
 
             else
                 -- TODO: think about the above
-                { value = False, prefix = prefix, isMatch = False } |> Debug.log (Console.yellow "B 2")
+                { value = False, prefix = prefix, isMatch = False }
 
         else
-            { value = True, prefix = prefix, isMatch = False } |> Debug.log (Console.yellow "B 3")
+            { value = True, prefix = prefix, isMatch = False }
 
     else
-        canPush1 configuration_ tc prefix |> Debug.log (Console.yellow "B 4")
+        canPush1 configuration_ tc prefix
 
 
 canPush1 : Configuration -> TextCursor -> String -> { value : Bool, prefix : String, isMatch : Bool }
 canPush1 configuration_ tc prefix =
-    (if prefix == "" then
+    if prefix == "" then
         { value = False, prefix = "", isMatch = False }
 
-     else if canPush2 configuration_ tc prefix then
+    else if canPush2 configuration_ tc prefix then
         { value = True, prefix = prefix, isMatch = False }
 
-     else
+    else
         canPush configuration_ tc (String.dropLeft 1 prefix)
-    )
-        |> Debug.log (Console.cyan "canPush")
 
 
 canPush2 : Configuration -> { a | scanPoint : Int, stack : List Stack.StackItem } -> String -> Bool
