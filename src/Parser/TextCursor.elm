@@ -1,6 +1,6 @@
 module Parser.TextCursor exposing
     ( TextCursor, init
-    , ProtoStackItem(..), ScannerType(..), add, advance, advanceNormal, commit, handleHeadings2, handleItem, pop, push
+    , ProtoStackItem(..), ScannerType(..), add, advance, advanceNormal, commit, handleBlockCode, handleHeadings2, handleItem, handlePipe, pop, push
     )
 
 {-| TextCursor is the data structure used by Parser.parseLoop.
@@ -97,7 +97,7 @@ advanceNormal : Configuration -> Int -> String -> ParserTools.StringData
 advanceNormal config position str =
     let
         delimiterTypes =
-            if String.slice 0 1 str == ":" then
+            if List.member (String.slice 0 1 str) [ "|", ":" ] then
                 Config.AllDelimiters
 
             else
@@ -319,6 +319,22 @@ handleItem tc =
 
                 Err _ ->
                     Text ("Error on '" ++ tc.source ++ "'") MetaData.dummy
+    in
+    { tc | complete = parsed_ :: tc.complete }
+
+
+handlePipe tc =
+    let
+        source_ =
+            "[" ++ String.dropLeft 1 tc.source ++ "]" |> Debug.log (Console.bgBlue "PIPE SOURCE")
+    in
+    { tc | complete = Parser.parse tc.generation source_ :: tc.complete }
+
+
+handleBlockCode tc =
+    let
+        parsed_ =
+            Element (Name "blockCode") (Text (String.dropLeft 3 tc.source) MetaData.dummy) MetaData.dummy
     in
     { tc | complete = parsed_ :: tc.complete }
 

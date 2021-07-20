@@ -152,6 +152,12 @@ shortcircuit prefix cursor =
     else if prefix == ":" then
         ParserTools.Done <| TextCursor.handleItem cursor
 
+    else if prefix == "|" then
+        ParserTools.Done <| TextCursor.handlePipe cursor
+
+    else if prefix == "```" then
+        ParserTools.Done <| TextCursor.handleBlockCode cursor
+
     else
         ParserTools.Done cursor
 

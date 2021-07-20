@@ -21,7 +21,7 @@ branch configuration_ tc firstChar prefix_ =
         { value, prefix, isMatch } =
             canPush configuration_ tc prefix_
     in
-    if List.member prefix [ ":", "#", "##", "###", "####", "```" ] then
+    if List.member prefix [ "|", ":", "#", "##", "###", "####", "```" ] then
         SHORTCIRCUIT
 
     else if
