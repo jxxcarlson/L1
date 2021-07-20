@@ -95,25 +95,20 @@ another for position /= 0.
 -}
 advanceNormal : Configuration -> Int -> String -> ParserTools.StringData
 advanceNormal config position str =
-    (let
-        _ =
-            Debug.log (Console.cyan "advanceNormal, str") str
-
+    let
         delimiterTypes =
             if String.slice 0 1 str == ":" then
                 Config.AllDelimiters
 
             else
                 Config.InteriorDelimiters
-     in
-     case Parser.Advanced.run (ParserTools.text (Config.notDelimiter Configuration.configuration delimiterTypes) (Config.notDelimiter Configuration.configuration delimiterTypes)) str of
+    in
+    case Parser.Advanced.run (ParserTools.text (Config.notDelimiter Configuration.configuration delimiterTypes) (Config.notDelimiter Configuration.configuration delimiterTypes)) str of
         Ok stringData ->
             stringData
 
         Err _ ->
             { content = "", finish = 0, start = 0 }
-    )
-        |> Debug.log (Console.yellow "advanceNormal from " ++ String.fromInt position)
 
 
 {-| Advance, but according to different criteria, because the
@@ -121,20 +116,18 @@ scanner type has been set to 'VerbatimScan c'
 -}
 advanceVerbatim : Char -> String -> ParserTools.StringData
 advanceVerbatim verbatimChar str =
-    (let
+    let
         predicate =
             \c -> c /= verbatimChar
 
         -- && c /= ']'
-     in
-     case Parser.Advanced.run (ParserTools.text predicate predicate) str of
+    in
+    case Parser.Advanced.run (ParserTools.text predicate predicate) str of
         Ok stringData ->
             stringData
 
         Err _ ->
             { content = "", finish = 0, start = 0 }
-    )
-        |> Debug.log (Console.yellow "advanceVerbatim with char " ++ String.fromChar verbatimChar)
 
 
 add : (String -> Element) -> String -> TextCursor -> TextCursor
@@ -163,14 +156,12 @@ push ({ prefix, isMatch } as prefixData) proto tc =
             else
                 advance tc (String.dropLeft (tc.scanPoint + String.length prefix) tc.source)
 
-        --|> Debug.log (Console.magenta "NEW TEXT")
         newContent =
-            newText.content |> Debug.log (Console.yellow "newContent")
+            newText.content
 
         scanPointIncrement =
-            String.length prefix + newText.finish - newText.start |> Debug.log (Console.yellow "PUSH, scanpoint increment")
+            String.length prefix + newText.finish - newText.start
 
-        --  |> Debug.log "scanPointIncrement"
         newStack =
             case proto of
                 Expect_ expectation ->
@@ -192,7 +183,7 @@ push ({ prefix, isMatch } as prefixData) proto tc =
     { tc
         | count = tc.count + 1
         , scanPoint = tc.scanPoint + scanPointIncrement
-        , stack = newStack -- |> Debug.log (Console.magenta "PUSH, STACK")
+        , stack = newStack
     }
 
 
@@ -207,10 +198,6 @@ pop parse prefix cursor =
     --    _ =
     --        Debug.log (Console.cyan "POP, prefix") prefix
     --in
-    let
-        _ =
-            Debug.log (Console.cyan "POP, prefix") prefix
-    in
     case List.head cursor.stack of
         Nothing ->
             { cursor | count = cursor.count + 1, scanPoint = cursor.scanPoint + 1, scannerType = NormalScan }
@@ -267,10 +254,6 @@ commit_ parse tc =
             { tc | parsed = [], complete = complete }
 
         top :: restOfStack ->
-            let
-                _ =
-                    Debug.log (Console.yellow "TOP") <| Stack.beginSymbol top
-            in
             if Stack.isReducible tc.stack then
                 handledUnfinished parse tc
 
@@ -290,8 +273,6 @@ handleTheRest parse tc top restOfStack newParsed =
                     let
                         parsed_ =
                             newParsed :: tc.parsed
-
-                        --|> Debug.log (Console.magenta "parsed_")
                     in
                     List.reverse parsed_
 
@@ -311,7 +292,7 @@ handleTheRest parse tc top restOfStack newParsed =
 handledUnfinished parse tc =
     let
         stackData =
-            Debug.log (Console.bgBlue "COMM, stack") (tc.stack |> List.reverse |> List.map Stack.show |> String.join "")
+            tc.stack |> List.reverse |> List.map Stack.show |> String.join ""
     in
     { tc | complete = parse stackData :: tc.complete }
 
