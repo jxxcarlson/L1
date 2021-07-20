@@ -5,21 +5,54 @@ text =
     """
 
 
-
-
-
-
+This is BN: `a  = (b|c)`
 
 # The L1 Markup Language
 
-[b L1] is a markup language witha syntax somewhat like Lisp, but with square brackets instead of parentheses.  To make bold text, we say this: `[b bold text]`, and for italic, we say `[i italic text]`.  These can be nested as in
-`[i italic text is very [b bold]]`.There are other constructs as well.  Titles and section headings, for example, are done as in Markdown:
+[b L1] is a markup language with a syntax somewhat like Lisp, but with square brackets instead of parentheses.  To make bold text, we say this: `[b bold text]`, and for italic, we say `[i italic text]`.  These can be nested as in
+`[i italic text is very [b bold]]`.There are other constructs as well.  Common constructs such as titles and section headings, for example, can be done as in Markdown:
 
 ` # The L1 Markup Language`
 
-Below are more examples.  We begin with images.  The best way to see how [b L1] works is to compare the source text with the rendered text.
+Headings can also be written as `[heading1 The Markup Language]`.  There are a few other conveniences.  First is the notion of a block element, as in the example below.
+
+||codeblock
+|mathblock
+\\int_0^1 x^n dx 
+  = 
+\\frac{1}{n+1}
+
+which is rendered as
+
+|mathblock
+\\int_0^1 x^n dx 
+  = 
+\\frac{1}{n+1}
+
+Note the pipe symbol `|` in first position, that is, at the left margin.  Because the pipe symbol cannot start a block element unless it is first position,  one can still say things like [blue a = (b|c)]. A code block consists of its first line, which names the block, and its body, which consists
+of non-blank lines followed by a blank line.
+
+For linline mathematics, one has `$a^2 + b^2 = c^2$`, which renders as $a^2 + b^2 = c^2$.
+
+One can also have verbatim blocks, where the body is not subject to the usual rules, e.g.,
+
+||codeblock
+||codeblock
+a[i] = 1
+    b[j] = 2
+
+which is rendered as
+
+||codeblock
+a[i] = 1
+    b[j] = 2
+
+Verbatim blocks begin with a double pipe:
 
 
+
+
+# Examples
 
 ## Images
 
@@ -54,21 +87,13 @@ Below are some Markdown-like examples.   Compare the source and rendered text to
 
 :[link NYT https://nytimes.com]
 
-### Code
-
-:code: `a[i] = b[i] + 1`.
 
 :This is [red red meat].  [gray (We shouldn't eat so much of it.)]
 
 
 
-### Math
 
-:Pythagoras said that $a^2 + b^2 = c^2$. Wow! What a dude!!
 
-:In class, we learned that]
-
-[mathblock \\int_0^1 x^n dx = \\frac{1}{n+1}]
 
 
 

@@ -58,7 +58,7 @@ renderElementDict =
         , ( "math2", math2 )
         , ( "m", renderMath )
         , ( "mathblock", mathblock )
-        , ( "blockCode", blockCode )
+        , ( "codeblock", codeblock )
         , ( "mb", mathblock )
         , ( "link", link )
         , ( "image", image )
@@ -206,12 +206,14 @@ code1 renderArgs content =
         (text <| " " ++ content)
 
 
-blockCode : FRender msg
-blockCode renderArgs _ _ body =
+codeblock : FRender msg
+codeblock renderArgs _ _ body =
     column
         [ Font.family [ Font.typeface "Inconsolata", Font.monospace ]
         , Font.color codeColor
         , htmlAttribute "white-space" "pre"
+        , spacing 8
+        , paddingEach { left = 18, right = 0, top = 0, bottom = 0 }
         ]
         (List.map text (String.lines (getText2 body)))
 

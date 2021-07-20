@@ -39,6 +39,6 @@ expectations =
     , { beginSymbol = "####", endSymbol = Nothing, etype = ElementType, isVerbatim = False, markPosition = AtBeginning }
     , { beginSymbol = ":", endSymbol = Nothing, etype = ElementType, isVerbatim = False, markPosition = AtBeginning }
     , { beginSymbol = "\"", endSymbol = Just "\"", etype = QuotedType, isVerbatim = True, markPosition = Anywhere }
-    , { beginSymbol = "```", endSymbol = Nothing, etype = CodeType, isVerbatim = True, markPosition = AtBeginning }
+    , { beginSymbol = "||", endSymbol = Nothing, etype = CodeType, isVerbatim = True, markPosition = AtBeginning }
     , { beginSymbol = "|", endSymbol = Nothing, etype = ElementType, isVerbatim = False, markPosition = AtBeginning }
     ]

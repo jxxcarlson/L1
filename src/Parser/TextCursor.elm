@@ -1,6 +1,6 @@
 module Parser.TextCursor exposing
     ( TextCursor, init
-    , ProtoStackItem(..), ScannerType(..), add, advance, advanceNormal, commit, handleBlockCode, handleHeadings2, handleItem, handlePipe, pop, push
+    , ProtoStackItem(..), ScannerType(..), add, advance, advanceNormal, commit, handleDoublePipe, handleHeadings2, handleItem, handlePipe, pop, push
     )
 
 {-| TextCursor is the data structure used by Parser.parseLoop.
@@ -331,12 +331,24 @@ handlePipe tc =
     { tc | complete = Parser.parse tc.generation source_ :: tc.complete }
 
 
-handleBlockCode tc =
+handleDoublePipe tc =
     let
-        parsed_ =
-            Element (Name "blockCode") (Text (String.dropLeft 3 tc.source) MetaData.dummy) MetaData.dummy
+        lines =
+            String.lines tc.source
     in
-    { tc | complete = parsed_ :: tc.complete }
+    case List.head lines of
+        Nothing ->
+            { tc | complete = Text "Error, no content" MetaData.dummy :: tc.complete }
+
+        Just name ->
+            let
+                body =
+                    List.drop 1 lines |> String.join "\n"
+
+                element =
+                    Element (Name (String.dropLeft 2 name)) (Text body MetaData.dummy) MetaData.dummy
+            in
+            { tc | complete = element :: tc.complete }
 
 
 handleHeadings : TextCursor -> StackItem -> List Element -> List Element

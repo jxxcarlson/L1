@@ -83,7 +83,7 @@ type alias Configuration =
 
 isVerbatimSymbol : String -> Bool
 isVerbatimSymbol str =
-    List.member str [ "$", "\"", "`", "```" ]
+    List.member str [ "$", "\"", "`", "||" ]
 
 
 lookup : Configuration -> String -> Maybe Expectation
