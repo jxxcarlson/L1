@@ -8,6 +8,7 @@ import Parser.Branch as Branch exposing (Operation(..), branch)
 import Parser.Config as Config exposing (Configuration, EType(..))
 import Parser.Configuration as Configuration
 import Parser.Error exposing (Context, Problem)
+import Parser.Handle as Handle
 import Parser.Print
 import Parser.TextCursor as TextCursor exposing (ScannerType(..), TextCursor)
 
@@ -147,16 +148,16 @@ shortcircuit prefix cursor =
             Debug.log (Console.bgBlue "SHORTCIRCUIT") prefix
     in
     if List.member prefix [ "#", "##", "###", "####" ] then
-        ParserTools.Done <| TextCursor.handleHeadings2 cursor
+        ParserTools.Done <| Handle.heading2 cursor
 
     else if prefix == ":" then
-        ParserTools.Done <| TextCursor.handleItem cursor
+        ParserTools.Done <| Handle.item cursor
 
     else if prefix == "|" then
-        ParserTools.Done <| TextCursor.handlePipe cursor
+        ParserTools.Done <| Handle.pipe cursor
 
     else if prefix == "||" then
-        ParserTools.Done <| TextCursor.handleDoublePipe cursor
+        ParserTools.Done <| Handle.doublePipe cursor
 
     else
         ParserTools.Done cursor

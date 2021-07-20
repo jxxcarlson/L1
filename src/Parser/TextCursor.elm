@@ -1,6 +1,6 @@
 module Parser.TextCursor exposing
     ( TextCursor, init
-    , ProtoStackItem(..), ScannerType(..), add, advance, advanceNormal, commit, handleDoublePipe, handleHeadings2, handleItem, handlePipe, pop, push
+    , ProtoStackItem(..), ScannerType(..), add, advance, advanceNormal, commit, pop, push
     )
 
 {-| TextCursor is the data structure used by Parser.parseLoop.
@@ -9,10 +9,7 @@ module Parser.TextCursor exposing
 
 -}
 
-import Library.Console as Console
 import Library.ParserTools as ParserTools
-import Library.Utility
-import List.Extra
 import Parser.AST as AST exposing (Element(..), Name(..))
 import Parser.Advanced
 import Parser.Config as Config exposing (Configuration, EType(..), Expectation)
@@ -295,97 +292,6 @@ handledUnfinished parse tc =
             tc.stack |> List.reverse |> List.map Stack.show |> String.join ""
     in
     { tc | complete = parse stackData :: tc.complete }
-
-
-handleHeadings2 tc =
-    let
-        parsed_ =
-            case Parser.parseHeading tc.generation tc.source of
-                Ok goodstuff ->
-                    goodstuff
-
-                Err _ ->
-                    Text ("Error on '" ++ tc.source ++ "'") MetaData.dummy
-    in
-    { tc | complete = parsed_ :: tc.complete }
-
-
-handleItem tc =
-    let
-        parsed_ =
-            case Parser.parseItem tc.generation tc.source of
-                Ok goodstuff ->
-                    goodstuff
-
-                Err _ ->
-                    Text ("Error on '" ++ tc.source ++ "'") MetaData.dummy
-    in
-    { tc | complete = parsed_ :: tc.complete }
-
-
-handlePipe tc =
-    let
-        source_ =
-            "[" ++ String.dropLeft 1 tc.source ++ "]" |> Debug.log (Console.bgBlue "PIPE SOURCE")
-    in
-    { tc | complete = Parser.parse tc.generation source_ :: tc.complete }
-
-
-handleDoublePipe tc =
-    let
-        lines =
-            String.lines tc.source
-    in
-    case List.head lines of
-        Nothing ->
-            { tc | complete = Text "Error, no content" MetaData.dummy :: tc.complete }
-
-        Just name ->
-            let
-                body =
-                    List.drop 1 lines |> String.join "\n"
-
-                element =
-                    Element (Name (String.dropLeft 2 name)) (Text body MetaData.dummy) MetaData.dummy
-            in
-            { tc | complete = element :: tc.complete }
-
-
-handleHeadings : TextCursor -> StackItem -> List Element -> List Element
-handleHeadings tc top_ parsed_ =
-    case top_ of
-        Stack.EndMark _ ->
-            []
-
-        Stack.TextItem _ ->
-            []
-
-        Stack.Expect top ->
-            if List.member top.expect.beginSymbol [ "#", "##", "###" ] then
-                List.reverse tc.complete ++ [ Element (AST.Name "heading") (EList (List.reverse parsed_) MetaData.dummy) MetaData.dummy ]
-
-            else
-                List.reverse tc.complete ++ [ Element (AST.Name "heading") (EList (List.reverse parsed_) MetaData.dummy) MetaData.dummy ]
-
-
-handleLineCommand tc parsed_ =
-    case List.Extra.uncons (List.reverse parsed_) of
-        Nothing ->
-            List.reverse tc.complete ++ [ Text "empty" MetaData.dummy ]
-
-        Just ( first, [] ) ->
-            case String.words (AST.getText first) of
-                [] ->
-                    List.reverse tc.complete ++ [ Element (AST.Name "empty") (EList [] MetaData.dummy) MetaData.dummy ]
-
-                name :: [] ->
-                    List.reverse tc.complete ++ [ Element (AST.Name (String.trim name)) (EList [] MetaData.dummy) MetaData.dummy ]
-
-                name :: rest ->
-                    List.reverse tc.complete ++ [ Element (AST.Name (String.trim name)) (Text (String.join " " rest) MetaData.dummy) MetaData.dummy ]
-
-        Just ( first, rest ) ->
-            List.reverse tc.complete ++ [ Element (AST.Name (String.trim (AST.getText first))) (EList rest MetaData.dummy) MetaData.dummy ]
 
 
 handleError : TextCursor -> StackItem -> List Element
