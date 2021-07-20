@@ -15,7 +15,6 @@ import Parser.Advanced
 import Parser.Config as Config exposing (Configuration, EType(..), Expectation)
 import Parser.Configuration as Configuration
 import Parser.MetaData as MetaData exposing (MetaData)
-import Parser.Parser as Parser
 import Parser.Stack as Stack exposing (StackItem)
 
 

@@ -5,34 +5,60 @@ text =
     """
 
 
-This is BN: `a  = (b|c)`
+
+
 
 # The L1 Markup Language
 
 [b L1] is a markup language with a syntax somewhat like Lisp, but with square brackets instead of parentheses.  To make bold text, we say this: `[b bold text]`, and for italic, we say `[i italic text]`.  These can be nested as in
-`[i italic text is very [b bold]]`.There are other constructs as well.  Common constructs such as titles and section headings, for example, can be done as in Markdown:
+`[i italic text is very [b bold]]`.
+
+|heading2 Conveniences
+
+In addition to the basic syntax, there are conveniences for common constructs.
+Titles and section headings, for example, can be done as in Markdown:
 
 ` # The L1 Markup Language`
 
-Headings can also be written as `[heading1 The Markup Language]`.  There are a few other conveniences.  First is the notion of a block element, as in the example below.
+Such a heading must be preceded and followed by a blank line.
+
+Conveniences can always be written in the standard way, e.g., `[heading1 The Markup Language]`.
+
+|heading3 Items
+
+
+Items are used to indent text
+
+|codeblock
+:item This is a test. [red I repeat: a test!].
+
+:item This is a test. [red I repeat: a test!].
+
+Items must be preceded and followed by a blank line.
+
+|heading3 Blocks
+
+A [i block element] is a way of writing an element without having to worry about it being closed by a right bracket `]`.
 
 ||codeblock
 |mathblock
-\\int_0^1 x^n dx 
-  = 
+\\int_0^1 x^n dx
+  =
 \\frac{1}{n+1}
 
-which is rendered as
+This block is rendered as
 
 |mathblock
-\\int_0^1 x^n dx 
-  = 
+\\int_0^1 x^n dx
+  =
 \\frac{1}{n+1}
 
 Note the pipe symbol `|` in first position, that is, at the left margin.  Because the pipe symbol cannot start a block element unless it is first position,  one can still say things like [blue a = (b|c)]. A code block consists of its first line, which names the block, and its body, which consists
 of non-blank lines followed by a blank line.
 
-For linline mathematics, one has `$a^2 + b^2 = c^2$`, which renders as $a^2 + b^2 = c^2$.
+For inline mathematics, one still has the familiar `$a^2 + b^2 = c^2$`, which renders as $a^2 + b^2 = c^2$.
+
+### Verbatim blocks
 
 One can also have verbatim blocks, where the body is not subject to the usual rules, e.g.,
 
@@ -51,10 +77,9 @@ Verbatim blocks begin with a double pipe:
 
 
 
+## More Examples
 
-# Examples
-
-## Images
+### Images
 
 [image width:80 placement:left https://ichef.bbci.co.uk/news/976/cpsprodpb/4FB7/production/_116970402_a20-20sahas20barve20-20parrotbill_chavan.jpg]
 
@@ -85,20 +110,19 @@ Below are some Markdown-like examples.   Compare the source and rendered text to
 
 ### Links
 
+Use the model below for links:
+
+||codeblock
+[link NYT https://nytimes.com]
+
 :[link NYT https://nytimes.com]
 
+### Colors:
 
-:This is [red red meat].  [gray (We shouldn't eat so much of it.)]
+||codeblock
+ This is [red red meat].  [gray (We shouldn't eat so much)]
 
-
-
-
-
-
-
-
-
-
+:This is [red red meat].  [gray (We shouldn't eat so much.)]
 
 
 

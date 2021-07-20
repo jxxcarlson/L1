@@ -215,12 +215,12 @@ codeblock renderArgs _ _ body =
         , spacing 8
         , paddingEach { left = 18, right = 0, top = 0, bottom = 0 }
         ]
-        (List.map text (String.lines (getText2 body)))
+        (List.map text (String.lines (String.replace " " (String.fromChar '\u{00A0}') (getText2 body))))
 
 
-
--- [ text "foo" ]
--- (List.map text (String.words content)
+monospace : E.Attribute msg
+monospace =
+    Font.family [ Font.typeface "Source Code Pro", Font.monospace ]
 
 
 htmlAttribute : String -> String -> E.Attribute msg
@@ -291,12 +291,12 @@ heading2 renderArgs name args body =
 
 heading3 : FRender msg
 heading3 renderArgs name args body =
-    column [ Font.size (headerFontSize 1), headerPadding 3 ] [ render renderArgs body ]
+    column [ Font.size (headerFontSize 3), headerPadding 3 ] [ render renderArgs body ]
 
 
 heading4 : FRender msg
 heading4 renderArgs name args body =
-    column [ Font.size (headerFontSize 1), headerPadding 4 ] [ render renderArgs body ]
+    column [ Font.size (headerFontSize 4), headerPadding 4 ] [ render renderArgs body ]
 
 
 getFactor level =
