@@ -36,7 +36,6 @@ parseLoop parser generation str =
             ParserTools.loop (TextCursor.init generation str) (nextCursor parser)
                 |> (\tc_ -> { tc_ | complete = List.reverse tc_.complete })
 
-        -- |> TextCursor.commit parser
         _ =
             Debug.log (Parser.Print.print result) "-"
     in
@@ -58,8 +57,8 @@ when the scanPoint comes to the end of the source.
 -}
 nextCursor : (String -> Element) -> TextCursor -> ParserTools.Step TextCursor TextCursor
 nextCursor parser cursor =
-    if cursor.count > 20 then
-        exit parser cursor "EMERGENCY STOP AT COUNT 20"
+    if cursor.count > 1000 then
+        exit parser cursor "EMERGENCY STOP AT COUNT 1000"
 
     else
         let
