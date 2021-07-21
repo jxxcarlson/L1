@@ -273,31 +273,6 @@ finishUpWithReducibleStack parse tc =
 -- LANGUAGE HANDLERS
 
 
-handleTheRest0 : (String -> Element) -> TextCursor -> StackItem -> List StackItem -> Element -> TextCursor
-handleTheRest0 parse tc top restOfStack newParsed =
-    let
-        complete_ =
-            case Stack.endSymbol top of
-                Nothing ->
-                    let
-                        parsed_ =
-                            newParsed :: tc.parsed
-                    in
-                    List.reverse parsed_
-
-                Just _ ->
-                    handleError tc top
-    in
-    commit parse
-        { tc
-            | count = 1 + tc.count
-            , text = ""
-            , stack = restOfStack
-            , parsed = []
-            , complete = complete_
-        }
-
-
 resolveError : (String -> Element) -> TextCursor -> StackItem -> List StackItem -> TextCursor
 resolveError parse tc top restOfStack =
     case Stack.endSymbol top of
@@ -350,23 +325,3 @@ resolveError parse tc top restOfStack =
                 , scanPoint = errorPosition + 1
                 , complete = List.reverse (errorElement :: tc.parsed)
             }
-
-
-handleError : TextCursor -> StackItem -> List Element
-handleError tc top =
-    let
-        _ =
-            Debug.log (Console.bgBlue "ERROR, stackTop") (List.head tc.stack)
-
-        errorPosition =
-            Stack.startPosition top
-
-        _ =
-            Debug.log (Console.bgBlue "ERROR POSITION (331)") (" Unmatched " ++ Stack.beginSymbol top ++ " at position " ++ String.fromInt (Stack.startPosition top))
-    in
-    List.reverse tc.complete
-        ++ [ Element (Name "error") (Text (" unmatched " ++ Stack.beginSymbol top ++ " at position " ++ String.fromInt errorPosition) MetaData.dummy) MetaData.dummy
-           , Text (Stack.beginSymbol top) MetaData.dummy
-           ]
-        ++ List.reverse tc.parsed
-        ++ [ Text tc.text MetaData.dummy ]
