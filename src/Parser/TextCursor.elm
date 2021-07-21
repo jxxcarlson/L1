@@ -268,27 +268,46 @@ commit_ parse tc =
 
 handleTheRest : (String -> Element) -> TextCursor -> StackItem -> List StackItem -> Element -> TextCursor
 handleTheRest parse tc top restOfStack newParsed =
-    let
-        complete_ =
-            case Stack.endSymbol top of
-                Nothing ->
-                    let
-                        parsed_ =
-                            newParsed :: tc.parsed
-                    in
-                    List.reverse parsed_
+    case Stack.endSymbol top of
+        Nothing ->
+            commit parse
+                { tc
+                    | count = 1 + tc.count
+                    , text = ""
+                    , stack = restOfStack
+                    , parsed = []
+                    , complete = List.reverse (newParsed :: tc.parsed)
+                }
 
-                Just _ ->
-                    handleError tc top
-    in
-    commit parse
-        { tc
-            | count = 1 + tc.count
-            , text = ""
-            , stack = restOfStack
-            , parsed = []
-            , complete = complete_
-        }
+        Just _ ->
+            let
+                _ =
+                    Debug.log (Console.bgBlue "ERROR, stackTop") top
+
+                errorPosition =
+                    Stack.startPosition top
+
+                errorContent =
+                    Stack.content top |> Debug.log (Console.magenta "errorContent")
+
+                goodText =
+                    String.dropLeft (errorPosition + 1) tc.source |> Debug.log (Console.magenta "goodText")
+
+                errorElement =
+                    Element (Name "error") (Text (" unmatched " ++ Stack.beginSymbol top) MetaData.dummy) MetaData.dummy
+
+                -- revisedTop =
+                _ =
+                    Debug.log (Console.bgBlue "ERROR POSITION") (" Unmatched " ++ Stack.beginSymbol top ++ " at position " ++ String.fromInt (Stack.startPosition top))
+            in
+            { tc
+                | count = 1 + tc.count
+                , text = ""
+                , stack = []
+                , parsed = []
+                , scanPoint = errorPosition + 1
+                , complete = List.reverse (errorElement :: tc.parsed)
+            }
 
 
 handledUnfinished parse tc =

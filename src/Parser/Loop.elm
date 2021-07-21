@@ -34,8 +34,9 @@ parseLoop parser generation str =
     let
         result =
             ParserTools.loop (TextCursor.init generation str) (nextCursor parser)
-                |> TextCursor.commit parser
+                |> (\tc_ -> { tc_ | complete = List.reverse tc_.complete })
 
+        -- |> TextCursor.commit parser
         _ =
             Debug.log (Parser.Print.print result) "-"
     in
@@ -57,7 +58,7 @@ when the scanPoint comes to the end of the source.
 -}
 nextCursor : (String -> Element) -> TextCursor -> ParserTools.Step TextCursor TextCursor
 nextCursor parser cursor =
-    if cursor.count > 15 then
+    if cursor.count > 6 then
         exit parser cursor "COMM1"
 
     else
@@ -82,10 +83,10 @@ nextCursor parser cursor =
         in
         case ( maybeFirstChar, maybePrefix ) of
             ( Nothing, _ ) ->
-                exit parser cursor "COMM2"
+                ParserTools.Loop (TextCursor.commit parser { cursor | message = "COMM2", count = cursor.count + 1 })
 
             ( _, Nothing ) ->
-                exit parser cursor "COMM3"
+                ParserTools.Loop (TextCursor.commit parser { cursor | message = "COMM3", count = cursor.count + 1 })
 
             ( Just firstChar, Just prefixx ) ->
                 case branch Configuration.configuration cursor firstChar prefixx of
