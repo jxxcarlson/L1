@@ -59,7 +59,7 @@ when the scanPoint comes to the end of the source.
 nextCursor : (String -> Element) -> TextCursor -> ParserTools.Step TextCursor TextCursor
 nextCursor parser cursor =
     if cursor.count > 20 then
-        exit parser cursor "COMM1"
+        exit parser cursor "EMERGENCY STOP AT COUNT 20"
 
     else
         let
@@ -115,7 +115,7 @@ nextCursor parser cursor =
 exit parser cursor message =
     let
         _ =
-            Debug.log (Console.red <| String.fromInt cursor.count ++ "EXIT Loop, (" ++ message ++ ")")
+            Debug.log (Console.bgRed <| String.fromInt cursor.count ++ "EXIT Loop, (" ++ message ++ ")")
     in
     ParserTools.Done { cursor | message = message }
 

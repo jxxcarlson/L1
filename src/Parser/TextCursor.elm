@@ -11,6 +11,7 @@ module Parser.TextCursor exposing
 
 import Library.Console as Console
 import Library.ParserTools as ParserTools
+import List.Extra
 import Parser.AST as AST exposing (Element(..), Name(..))
 import Parser.Advanced
 import Parser.Config as Config exposing (Configuration, EType(..), Expectation)
@@ -173,10 +174,11 @@ push ({ prefix, isMatch } as prefixData) proto tc =
 
                 EndMark_ prefix_ ->
                     if newContent == "" then
-                        Stack.EndMark prefix_ :: tc.stack
+                        -- TODO: need real position
+                        Stack.EndMark { content = prefix_, position = { start = -1, end = -1 } } :: tc.stack
 
                     else
-                        Stack.TextItem { content = newContent } :: Stack.EndMark prefix_ :: tc.stack
+                        Stack.TextItem { content = newContent, position = { start = -1, end = -1 } } :: Stack.EndMark { content = prefix_, position = { start = -1, end = -1 } } :: tc.stack
     in
     { tc
         | count = tc.count + 1
@@ -237,12 +239,13 @@ commit_ parse tc =
         [] ->
             finishUp tc
 
-        top :: restOfStack ->
+        _ ->
             if Stack.isReducible tc.stack then
                 finishUpWithReducibleStack parse tc
 
             else
-                resolveError parse tc top restOfStack
+                -- CAN NOW ASSUME THAT THE STACK IS NOT REDUCIBLE
+                resolveError tc
 
 
 finishUp : TextCursor -> TextCursor
@@ -273,54 +276,50 @@ finishUpWithReducibleStack parse tc =
 -- LANGUAGE HANDLERS
 
 
-resolveError : (String -> Element) -> TextCursor -> StackItem -> List StackItem -> TextCursor
-resolveError parse tc top restOfStack =
-    case Stack.endSymbol top of
-        Nothing ->
-            let
-                _ =
-                    Debug.log (Console.magenta "RESOLVE ERROR") 1
+resolveError : TextCursor -> TextCursor
+resolveError tc =
+    let
+        _ =
+            Debug.log (Console.magenta "RESOLVE ERROR") 2
 
-                newParsed =
-                    parse (Stack.showStack tc.stack)
-            in
-            commit parse
-                { tc
-                    | count = 1 + tc.count
-                    , text = ""
-                    , stack = restOfStack
-                    , parsed = []
-                    , complete = List.reverse (newParsed :: tc.parsed)
-                }
+        _ =
+            Debug.log (Console.magenta "STACK STATE") (Stack.showStack tc.stack)
 
-        Just _ ->
-            let
-                _ =
-                    Debug.log (Console.magenta "RESOLVE ERROR") 2
+        maybeBottomOfStack =
+            List.Extra.unconsLast tc.stack
+                |> Maybe.map Tuple.first
+                |> Debug.log (Console.bgBlue "badStackItem")
 
-                _ =
-                    Debug.log (Console.bgBlue "ERROR, stackTop") top
+        errorPosition : Int
+        errorPosition =
+            maybeBottomOfStack
+                |> Maybe.map Stack.startPosition
+                |> Maybe.withDefault -1
+                |> Debug.log (Console.bgBlue "errorPosition")
 
-                errorPosition =
-                    Stack.startPosition top |> Debug.log (Console.bgBlue "errorPosition")
+        _ =
+            List.map (\item -> Stack.startPosition item) tc.stack |> Debug.log (Console.bgBlue "start positions")
 
-                --errorContent =
-                --    Stack.content top |> Debug.log (Console.magenta "errorContent")
-                goodText =
-                    String.dropLeft (errorPosition + 1) tc.source |> Debug.log (Console.magenta "goodText")
+        badStackItemSymbol =
+            maybeBottomOfStack
+                |> Maybe.map Stack.beginSymbol
+                |> Maybe.withDefault "??"
+                -- TODO: the above is hacky and DANGEROUS
+                |> Debug.log (Console.bgBlue "badStackItem, beginSymbol")
 
-                errorElement =
-                    Element (Name "error") (Text (" unmatched " ++ Stack.beginSymbol top) MetaData.dummy) MetaData.dummy
+        --errorContent =
+        --    Stack.content top |> Debug.log (Console.magenta "errorContent")
+        goodText =
+            String.dropLeft (errorPosition + 1) tc.source |> Debug.log (Console.magenta "goodText")
 
-                -- revisedTop =
-                _ =
-                    Debug.log (Console.bgBlue "ERROR POSITION (318)") (" Unmatched " ++ Stack.beginSymbol top ++ " at position " ++ String.fromInt (Stack.startPosition top))
-            in
-            { tc
-                | count = 1 + tc.count
-                , text = ""
-                , stack = []
-                , parsed = []
-                , scanPoint = errorPosition + 1
-                , complete = List.reverse (errorElement :: tc.parsed)
-            }
+        errorElement =
+            Element (Name "error") (Text (" unmatched " ++ badStackItemSymbol) MetaData.dummy) MetaData.dummy
+    in
+    { tc
+        | count = 1 + tc.count
+        , text = ""
+        , stack = []
+        , parsed = []
+        , scanPoint = errorPosition + 1
+        , complete = List.reverse (errorElement :: tc.parsed)
+    }

@@ -2,9 +2,9 @@ module Parser.Stack exposing
     ( StackItem(..)
     , StackItemData
     , beginSymbol
-    , content
     , endSymbol
     , etype
+    , getContent
     , isNotReducibleWith
     , isReducible
     , isReducibleWith
@@ -22,8 +22,8 @@ import Parser.Loc exposing (Position)
 
 type StackItem
     = Expect StackItemData
-    | TextItem { content : String }
-    | EndMark String
+    | TextItem { content : String, position : Position }
+    | EndMark { content : String, position : Position }
 
 
 type alias StackItemData =
@@ -65,8 +65,8 @@ show item =
         TextItem data ->
             data.content
 
-        EndMark str ->
-            str
+        EndMark { content } ->
+            content
 
 
 showStack : List StackItem -> String
@@ -83,8 +83,8 @@ mark stackItem =
         TextItem i ->
             "000"
 
-        EndMark str ->
-            str
+        EndMark { content } ->
+            content
 
 
 scanPoint : StackItem -> Int
@@ -107,11 +107,11 @@ startPosition si =
         Expect data ->
             data.position.start
 
-        TextItem item ->
-            0
+        TextItem { position } ->
+            position.start
 
-        EndMark str ->
-            0
+        EndMark { position } ->
+            position.start
 
 
 beginSymbol : StackItem -> String
@@ -121,10 +121,10 @@ beginSymbol si =
             data.expect.beginSymbol
 
         TextItem item ->
-            ""
+            "111"
 
-        EndMark str ->
-            str
+        EndMark { content } ->
+            content
 
 
 endSymbol : StackItem -> Maybe String
@@ -136,8 +136,8 @@ endSymbol si =
         TextItem _ ->
             Nothing
 
-        EndMark str ->
-            Just str
+        EndMark { content } ->
+            Just content
 
 
 etype : StackItem -> Maybe Config.EType
@@ -150,8 +150,8 @@ etype si =
             Nothing
 
 
-content : StackItem -> Maybe String
-content si =
+getContent : StackItem -> Maybe String
+getContent si =
     case si of
         EndMark _ ->
             Nothing
@@ -174,5 +174,5 @@ simpleStackItem stackItem =
         TextItem i ->
             i.content
 
-        EndMark str ->
-            str
+        EndMark { content } ->
+            content

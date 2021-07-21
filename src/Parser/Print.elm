@@ -68,13 +68,13 @@ printStackItem item =
     case item of
         Stack.Expect _ ->
             Stack.beginSymbol item
-                ++ String.trim (Stack.content item |> Maybe.withDefault "@NOTHING (3)")
+                ++ String.trim (Stack.getContent item |> Maybe.withDefault "@NOTHING (3)")
 
         Stack.TextItem data ->
             data.content
 
-        Stack.EndMark str ->
-            str
+        Stack.EndMark { content } ->
+            content
 
 
 enclose delimiter str =
