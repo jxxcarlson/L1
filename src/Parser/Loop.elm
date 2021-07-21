@@ -83,6 +83,7 @@ nextCursor parser cursor =
         in
         case ( maybeFirstChar, maybePrefix, cursor.stack ) of
             ( Nothing, _, [] ) ->
+                -- NORMAL LOOP TERMINATION: at end of input, stack is empty
                 ParserTools.Done { cursor | complete = cursor.parsed ++ cursor.complete, message = "COMM0" }
 
             ( Nothing, _, _ ) ->
