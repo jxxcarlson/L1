@@ -20,9 +20,9 @@ scripts:
     - cp ./app/public/index.html /Users/carlson/dev/jxxcarlson.github.io/app/L1/
     - cp ./app/public/Main.js /Users/carlson/dev/jxxcarlson.github.io/app/L1/
 
-  check-gh-local: open -a /Applications/Firefox.app file:///Users/carlson/dev/jxxcarlson.github.io/app/L1/index.html
+  look-gh-local: open -a /Applications/Firefox.app file:///Users/carlson/dev/jxxcarlson.github.io/app/L1/index.html
 
-  check-gh: open -a /Applications/Firefox.app https://jxxcarlson.github.io/app/L1/
+  look-gh: open -a /Applications/Firefox.app https://jxxcarlson.github.io/app/L1/
 
   #live: elm-live src/Main.elm
 
