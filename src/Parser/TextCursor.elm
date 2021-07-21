@@ -298,7 +298,7 @@ handleTheRest parse tc top restOfStack newParsed =
 
                 -- revisedTop =
                 _ =
-                    Debug.log (Console.bgBlue "ERROR POSITION") (" Unmatched " ++ Stack.beginSymbol top ++ " at position " ++ String.fromInt (Stack.startPosition top))
+                    Debug.log (Console.bgBlue "ERROR POSITION (301)") (" Unmatched " ++ Stack.beginSymbol top ++ " at position " ++ String.fromInt (Stack.startPosition top))
             in
             { tc
                 | count = 1 + tc.count
@@ -328,7 +328,7 @@ handleError tc top =
             Stack.startPosition top
 
         _ =
-            Debug.log (Console.bgBlue "ERROR POSITION") (" Unmatched " ++ Stack.beginSymbol top ++ " at position " ++ String.fromInt (Stack.startPosition top))
+            Debug.log (Console.bgBlue "ERROR POSITION (331)") (" Unmatched " ++ Stack.beginSymbol top ++ " at position " ++ String.fromInt (Stack.startPosition top))
     in
     List.reverse tc.complete
         ++ [ Element (Name "error") (Text (" unmatched " ++ Stack.beginSymbol top ++ " at position " ++ String.fromInt errorPosition) MetaData.dummy) MetaData.dummy
