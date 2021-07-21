@@ -58,7 +58,7 @@ when the scanPoint comes to the end of the source.
 -}
 nextCursor : (String -> Element) -> TextCursor -> ParserTools.Step TextCursor TextCursor
 nextCursor parser cursor =
-    if cursor.count > 6 then
+    if cursor.count > 20 then
         exit parser cursor "COMM1"
 
     else
@@ -66,9 +66,8 @@ nextCursor parser cursor =
             _ =
                 Debug.log (Parser.Print.print cursor) ""
 
-            _ =
-                Debug.log "STACK" cursor.stack
-
+            --_ =
+            --    Debug.log "STACK" cursor.stack
             textToProcess =
                 String.dropLeft cursor.scanPoint cursor.source
 

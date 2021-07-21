@@ -302,11 +302,10 @@ resolveError parse tc top restOfStack =
                     Debug.log (Console.bgBlue "ERROR, stackTop") top
 
                 errorPosition =
-                    Stack.startPosition top
+                    Stack.startPosition top |> Debug.log (Console.bgBlue "errorPosition")
 
-                errorContent =
-                    Stack.content top |> Debug.log (Console.magenta "errorContent")
-
+                --errorContent =
+                --    Stack.content top |> Debug.log (Console.magenta "errorContent")
                 goodText =
                     String.dropLeft (errorPosition + 1) tc.source |> Debug.log (Console.magenta "goodText")
 
@@ -315,7 +314,7 @@ resolveError parse tc top restOfStack =
 
                 -- revisedTop =
                 _ =
-                    Debug.log (Console.bgBlue "ERROR POSITION (301)") (" Unmatched " ++ Stack.beginSymbol top ++ " at position " ++ String.fromInt (Stack.startPosition top))
+                    Debug.log (Console.bgBlue "ERROR POSITION (318)") (" Unmatched " ++ Stack.beginSymbol top ++ " at position " ++ String.fromInt (Stack.startPosition top))
             in
             { tc
                 | count = 1 + tc.count
