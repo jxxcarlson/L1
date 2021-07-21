@@ -65,6 +65,9 @@ nextCursor parser cursor =
             _ =
                 Debug.log (Parser.Print.print cursor) ""
 
+            _ =
+                Debug.log "STACK" cursor.stack
+
             textToProcess =
                 String.dropLeft cursor.scanPoint cursor.source
 

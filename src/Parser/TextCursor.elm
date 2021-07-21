@@ -9,6 +9,7 @@ module Parser.TextCursor exposing
 
 -}
 
+import Library.Console as Console
 import Library.ParserTools as ParserTools
 import Parser.AST as AST exposing (Element(..), Name(..))
 import Parser.Advanced
@@ -261,6 +262,7 @@ commit_ parse tc =
 -- LANGUAGE HANDLERS
 
 
+handleTheRest : (String -> Element) -> TextCursor -> StackItem -> List StackItem -> Element -> TextCursor
 handleTheRest parse tc top restOfStack newParsed =
     let
         complete_ =
@@ -295,6 +297,10 @@ handledUnfinished parse tc =
 
 handleError : TextCursor -> StackItem -> List Element
 handleError tc top =
+    let
+        _ =
+            Debug.log (Console.bgBlue "ERROR, stackTop") (List.head tc.stack)
+    in
     List.reverse tc.complete
         ++ [ Element (Name "error") (Text (" unmatched " ++ Stack.beginSymbol top ++ " ") MetaData.dummy) MetaData.dummy
            , Text (Stack.beginSymbol top) MetaData.dummy
