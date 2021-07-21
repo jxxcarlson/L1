@@ -167,6 +167,7 @@ push ({ prefix, isMatch } as prefixData) proto tc =
                         , content = newContent
                         , count = tc.count
                         , scanPoint = tc.scanPoint + scanPointIncrement
+                        , position = { start = tc.scanPoint, end = tc.scanPoint + scanPointIncrement }
                         }
                         :: tc.stack
 
@@ -233,6 +234,9 @@ commit parse cursor =
 commit_ : (String -> Element) -> TextCursor -> TextCursor
 commit_ parse tc =
     let
+        _ =
+            Debug.log ((Console.bgGreen >> Console.black) "COMMIT_, STACK") tc.stack
+
         parsed =
             if tc.text == "" then
                 tc.parsed
@@ -300,9 +304,15 @@ handleError tc top =
     let
         _ =
             Debug.log (Console.bgBlue "ERROR, stackTop") (List.head tc.stack)
+
+        errorPosition =
+            Stack.startPosition top
+
+        _ =
+            Debug.log (Console.bgBlue "ERROR POSITION") (" Unmatched " ++ Stack.beginSymbol top ++ " at position " ++ String.fromInt (Stack.startPosition top))
     in
     List.reverse tc.complete
-        ++ [ Element (Name "error") (Text (" unmatched " ++ Stack.beginSymbol top ++ " ") MetaData.dummy) MetaData.dummy
+        ++ [ Element (Name "error") (Text (" unmatched " ++ Stack.beginSymbol top ++ " at position " ++ String.fromInt errorPosition) MetaData.dummy) MetaData.dummy
            , Text (Stack.beginSymbol top) MetaData.dummy
            ]
         ++ List.reverse tc.parsed

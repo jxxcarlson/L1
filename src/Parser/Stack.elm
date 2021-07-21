@@ -11,11 +11,13 @@ module Parser.Stack exposing
     , show
     , showStack
     , simplifyStack
+    , startPosition
     )
 
 import Library.Console as Console
 import Parser.Check as Check
 import Parser.Config as Config
+import Parser.Loc exposing (Position)
 
 
 type StackItem
@@ -25,7 +27,7 @@ type StackItem
 
 
 type alias StackItemData =
-    { expect : Config.Expectation, content : String, count : Int, scanPoint : Int }
+    { expect : Config.Expectation, content : String, count : Int, scanPoint : Int, position : Position }
 
 
 isReducible : List StackItem -> Bool
@@ -97,6 +99,19 @@ scanPoint stackItem =
 
         EndMark _ ->
             -1
+
+
+startPosition : StackItem -> Int
+startPosition si =
+    case si of
+        Expect data ->
+            data.position.start
+
+        TextItem item ->
+            0
+
+        EndMark str ->
+            0
 
 
 beginSymbol : StackItem -> String
