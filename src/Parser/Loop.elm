@@ -83,7 +83,7 @@ nextCursor parser cursor =
         in
         case ( maybeFirstChar, maybePrefix, cursor.stack ) of
             ( Nothing, _, [] ) ->
-                ParserTools.Done { cursor | message = "COMM0" }
+                ParserTools.Done { cursor | complete = cursor.parsed ++ cursor.complete, message = "COMM0" }
 
             ( Nothing, _, _ ) ->
                 ParserTools.Loop (TextCursor.commit parser { cursor | message = "COMM2", count = cursor.count + 1 })
