@@ -83,16 +83,19 @@ nextCursor parser cursor =
         in
         case ( maybeFirstChar, maybePrefix, cursor.stack ) of
             ( Nothing, _, [] ) ->
-                -- NORMAL LOOP TERMINATION: at end of input, stack is empty
+                -- NORMAL LOOP TERMINATION: at end of input (Nothing), stack is empty
                 ParserTools.Done { cursor | complete = cursor.parsed ++ cursor.complete, message = "COMM0" }
 
             ( Nothing, _, _ ) ->
+                -- NEED TO RESOLVE ERROR: at end of input (Nothing), stack is NOT empty
                 ParserTools.Loop (TextCursor.commit parser { cursor | message = "COMM2", count = cursor.count + 1 })
 
             ( _, Nothing, _ ) ->
+                -- WHAT THE HECK?  MAYBE WE SHOULD JUST BAIL OUT
                 ParserTools.Loop (TextCursor.commit parser { cursor | message = "COMM3", count = cursor.count + 1 })
 
             ( Just firstChar, Just prefixx, _ ) ->
+                -- CONTINUE NORMAL PROCESSING
                 case branch Configuration.configuration cursor firstChar prefixx of
                     ADD ->
                         add parser cursor chompedText

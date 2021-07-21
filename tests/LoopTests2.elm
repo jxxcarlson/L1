@@ -111,8 +111,9 @@ suite =
                     "abc $x^2$ def"
                         |> pl_
                         |> Expect.equal [ Text_ "abc ", Verbatim_ Math "x^2", Text_ " def" ]
+            , test "[b L1 GOOD" <|
+                \_ ->
+                    "[b L1 GOOD"
+                        |> pl_
+                        |> Expect.equal [ Element_ (Name "error") (Text_ " unmatched ["), Text_ "b L1 GOOD" ]
             ]
-
-
-
--- "abc $x^2$ def"

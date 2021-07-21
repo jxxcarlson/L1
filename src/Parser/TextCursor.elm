@@ -228,15 +228,26 @@ handlePop parse prefix stackTop cursor =
 
 commit : (String -> Element) -> TextCursor -> TextCursor
 commit parse cursor =
-    cursor |> commit_ parse |> (\tc2 -> { tc2 | complete = List.reverse tc2.complete })
+    commit_ parse cursor |> (\tc -> { tc | complete = List.reverse tc.complete })
 
 
 commit_ : (String -> Element) -> TextCursor -> TextCursor
 commit_ parse tc =
-    let
-        _ =
-            Debug.log ((Console.bgGreen >> Console.black) "COMMIT_, STACK") tc.stack
+    case tc.stack of
+        [] ->
+            finishUp tc
 
+        top :: restOfStack ->
+            if Stack.isReducible tc.stack then
+                finishUpWithReducibleStack parse tc
+
+            else
+                resolveError parse tc top restOfStack
+
+
+finishUp : TextCursor -> TextCursor
+finishUp tc =
+    let
         parsed =
             if tc.text == "" then
                 tc.parsed
@@ -244,32 +255,60 @@ commit_ parse tc =
             else
                 AST.Text tc.text MetaData.dummy :: tc.parsed
 
-        newParsed =
-            parse (Stack.showStack tc.stack)
-
         complete =
             parsed ++ tc.complete
     in
-    case tc.stack of
-        [] ->
-            { tc | parsed = [], complete = complete }
+    { tc | parsed = [], complete = complete }
 
-        top :: restOfStack ->
-            if Stack.isReducible tc.stack then
-                handledUnfinished parse tc
 
-            else
-                handleTheRest parse tc top restOfStack newParsed
+finishUpWithReducibleStack parse tc =
+    let
+        stackData =
+            tc.stack |> List.reverse |> List.map Stack.show |> String.join ""
+    in
+    { tc | complete = parse stackData :: tc.complete }
 
 
 
 -- LANGUAGE HANDLERS
 
 
-handleTheRest : (String -> Element) -> TextCursor -> StackItem -> List StackItem -> Element -> TextCursor
-handleTheRest parse tc top restOfStack newParsed =
+handleTheRest0 : (String -> Element) -> TextCursor -> StackItem -> List StackItem -> Element -> TextCursor
+handleTheRest0 parse tc top restOfStack newParsed =
+    let
+        complete_ =
+            case Stack.endSymbol top of
+                Nothing ->
+                    let
+                        parsed_ =
+                            newParsed :: tc.parsed
+                    in
+                    List.reverse parsed_
+
+                Just _ ->
+                    handleError tc top
+    in
+    commit parse
+        { tc
+            | count = 1 + tc.count
+            , text = ""
+            , stack = restOfStack
+            , parsed = []
+            , complete = complete_
+        }
+
+
+resolveError : (String -> Element) -> TextCursor -> StackItem -> List StackItem -> TextCursor
+resolveError parse tc top restOfStack =
     case Stack.endSymbol top of
         Nothing ->
+            let
+                _ =
+                    Debug.log (Console.magenta "RESOLVE ERROR") 1
+
+                newParsed =
+                    parse (Stack.showStack tc.stack)
+            in
             commit parse
                 { tc
                     | count = 1 + tc.count
@@ -281,6 +320,9 @@ handleTheRest parse tc top restOfStack newParsed =
 
         Just _ ->
             let
+                _ =
+                    Debug.log (Console.magenta "RESOLVE ERROR") 2
+
                 _ =
                     Debug.log (Console.bgBlue "ERROR, stackTop") top
 
@@ -308,14 +350,6 @@ handleTheRest parse tc top restOfStack newParsed =
                 , scanPoint = errorPosition + 1
                 , complete = List.reverse (errorElement :: tc.parsed)
             }
-
-
-handledUnfinished parse tc =
-    let
-        stackData =
-            tc.stack |> List.reverse |> List.map Stack.show |> String.join ""
-    in
-    { tc | complete = parse stackData :: tc.complete }
 
 
 handleError : TextCursor -> StackItem -> List Element
