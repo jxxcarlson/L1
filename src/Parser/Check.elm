@@ -1,6 +1,7 @@
-module Parser.Check exposing (make, reduces)
+module Parser.Check exposing (make, reduces, reduces2)
 
 import Dict exposing (Dict)
+import Library.Console as Console
 import List.Extra
 
 
@@ -45,6 +46,10 @@ symbolValue str =
 -}
 reduces : List String -> Bool
 reduces symbolList =
+    let
+        _ =
+            Debug.log ((Console.bgMagenta >> Console.black) "symbolList") (symbolList |> List.reverse |> String.join "")
+    in
     case reduceAux (Just (List.filter (\s -> not (List.member s [ "$", "`", "\"" ])) symbolList)) of
         Nothing ->
             False
@@ -54,6 +59,39 @@ reduces symbolList =
 
         _ ->
             False
+
+
+reduces2 : List String -> List String
+reduces2 list =
+    case list of
+        [] ->
+            []
+
+        first :: rest ->
+            case List.Extra.unconsLast rest of
+                Nothing ->
+                    list
+
+                Just ( last, rest2 ) ->
+                    if matches first last then
+                        reduces2 rest2
+
+                    else
+                        list
+
+
+matches first last =
+    if first == "[" && last == "]" then
+        True
+
+    else if first == "$" && last == "$" then
+        True
+
+    else if first == "`" && last == "`" then
+        True
+
+    else
+        False
 
 
 reduceAux : Maybe (List String) -> Maybe (List String)

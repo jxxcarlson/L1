@@ -8,6 +8,7 @@ module Parser.Stack exposing
     , isNotReducibleWith
     , isReducible
     , isReducibleWith
+    , isStrictlyReducible
     , show
     , showStack
     , simplifyStack
@@ -33,6 +34,11 @@ type alias StackItemData =
 isReducible : List StackItem -> Bool
 isReducible stack =
     stack |> simplifyStack |> Check.reduces
+
+
+isStrictlyReducible : List StackItem -> Bool
+isStrictlyReducible stack =
+    (simplifyStack >> Check.reduces2) stack == []
 
 
 isReducibleWith : String -> List StackItem -> Bool

@@ -121,4 +121,14 @@ suite =
                     "[b L1 is  [i somewhat] like Lisp"
                         |> pl_
                         |> Expect.equal [ Element_ (Name "error") (Text_ " unmatched ["), Text_ "b L1 is  ", Element_ (Name "i") (EList_ [ Text_ "somewhat" ]), Text_ " like Lisp" ]
+            , test "[b aa] $i BB cc" <|
+                \_ ->
+                    "[b aa] $i BB cc"
+                        |> pl_
+                        |> Expect.equal [ Element_ (Name "b") (EList_ [ Text_ "aa" ]), Text_ " ", Element_ (Name "error") (Text_ " unmatched $"), Text_ "i BB cc" ]
             ]
+
+
+
+-- "[b aa] $i BB cc"
+-- [Element_ (Name "b") (EList_ [Text_ "aa"]),Text_ (" "),Element_ (Name "error") (Text_ (" unmatched $")),Text_ ("i BB cc")]

@@ -230,7 +230,11 @@ handlePop parse prefix stackTop cursor =
 
 commit : (String -> Element) -> TextCursor -> TextCursor
 commit parse cursor =
-    commit_ parse cursor |> (\tc -> { tc | complete = List.reverse tc.complete })
+    commit_ parse cursor
+
+
+
+-- TODO: do we need this above ?? ^^ ---|> (\tc -> { tc | complete = List.reverse tc.complete })
 
 
 commit_ : (String -> Element) -> TextCursor -> TextCursor
@@ -240,7 +244,8 @@ commit_ parse tc =
             finishUp tc
 
         _ ->
-            if Stack.isReducible tc.stack then
+            -- if Stack.isReducible tc.stack then
+            if Stack.isStrictlyReducible tc.stack then
                 finishUpWithReducibleStack parse tc
 
             else
@@ -251,6 +256,9 @@ commit_ parse tc =
 finishUp : TextCursor -> TextCursor
 finishUp tc =
     let
+        _ =
+            Debug.log (Console.yellow "finishUp") "!!"
+
         parsed =
             if tc.text == "" then
                 tc.parsed
@@ -266,6 +274,9 @@ finishUp tc =
 
 finishUpWithReducibleStack parse tc =
     let
+        _ =
+            Debug.log (Console.yellow "finishUpWithReducibleStack") "!!"
+
         stackData =
             tc.stack |> List.reverse |> List.map Stack.show |> String.join ""
     in
@@ -321,5 +332,5 @@ resolveError tc =
         , stack = []
         , parsed = []
         , scanPoint = errorPosition + 1
-        , complete = List.reverse (errorElement :: tc.parsed)
+        , complete = errorElement :: tc.complete
     }
