@@ -81,14 +81,17 @@ nextCursor parser cursor =
             maybePrefix =
                 Maybe.map ((\c -> ParserTools.prefixWith c textToProcess) >> .content) maybeFirstChar
         in
-        case ( maybeFirstChar, maybePrefix ) of
-            ( Nothing, _ ) ->
+        case ( maybeFirstChar, maybePrefix, cursor.stack ) of
+            ( Nothing, _, [] ) ->
+                ParserTools.Done { cursor | message = "COMM0" }
+
+            ( Nothing, _, _ ) ->
                 ParserTools.Loop (TextCursor.commit parser { cursor | message = "COMM2", count = cursor.count + 1 })
 
-            ( _, Nothing ) ->
+            ( _, Nothing, _ ) ->
                 ParserTools.Loop (TextCursor.commit parser { cursor | message = "COMM3", count = cursor.count + 1 })
 
-            ( Just firstChar, Just prefixx ) ->
+            ( Just firstChar, Just prefixx, _ ) ->
                 case branch Configuration.configuration cursor firstChar prefixx of
                     ADD ->
                         add parser cursor chompedText
