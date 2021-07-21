@@ -7,9 +7,9 @@ import Element exposing (..)
 import Element.Background as Background
 import Element.Font as Font
 import Element.Input as Input
+import Element.Keyed as Keyed
 import File.Download as Download
 import Html exposing (Html)
-import Html.Keyed
 import Parser.Document
 import Parser.Driver
 import Parser.Parser
@@ -94,8 +94,8 @@ update msg model =
 
         InputText str ->
             ( { model
-                | input = str
-                , renderedText = render model.count str
+                | input = String.trim str
+                , renderedText = render model.count (String.trim str)
                 , count = model.count + 1
               }
             , Cmd.none
@@ -206,7 +206,7 @@ wordCountElement str =
 
 outputDisplay_ : Model -> Element Msg
 outputDisplay_ model =
-    column
+    Keyed.column
         [ spacing 18
         , Background.color (Element.rgb 1.0 1.0 1.0)
         , paddingXY 24 36
@@ -216,10 +216,18 @@ outputDisplay_ model =
         , moveUp 9
         , Font.size 12
         ]
-        (List.map (\para -> paragraph [] para) (renderDocument model.count model.input))
+        (List.map (\para -> paragraph [] para) (renderDocument model.count model.input)
+            |> keyIt model.count
+        )
+
+
+keyIt : Int -> List b -> List ( String, b )
+keyIt k list =
+    List.indexedMap (\i e -> ( String.fromInt (i + k), e )) list
 
 
 
+-- renderDocument : Int -> String -> List (List (Element Msg))
 -- RENDER STRING TO HTML MSG
 
 
@@ -255,14 +263,6 @@ paragraphFormat2 =
 --        |> keyIt k
 --        |> Html.Keyed.node "div" []
 --        |> Element.html
-
-
-keyIt : Int -> List b -> List ( String, b )
-keyIt k list =
-    List.indexedMap (\i e -> ( String.fromInt (i + k), e )) list
-
-
-
 -- INPUT
 
 
