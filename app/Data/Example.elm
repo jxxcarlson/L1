@@ -8,10 +8,14 @@ text =
 
 
 
+
+
 # The L1 Markup Language
 
-[b L1] is a markup language with a syntax somewhat like Lisp, but with square brackets instead of parentheses.  To make bold text, we say this: `[b bold text]`, and for italic, we say `[i italic text]`.  These can be nested as in
-`[i italic text is very [b bold]]`.
+[b L1] is a markup language with a syntax somewhat like Lisp, but with square brackets instead of parentheses.  To make bold text, we say `[b bold text]`, and for italic, we say `[i italic text]`.  These can be nested as in
+`[i italic text is very [b bold]]`:
+
+:[i italic text is very [b bold]]
 
 |heading2 Conveniences
 
@@ -27,18 +31,19 @@ Conveniences can always be written in the standard way, e.g., `[heading1 The Mar
 |heading3 Items
 
 
-Items are used to indent text
+Items are a convenience used to indent text:
 
-|codeblock
-:item This is a test. [red I repeat: a test!].
+`:This is a test. [red I repeat: a test!].`
 
-:item This is a test. [red I repeat: a test!].
+which renders as
 
-Items must be preceded and followed by a blank line.
+:This is a test. [red I repeat: a test!].
+
+Items must be preceded and followed by a blank line.  The colon symbol must be in first position.
 
 |heading3 Blocks
 
-A [i block element] is a way of writing an element without having to worry about it being closed by a right bracket `]`.
+A [i block element] is an alternate way of writing an element without having to worry about it being closed by a right bracket `]`.  However, this method has much better error-handling properties.
 
 ||codeblock
 |mathblock
@@ -53,8 +58,7 @@ This block is rendered as
   =
 \\frac{1}{n+1}
 
-Note the pipe symbol `|` in first position, that is, at the left margin.  Because the pipe symbol cannot start a block element unless it is first position,  one can still say things like [blue a = (b|c)]. A code block consists of its first line, which names the block, and its body, which consists
-of non-blank lines followed by a blank line.
+Note the pipe symbol `|` in first position, that is, at the left margin.  Because the pipe symbol cannot start a block element unless it is first position,  one can still say things like [blue a = (b|c)]. A  block consists of its first line, which names the block, and its body, which consists of non-blank lines followed by a blank line. The first line always has form `|name` with no space between `|` and `name.`
 
 For inline mathematics, one still has the familiar `$a^2 + b^2 = c^2$`, which renders as $a^2 + b^2 = c^2$.
 
@@ -73,7 +77,14 @@ which is rendered as
 a[i] = 1
     b[j] = 2
 
-Verbatim blocks begin with a double pipe:
+Verbatim blocks begin with a double pipe `||` and in all other respects are like ordinary blocks.  Note that for inline code, one can use backticks, just as in Markdown:
+
+||codeblock
+This is code: `a[i] = 1.`
+
+The rendered form is
+
+:`a[i] = 1`
 
 
 
@@ -123,6 +134,9 @@ Use the model below for links:
  This is [red red meat].  [gray (We shouldn't eat so much)]
 
 :This is [red red meat].  [gray (We shouldn't eat so much.)]
+
+
+
 
 
 
