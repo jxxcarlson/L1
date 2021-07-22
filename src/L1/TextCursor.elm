@@ -230,7 +230,8 @@ pop parse prefix cursor =
                         _ =
                             Debug.log (Console.magenta "POP BR") ( 2, data, String.slice data.position.start data.position.end cursor.source )
                     in
-                    { cursor | count = cursor.count + 1 }
+                    --{ cursor | count = cursor.count + 1 }
+                    handlePop parse prefix stackTop_ cursor
 
                 Stack.EndMark _ ->
                     let
