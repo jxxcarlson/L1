@@ -1,4 +1,4 @@
-module L1.Driver exposing (parse, parseLoop, pl, pl_)
+module L1.Chunk exposing (parse, parseLoop, pl, pl_)
 
 import L1.AST as AST exposing (Element(..))
 import L1.Error exposing (Context(..), Problem(..))
