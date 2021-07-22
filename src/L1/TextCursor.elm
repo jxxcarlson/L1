@@ -145,20 +145,34 @@ add parse_ str tc =
 push : { prefix : String, isMatch : Bool } -> ProtoStackItem -> TextCursor -> TextCursor
 push ({ prefix, isMatch } as prefixData) proto tc =
     let
+        _ =
+            Debug.log (Console.yellow "HERE IS") "TC.push"
+
         newText : ParserTools.StringData
         newText =
-            if isMatch then
+            (if isMatch then
                 -- TODO: think about scanPoint
                 { start = 0, finish = 0, content = "" }
 
-            else
+             else
                 advance tc (String.dropLeft (tc.scanPoint + String.length prefix) tc.source)
+            )
+                |> Debug.log (Console.yellow "newText")
 
         newContent =
             newText.content
 
         scanPointIncrement =
-            String.length prefix + newText.finish - newText.start
+            case proto of
+                Expect_ _ ->
+                    String.length prefix + newText.finish - newText.start
+
+                EndMark_ _ ->
+                    if newContent == "" then
+                        String.length prefix
+
+                    else
+                        String.length prefix + newText.finish - newText.start
 
         newStack =
             case proto of
@@ -175,10 +189,10 @@ push ({ prefix, isMatch } as prefixData) proto tc =
                 EndMark_ prefix_ ->
                     if newContent == "" then
                         -- TODO: need real position
-                        Stack.EndMark { content = prefix_, position = { start = -1, end = -1 } } :: tc.stack
+                        Debug.log (Console.yellow "PUSH END MARK (1)") <| Stack.EndMark { content = prefix_, position = { start = tc.scanPoint, end = tc.scanPoint + scanPointIncrement } } :: tc.stack
 
                     else
-                        Stack.TextItem { content = newContent, position = { start = -1, end = -1 } } :: Stack.EndMark { content = prefix_, position = { start = -1, end = -1 } } :: tc.stack
+                        Debug.log (Console.yellow "PUSH END MARK (2)") <| Stack.TextItem { content = newContent, position = { start = tc.scanPoint + 1, end = tc.scanPoint + String.length newContent } } :: Stack.EndMark { content = prefix_, position = { start = -1, end = -1 } } :: tc.stack
     in
     { tc
         | count = tc.count + 1
@@ -205,12 +219,28 @@ pop parse prefix cursor =
         Just stackTop_ ->
             case stackTop_ of
                 Stack.Expect _ ->
+                    let
+                        _ =
+                            Debug.log (Console.magenta "POP BR") 1
+                    in
                     handlePop parse prefix stackTop_ cursor
 
-                Stack.TextItem _ ->
-                    { cursor | count = cursor.count + 1 }
+                Stack.TextItem data ->
+                    let
+                        _ =
+                            Debug.log (Console.magenta "POP BR") ( 2, data, String.slice data.position.start data.position.end cursor.source )
+                    in
+                    { cursor
+                        | count = cursor.count + 1
+
+                        -- , scanPoint = cursor.scanPoint + String.length data.content - 1
+                    }
 
                 Stack.EndMark _ ->
+                    let
+                        _ =
+                            Debug.log (Console.magenta "POP BR") 3
+                    in
                     handlePop parse prefix stackTop_ cursor
 
 

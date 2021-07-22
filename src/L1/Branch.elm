@@ -29,6 +29,10 @@ branch configuration_ tc firstChar prefix_ =
             && Maybe.map (Stack.beginSymbol >> Config.isVerbatimSymbol) (List.head tc.stack)
             == Just True
     then
+        let
+            _ =
+                Debug.log (Console.magenta "BRANCH") 1
+        in
         POP
 
     else if Config.notDelimiter Configuration.configuration Config.AllDelimiters firstChar then
@@ -38,6 +42,10 @@ branch configuration_ tc firstChar prefix_ =
         PUSH { prefix = prefix, isMatch = isMatch }
 
     else if canPop configuration_ tc prefix_ then
+        let
+            _ =
+                Debug.log (Console.magenta "BRANCH") 2
+        in
         POP
 
     else
@@ -91,24 +99,34 @@ canPush configuration_ tc prefix =
             { value = True, prefix = prefix, isMatch = False }
 
     else
-        canPush1 configuration_ tc prefix
+        canPushNonVerbatim configuration_ tc prefix
 
 
-canPush1 : Configuration -> TextCursor -> String -> { value : Bool, prefix : String, isMatch : Bool }
-canPush1 configuration_ tc prefix =
-    if prefix == "" then
+canPushNonVerbatim : Configuration -> TextCursor -> String -> { value : Bool, prefix : String, isMatch : Bool }
+canPushNonVerbatim configuration_ tc prefix =
+    (let
+        _ =
+            Debug.log (Console.yellow "canPushNonVerbatim") prefix
+     in
+     if prefix == "" then
         { value = False, prefix = "", isMatch = False }
 
-    else if canPush2 configuration_ tc prefix then
+     else if canPush2 configuration_ tc prefix then
         { value = True, prefix = prefix, isMatch = False }
 
-    else
+     else
+        -- Try a substring.  A prefix might be "|" or "||", for example,
+        -- So we try "||" and if that fails, we try "|"
         canPush configuration_ tc (String.dropLeft 1 prefix)
+    )
+        |> Debug.log (Console.yellow "canPushNonVerbatim, value")
 
 
 canPush2 : Configuration -> { a | scanPoint : Int, stack : List Stack.StackItem } -> String -> Bool
 canPush2 configuration_ tc prefix =
     Config.isBeginSymbol configuration_ tc.scanPoint prefix
+        -- The clause below is needed because we need to be able to push
+        -- end symbols onto the stack ... TODO: amplify this .. why the && part?
         || (Config.isEndSymbol configuration_ tc.scanPoint prefix
                 && Stack.isNotReducibleWith prefix tc.stack
            )
