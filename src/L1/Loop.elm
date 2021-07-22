@@ -50,8 +50,8 @@ when the scanPoint comes to the end of the source.
 -}
 nextCursor : (String -> Element) -> TextCursor -> ParserTools.Step TextCursor TextCursor
 nextCursor parser cursor =
-    if cursor.count > 10 then
-        exit parser cursor "EMERGENCY STOP AT COUNT 10"
+    if cursor.count > 100 then
+        exit parser cursor "EMERGENCY STOP AT COUNT 100"
 
     else
         let
