@@ -1,20 +1,21 @@
 # Fault-tolerant Parsing
 
 Fault-tolerant parsing has been studied by many ... XXXX.  The approach
-taken is based on Matthew Griffiths' work in [elm-markup](https://package.elm-lang.org/packages/mdgriffith/elm-ui/latest/) and it further
+taken is based on Matthew Griffiths' work in [elm-markup](https://package.elm-lang.org/packages/mdgriffith/elm-ui/latest/), which introduces
+the notion of a *TextCursor* and its further
 development in [Brilliant.org's](https://brilliant.org) Camperdown parser.
 For purposes of exposition, we will discuss the main ideas in the context
 of fault-tolerant parser for a simple markup language which we shall
 call L1.  It can be thought of as a kind of mini-Camperdown. 
 
-Both Camperdown and L1 are written in [Elm](htts://elm-lang.org), and both use the parser combinators of the [elm/parser](https://package.elm-lang.org/packages/elm/parser/latest/) library. The code base for L1 is small, so that with this article in hand, one understand not only the principles, but also the main details of implementation.  The core TextCursor module weighs in at a bit over 200 lines of code.
+Both Camperdown and L1 are written in [Elm](htts://elm-lang.org), and both use the parser combinators of the [elm/parser](https://package.elm-lang.org/packages/elm/parser/latest/) library. The code base for L1 is small, about 1400 line, so that with this article in hand, one understand not only the principles, but also the main details of implementation of a fault-tolerant parser.  The core TextCursor module, the largest of the bunch, weighs in at a bit over 200 lines of code.
 
 Outline ...
 
 ## The L1 Markup Language.
 
 
-The core markup construct in **L1** is the *element:*
+The main syntactic notion in **L1** is the *element:*
 
 - `[i this is italic]` => *this is italic*
 
@@ -26,11 +27,10 @@ The core markup construct in **L1** is the *element:*
 
 - `[heading2 Blue-green algae]` => section of level 2
 
-An **L1** document is a mixture of plain text and elements.
-
+An L1 document is a mixture of plain text and elements.
 In addition there are certain features which may be viewed as syntactic
 sugar but which are convenient for authors.  First, section headers may 
-be written as in Markdown with leading hashmarks.  Second, inline code can be set of with backticks and inline math can be written as in LaTeX with enclosing dollar signs.  Third, there is the notion of a block, e.g.,
+be written as in Markdown with leading hashmarks.  Second, inline code can be set off with backticks and inline math can be written as in LaTeX with enclosing dollar signs.  Third, there is the notion of a *block,* e.g.,
 
 ```
 |mathblock
@@ -39,14 +39,14 @@ be written as in Markdown with leading hashmarks.  Second, inline code can be se
 \frac{1}{n+1}
 ```
 
-An ordinary block consists of the pipe symbol `|` at the beginning of a line, followed immediately by the name of the block, in this case *mathblock*.  A block must have one or more blank lines above and below.
+An ordinary block consists of the pipe symbol `|` at the beginning of a line, followed immediately by the name of the block.  A block must have one or more blank lines above and below.
 This example is functionally equivalent to 
 
 ```
 [mathblock \int_0^1 x^n dx = \frac{1}{n+1}]
 ```
 
-However, the fact that a block is terminated by a blank line makes error-handling much easier to achieve, especially in the context of interactive editing. 
+However, the fact that a block is terminated by a blank line makes error-handling much easier to achieve, especially in the context of interactive editing. *((Should we change this to "two or more blank lines"?  Then blocks can handle paragraphs.))*
 
 In addition to ordinary blocks, there are verbatim blocks, e.g.,
 
@@ -58,9 +58,12 @@ enclose a b =
  ```
 The body of a verbatim block is not parsed.
 
-## AST and parser for L1
 
-Below is the type of the L1 AST as found in Parser.AST. Both here and further on we give slightly simplified versions.
+
+
+## AST for L1
+
+Below is the type of the AST for L1 as found in module L1.AST. Both here and further on we give slightly simplified versions.
 
 ```
 type Element
@@ -71,14 +74,22 @@ type Element
 
 ```
 
-The parser itself is found in module Parser.Parser, which exposes a function
+where `type Name = Name String`.
+
+Module L1.Parser exposes a function
 
 ```
 parse : String -> Element
 ```
 
+It is a recursive descent parser written using the combinators of 
+[elm/parser](https://package.elm-lang.org/packages/elm/parser/latest/). Here are some examples:
+ 
+- `parse "foo"` => `Text "foo"
+- `parse "[i foo]"` => `Element (Name "foo") (Text "foo")`
+- `parse "'a[i] = 0'"` => `Verbatim Code ("a[i] = 0")`
 
-
+In the last example, we really mean backtick, not `'`, but Markdown can't handle that.
 
 ## Basic notions
 
@@ -117,6 +128,9 @@ below lists the decision points where some action must be taken.
 These are the points at which the scanner encounters a language
 symbol, in this case either `[` or `]`.
 
+
+### The GOOD case
+
 ```
 1: ^The fish [i was] [b very] tasty.   START
 2: The fish ^[i was] [b very] tasty.   ADD
@@ -131,22 +145,24 @@ The scanner maintains several data structures as part of a "text cursor."
 
 - the *source* text
 
-- the *scanpoint,* an index int the source text
+- the *scanpoint,* an index int the source text.
 
-- the *parsed* text, a list of AST values ((explain above))
+- the *parsed* text, a list of AST values
 
-- a *stack* of strings
+- the *complete* AST, a list of AST values to which others may be added.
+
+- a *stack* of items where each item holds a string and some additional information, such as the location of this string in the source text.
 
 In the example, we proceed as follows,
 
 
-1. All parts of the text cursor are empty/zero except *source.*
+1. All parts of the text cursor are empty/zero except *source.* The scan point has value 0, i.e, it points to the first character of the source.
 
-2. The scan point is moved to the next mark.  The text *The fish* between the previous and current marks is parsed and stored in *parsed.* 
+2. The scan point is moved to the next mark, the first opening bracket in the source.  The text *The fish* between the previous and current marks is parsed and stored in *parsed.* 
 
 3. The scan point is advanced once again.  Because it initially pointed at an open bracket `[`, the intervening text *i was* is pushed onto the stack.
 In addition, the fact that we pushed text that began with an open bracket
-is recorded.  We can think of the stack element as a pair `('[', "i was")`.
+is recorded.  We can think of the stack item as a pair `('[', "i was")`.
 
 4. The scan point is moved across the symbol `]` and pushed onto the stack
 as something like the pair `(']', ?)`.  The stack is now `[('[', "i was"), (']', ?)]`, or in shorthand, `[]`.  The brackets match and so the top two elements can be popped, put together, parsed and stored in the list *parsed.*. 
@@ -154,29 +170,55 @@ as something like the pair `(']', ?)`.  The stack is now `[('[', "i was"), (']',
   The scanner knows that if items can be popped off the stack, they can be
 put together and parsed without error.
 
-5,6. The same process is repeated with *b very*
+5. Like (3), but repeated with *b very*
+
+6. Like (4), but this time *b very* is assembled, parsed, and added to *parsed.*
 
 7. The text *tasty.* is parsed and added to parsed.
 
-At this point we have
+At this point the state of the text cursor is
 
 ```
-parsed = [(tasty.), ([b very]), ([i was]), (The fish)]
+parsed = [(tasty.), (b very), (i was), (The fish)]
 stack = [ ]
 ```
 
-Here `(x)` means `(parse x)`.  Thus `(The fish)` is a text element, 
-`([i was])` is an element with name `i` and body the text `was`, etc. ((EXPLAIN BETTER)). The fact that the stack is empty means that all of the text was parsed. We return the list *parsed* in reversed form: a list of valid AST elements representing the source text.
+Here `(x)` means `parse x)=`.  Thus `(The fish)` is really text element
+`[Text "The fish"]` and  `(i was)` is really `Element (Name "i") (Text "was")`.  The fact that the stack is empty means that all of the text was parsed. We can now commit the cursor, transferring the 
 
-Consider next the BAD case.  The final state of the text cursor is
+
+return the list *parsed* in reversed form: a list of valid AST elements representing the source text.
+
+### The BAD case
+
+Consider next the BAD case.  The final state of the text cursor, now displaying location information, is
 
 ```
 parsed = [(The fish)]
-stack = [('[', "i was"), ('], "??"), ('[', "b very"), (']'. ?)]
+stack = [('[', "i was", 9), ('[', "b very", 16), (']', ?, 22)]
 ```
 
-The simple view of the stack is `[[]`.  It is not reducible to the empty
-stack.  What to do?  Whe items are pushed onto the stack, we know that 
+The *characteristic* of the above stack is the string `"[[]"`. Look at the first character '[', an open bracket, and scan forward to find the first matching close bracket.  If one is found, remove it and remove the first character.  This is a *basic reduction*.  Thus we have `"[[]"` -> `"["` and the latter cannot be further reduced. By contrast, we have `"[[]]"` -> `"[]"` -> `""` and also `"[][]"` -> `"[]"` -> `""`.  Let us call the final
+result the *residue* of the characteristic.  The residue gives information about what the error is, e.g., no error if the residue is the empty string, an unclosed open bracket if it is `"["`.
+
+We say that a stack is *reducible* if its characteristic is the empty string. Reducible stacks are the ones that can be assembled into a valid AST element as was done in the GOOD case.  Think of reduction as a kind of inexpensive trial assembly that guarantees that assembly will succeed, just as type-checking guarantees that evaluation will succeed.
+
+
+The main problem of this article now presents itself: *what do we do in the
+case of a non-reducible stack?* If 
+
+
+For the answer, we recall that items pushed on to the stack contain a record of the location of the snippet of source text pushed as a part of the full source text. 
+
+
 
 We now have to explain that when an item is pushed onto the stack, so is the
-current value of the scanpoint is pushed as well.  In the case at hand, it is apparent that the error ((BETTER EXPLANATION)) goes back to the first elmement pushed onto the stack, the *stack bottom*.  We read the stored valud of .... ((TO BE CONTINUED)).
+current value of the scanpoint is pushed as well.  In the case at hand, it is apparent that the error ((BETTER EXPLANATION)) goes back to the first element pushed onto the stack, the *stack bottom*.  We read the stored value of .... ((TO BE CONTINUED)).
+
+
+
+## Parsers
+
+
+
+
