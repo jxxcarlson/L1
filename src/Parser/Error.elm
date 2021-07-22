@@ -11,6 +11,7 @@ type Problem
     | ExpectingSpace
     | ExpectingColon
     | ExpectingQuoteMark
+    | ExpectingPipe
     | ExpectingBackTick
     | UnHandledError Int
     | NoError

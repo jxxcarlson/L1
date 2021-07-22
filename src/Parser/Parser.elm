@@ -148,6 +148,28 @@ itemParser generation =
             |= Parser.getSource
 
 
+parseBlock : Int -> String -> Result (List ParseError) Element
+parseBlock generation str =
+    Parser.run (blockParser generation) str
+
+
+blockParser generation =
+    Parser.inContext CElement <|
+        -- TODO: is this correct?
+        Parser.succeed (\start name elements end source -> Element (Name name.content) (EList elements (meta generation start end)) (meta generation start end))
+            |= Parser.getOffset
+            |. pipeMark
+            |= T.text Char.isAlpha Char.isAlpha
+            |. Parser.chompWhile (\c -> c == ' ')
+            |= listParser generation 0
+            |= Parser.getOffset
+            |= Parser.getSource
+
+
+pipeMark =
+    Parser.symbol (Parser.Token "|" ExpectingPipe)
+
+
 hashMarks : Parser Int
 hashMarks =
     Parser.succeed (\start end -> end - start)
