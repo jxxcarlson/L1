@@ -1,7 +1,7 @@
 module L1.Document exposing (groupLines, parse, split)
 
 import L1.AST exposing (Element)
-import L1.Driver
+import L1.Chunk
 import L1.Parser
 
 
@@ -14,7 +14,7 @@ parse generation doc =
     let
         p : String -> List Element
         p =
-            L1.Driver.parse (L1.Parser.parse generation) generation
+            L1.Chunk.parse (L1.Parser.parse generation) generation
     in
     doc
         |> split
