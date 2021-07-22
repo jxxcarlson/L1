@@ -217,42 +217,16 @@ pop parse prefix cursor =
             { cursor | count = cursor.count + 1, scanPoint = cursor.scanPoint + 1, scannerType = NormalScan }
 
         Just stackTop_ ->
-            case stackTop_ of
-                Stack.Expect _ ->
-                    let
-                        _ =
-                            Debug.log (Console.magenta "POP BR") 1
-                    in
-                    handlePop parse prefix stackTop_ cursor
-
-                Stack.TextItem data ->
-                    let
-                        _ =
-                            Debug.log (Console.magenta "POP BR") ( 2, data, String.slice data.position.start data.position.end cursor.source )
-                    in
-                    --{ cursor | count = cursor.count + 1 }
-                    handlePop parse prefix stackTop_ cursor
-
-                Stack.EndMark _ ->
-                    let
-                        _ =
-                            Debug.log (Console.magenta "POP BR") 3
-                    in
-                    handlePop parse prefix stackTop_ cursor
-
-
-handlePop : (String -> Element) -> String -> StackItem -> TextCursor -> TextCursor
-handlePop parse prefix stackTop cursor =
-    let
-        data =
-            Stack.showStack (List.reverse cursor.stack) ++ prefix
-    in
-    { cursor
-        | stack = []
-        , parsed = parse data :: cursor.parsed
-        , count = cursor.count + 1
-        , scanPoint = cursor.scanPoint + 1
-    }
+            let
+                data =
+                    Stack.showStack (List.reverse cursor.stack) ++ prefix
+            in
+            { cursor
+                | stack = []
+                , parsed = parse data :: cursor.parsed
+                , count = cursor.count + 1
+                , scanPoint = cursor.scanPoint + 1
+            }
 
 
 commit : (String -> Element) -> TextCursor -> TextCursor
