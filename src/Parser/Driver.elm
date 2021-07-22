@@ -13,7 +13,7 @@ parseLoop parse_ generation str =
     Loop.parseLoop parse_ generation str
 
 
-parse : (String -> Element) -> Int -> String -> List Element
+parse : (String -> Element) -> Int -> String -> List AST.Element
 parse parse_ generation str =
     str
         |> parseLoop parse_ generation
