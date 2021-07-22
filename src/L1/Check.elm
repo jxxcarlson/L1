@@ -48,9 +48,9 @@ reduces : List String -> Bool
 reduces symbolList =
     let
         _ =
-            Debug.log ((Console.bgMagenta >> Console.black) "symbolList") (symbolList |> List.reverse |> String.join "")
+            Debug.log ((Console.bgMagenta >> Console.black) "symbolList (reduces)") (symbolList |> List.reverse |> String.join "")
     in
-    case reduceAux (Just (List.filter (\s -> not (List.member s [ "$", "`", "\"" ])) symbolList)) of
+    (case reduceAux (Just (List.filter (\s -> not (List.member s [ "$", "`", "\"" ])) symbolList)) of
         Nothing ->
             False
 
@@ -59,6 +59,8 @@ reduces symbolList =
 
         _ ->
             False
+    )
+        |> Debug.log ((Console.bgMagenta >> Console.black) "symbolList (reduces), value")
 
 
 reduces2 : List String -> List String
