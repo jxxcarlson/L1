@@ -2,20 +2,18 @@
 
 Fault-tolerant parsing has been studied by many ... XXXX.  The approach
 taken here is based on Matthew Griffiths' work in [elm-markup](https://package.elm-lang.org/packages/mdgriffith/elm-ui/latest/), which introduces
-the notion of a *TextCursor* and its further
-development in [Brilliant.org's](https://brilliant.org) Camperdown parser.
+the notion of a *TextCursor* and Rob Simmons' work on [Brilliant.org's](https://brilliant.org) Camperdown parser.
 For purposes of exposition, we will discuss the main ideas in the context
-of fault-tolerant parser for a simple markup language which we shall
-call L1.  It can be thought of as a kind of mini-Camperdown. 
+of fault-tolerant parser for a simple markup language which we
+call L1.  It can be thought of as a kind of mini-Camperdown.  There is a pre-alpha demo at [github.io](https://jxxcarlson.github.io/app/L1/) with code on [github](https://github.com/jxxcarlson/L1).
 
-Both Camperdown and L1 are written in [Elm](htts://elm-lang.org), and both use the parser combinators of the [elm/parser](https://package.elm-lang.org/packages/elm/parser/latest/) library. The code base for L1 is small, about 1400 lines, so that with this article in hand, one understand not only the principles, but also the main details of implementation of a fault-tolerant parser.  The core TextCursor module, the largest of the bunch, weighs in at a bit over 200 lines of code.
+Both Camperdown and L1 are written in [Elm](htts://elm-lang.org), and both use the parser combinators of the [elm/parser](https://package.elm-lang.org/packages/elm/parser/latest/) library. The code base for the L1 parser is small, about 1400 lines, with the core TextCursor module, the largest of the bunch, weighing in at a bit over 200 lines. With this article in hand, one can used the code to understand not only the principles, but also the main details of implementation of a fault-tolerant parser.  
 
-Outline ...
 
 ## The L1 Markup Language.
 
 
-The main syntactic notion in **L1** is the *element:*
+The principal syntactic notion in **L1** is the *element:*
 
 - `[i this is italic]` => *this is italic*
 
@@ -46,7 +44,7 @@ This example is functionally equivalent to
 [mathblock \int_0^1 x^n dx = \frac{1}{n+1}]
 ```
 
-However, the fact that a block is terminated by a blank line makes error-handling much easier to achieve, especially in the context of interactive editing. *((Should we change this to "two or more blank lines"?  Then blocks can handle paragraphs.))*
+However, the fact that a block is terminated by a blank line makes error-handling much easier to achieve, especially in the context of interactive editing. *((Should we change this to "two or more blank lines"?  Then blocks can handle multiple paragraphs.))*
 
 In addition to ordinary blocks, there are verbatim blocks, e.g.,
 
@@ -71,10 +69,11 @@ type Element
     | Element Name Element 
     | Verbatim VerbatimType String 
     | EList (List Element) 
-
+    
+type Name = Name String
 ```
 
-where `type Name = Name String`.
+
 
 Module L1.Parser exposes a function
 
@@ -103,6 +102,8 @@ By chunking we mean that the source text is divided into pieces which are in pri
 
  An additional advantage of chunking is that it also permits one to do differential parsing and rendering.  Suppose that a document consists of pieces A B C D E. Suppose that the author makes a change to C.  Then one can arrange things so that the entire document can be rendered by re-parsing and re-rendering C.  For long documents this procedure is far faster than re-parsing and r-rendering the entire text — a task that has to be done on each character stroke.
  
+Chunks in L1 are sequences of non-blank lines delimited above an below by at least one blank line.
+ 
 ### An Example
  
 To understand the notions of expectations stack and text cursor, consider the following example:
@@ -121,7 +122,8 @@ One way to handle invalid input is to stop the
 parser and emit a message such as `fatal error`, or more 
 informative and less offensive, `error at line 7, column 10`.
 But one can do much better.  The parser can be rigged so
-as to keep going, rendering almost all of the text in an intelligent way, and signaling both the presence and nature of the error.
+as to keep going, rendering almost all of the text in an intelligent way, and signaling both the presence and nature of the error. Try out 
+ [pre-alpha demo](https://jxxcarlson.github.io/app/L1/) to see one solution to such problems.
 
 To fix ideas, consider two examples: 
 

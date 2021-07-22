@@ -145,19 +145,14 @@ add parse_ str tc =
 push : { prefix : String, isMatch : Bool } -> ProtoStackItem -> TextCursor -> TextCursor
 push ({ prefix, isMatch } as prefixData) proto tc =
     let
-        _ =
-            Debug.log (Console.yellow "HERE IS") "TC.push"
-
         newText : ParserTools.StringData
         newText =
-            (if isMatch then
+            if isMatch then
                 -- TODO: think about scanPoint
                 { start = 0, finish = 0, content = "" }
 
-             else
+            else
                 advance tc (String.dropLeft (tc.scanPoint + String.length prefix) tc.source)
-            )
-                |> Debug.log (Console.yellow "newText")
 
         newContent =
             newText.content
@@ -291,39 +286,22 @@ finishUpWithReducibleStack parse tc =
 resolveError : TextCursor -> TextCursor
 resolveError tc =
     let
-        _ =
-            Debug.log (Console.magenta "RESOLVE ERROR") 2
-
-        _ =
-            Debug.log (Console.magenta "STACK STATE") (Stack.showStack tc.stack)
-
         maybeBottomOfStack =
             List.Extra.unconsLast tc.stack
                 |> Maybe.map Tuple.first
-                |> Debug.log (Console.bgBlue "badStackItem")
 
         errorPosition : Int
         errorPosition =
             maybeBottomOfStack
                 |> Maybe.map Stack.startPosition
                 |> Maybe.withDefault -1
-                |> Debug.log (Console.bgBlue "errorPosition")
-
-        _ =
-            List.map (\item -> Stack.startPosition item) tc.stack |> Debug.log (Console.bgBlue "start positions")
 
         badStackItemSymbol =
             maybeBottomOfStack
                 |> Maybe.map Stack.beginSymbol
                 |> Maybe.withDefault "??"
-                -- TODO: the above is hacky and DANGEROUS
-                |> Debug.log (Console.bgBlue "badStackItem, beginSymbol")
 
-        --errorContent =
-        --    Stack.content top |> Debug.log (Console.magenta "errorContent")
-        goodText =
-            String.dropLeft (errorPosition + 1) tc.source |> Debug.log (Console.magenta "goodText")
-
+        -- TODO: the above is hacky and DANGEROUS
         errorElement =
             Element (Name "error") (Text (" unmatched " ++ badStackItemSymbol) MetaData.dummy) MetaData.dummy
     in

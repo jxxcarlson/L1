@@ -126,9 +126,14 @@ suite =
                     "[b aa] $i BB cc"
                         |> pl_
                         |> Expect.equal [ Element_ (Name "b") (EList_ [ Text_ "aa" ]), Text_ " ", Element_ (Name "error") (Text_ " unmatched $"), Text_ "i BB cc" ]
+            , test "[a [b c] d]" <|
+                \_ ->
+                    "[a [b c] d]"
+                        |> pl_
+                        |> Expect.equal [ Element_ (Name "a") (EList_ [ Element_ (Name "b") (EList_ [ Text_ "c " ]), Text_ "  d" ]) ]
             ]
 
 
 
--- "[b aa] $i BB cc"
--- [Element_ (Name "b") (EList_ [Text_ "aa"]),Text_ (" "),Element_ (Name "error") (Text_ (" unmatched $")),Text_ ("i BB cc")]
+-- "[a [b c] d]"
+-- [Element_ (Name "a") (EList_ [Element_ (Name "b") (EList_ [Text_ ("c ")]),Text_ ("  d")])]
