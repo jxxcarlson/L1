@@ -10,9 +10,9 @@ import Element.Input as Input
 import Element.Keyed as Keyed
 import File.Download as Download
 import Html exposing (Html)
-import Parser.Document
-import Parser.Driver
-import Parser.Parser
+import L1.Document
+import L1.Driver
+import L1.Parser
 import Render.Elm
 import Render.Markdown
 
@@ -65,13 +65,13 @@ init flags =
 
 render : Int -> String -> List (Element Msg)
 render k str =
-    Render.Elm.renderList renderArgs (Parser.Driver.parse (Parser.Parser.parse k) k str)
+    Render.Elm.renderList renderArgs (L1.Driver.parse (L1.Parser.parse k) k str)
 
 
 renderDocument : Int -> String -> List (List (Element Msg))
 renderDocument generation document =
     document
-        |> Parser.Document.parse generation
+        |> L1.Document.parse generation
         |> List.map (\para -> Render.Elm.renderList { renderArgs | generation = generation } para)
 
 

@@ -1,23 +1,23 @@
-module Parser.TextCursor exposing
+module L1.TextCursor exposing
     ( TextCursor, init
     , ProtoStackItem(..), ScannerType(..), add, advance, advanceNormal, commit, pop, push
     )
 
-{-| TextCursor is the data structure used by Parser.parseLoop.
+{-| TextCursor is the data structure used by L1.parseLoop.
 
 @docs TextCursor, init, incrementBlockIndex, incrementBlockOffset
 
 -}
 
+import L1.AST as AST exposing (Element(..), Name(..))
+import L1.Config as Config exposing (Configuration, EType(..), Expectation)
+import L1.Configuration as Configuration
+import L1.MetaData as MetaData exposing (MetaData)
+import L1.Stack as Stack exposing (StackItem)
 import Library.Console as Console
 import Library.ParserTools as ParserTools
 import List.Extra
-import Parser.AST as AST exposing (Element(..), Name(..))
 import Parser.Advanced
-import Parser.Config as Config exposing (Configuration, EType(..), Expectation)
-import Parser.Configuration as Configuration
-import Parser.MetaData as MetaData exposing (MetaData)
-import Parser.Stack as Stack exposing (StackItem)
 
 
 {-| TODO: give an account of what these fields do

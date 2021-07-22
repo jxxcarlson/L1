@@ -1,8 +1,8 @@
-module Parser.Document exposing (groupLines, parse, split)
+module L1.Document exposing (groupLines, parse, split)
 
-import Parser.AST exposing (Element)
-import Parser.Driver
-import Parser.Parser
+import L1.AST exposing (Element)
+import L1.Driver
+import L1.Parser
 
 
 type alias Document =
@@ -14,7 +14,7 @@ parse generation doc =
     let
         p : String -> List Element
         p =
-            Parser.Driver.parse (Parser.Parser.parse generation) generation
+            L1.Driver.parse (L1.Parser.parse generation) generation
     in
     doc
         |> split

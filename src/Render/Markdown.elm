@@ -5,10 +5,10 @@ import Html exposing (Html)
 import Html.Attributes as HA
 import Html.Keyed
 import Json.Encode
-import Parser.AST as AST exposing (Element(..), Element_(..), Name(..), VerbatimType(..))
+import L1.AST as AST exposing (Element(..), Element_(..), Name(..), VerbatimType(..))
+import L1.Document
+import L1.Error exposing (Context(..), Problem(..))
 import Parser.Advanced
-import Parser.Document
-import Parser.Error exposing (Context(..), Problem(..))
 
 
 codeMark =
@@ -75,7 +75,7 @@ renderElementDict =
 transformDocument : String -> String
 transformDocument doc =
     doc
-        |> Parser.Document.parse 0
+        |> L1.Document.parse 0
         |> List.map (transformList { width = 600 })
         |> String.join "\n\n"
 

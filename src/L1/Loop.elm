@@ -1,27 +1,20 @@
-module Parser.Loop exposing (Packet, nextCursor, parseLoop)
+module L1.Loop exposing (nextCursor, parseLoop)
 
+import L1.AST as AST exposing (Element(..), Name(..))
+import L1.Branch as Branch exposing (Operation(..), branch)
+import L1.Config as Config exposing (Configuration, EType(..))
+import L1.Configuration as Configuration
+import L1.Error exposing (Context, Problem)
+import L1.Handle as Handle
+import L1.Print
+import L1.TextCursor as TextCursor exposing (ScannerType(..), TextCursor)
 import Library.Console as Console
 import Library.ParserTools as ParserTools
-import Parser.AST as AST exposing (Element(..), Name(..))
 import Parser.Advanced as Parser exposing ((|.), (|=))
-import Parser.Branch as Branch exposing (Operation(..), branch)
-import Parser.Config as Config exposing (Configuration, EType(..))
-import Parser.Configuration as Configuration
-import Parser.Error exposing (Context, Problem)
-import Parser.Handle as Handle
-import Parser.Print
-import Parser.TextCursor as TextCursor exposing (ScannerType(..), TextCursor)
 
 
 type alias Parser a =
     Parser.Parser Context Problem a
-
-
-type alias Packet a =
-    { parser : String -> a
-    , getLength : a -> Int
-    , handleError : Maybe (List (Parser.DeadEnd Context Problem) -> TextCursor -> TextCursor)
-    }
 
 
 {-| parseLoop scans the source text from right to left, update the TextCursor
@@ -37,7 +30,7 @@ parseLoop parser generation str =
                 |> (\tc_ -> { tc_ | complete = List.reverse tc_.complete })
 
         _ =
-            Debug.log (Parser.Print.print result) "-"
+            Debug.log (L1.Print.print result) "-"
     in
     result
 
@@ -63,7 +56,7 @@ nextCursor parser cursor =
     else
         let
             _ =
-                Debug.log (Parser.Print.print cursor) ""
+                Debug.log (L1.Print.print cursor) ""
 
             --_ =
             --    Debug.log "STACK" cursor.stack

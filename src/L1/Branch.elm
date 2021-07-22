@@ -1,10 +1,10 @@
-module Parser.Branch exposing (Operation(..), branch)
+module L1.Branch exposing (Operation(..), branch)
 
+import L1.Config as Config exposing (Configuration)
+import L1.Configuration as Configuration
+import L1.Stack as Stack
+import L1.TextCursor exposing (TextCursor)
 import Library.Console as Console
-import Parser.Config as Config exposing (Configuration)
-import Parser.Configuration as Configuration
-import Parser.Stack as Stack
-import Parser.TextCursor exposing (TextCursor)
 
 
 type Operation

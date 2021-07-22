@@ -1,9 +1,9 @@
-module Parser.Print exposing (..)
+module L1.Print exposing (..)
 
+import L1.Stack as Stack
+import L1.TextCursor exposing (TextCursor)
 import Library.Console as Console
 import Library.Utility
-import Parser.Stack as Stack
-import Parser.TextCursor exposing (TextCursor)
 import Render.Text
 
 

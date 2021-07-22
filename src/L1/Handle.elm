@@ -1,13 +1,13 @@
-module Parser.Handle exposing (doublePipe, heading2, item, lineCommand, pipe)
+module L1.Handle exposing (doublePipe, heading2, item, lineCommand, pipe)
 
+import L1.AST as AST exposing (Element(..), Name(..))
+import L1.Config as Config exposing (Configuration, EType(..), Expectation)
+import L1.MetaData as MetaData exposing (MetaData)
+import L1.Parser as Parser
+import L1.Stack as Stack exposing (StackItem)
+import L1.TextCursor exposing (TextCursor)
 import Library.Console as Console
 import List.Extra
-import Parser.AST as AST exposing (Element(..), Name(..))
-import Parser.Config as Config exposing (Configuration, EType(..), Expectation)
-import Parser.MetaData as MetaData exposing (MetaData)
-import Parser.Parser as Parser
-import Parser.Stack as Stack exposing (StackItem)
-import Parser.TextCursor exposing (TextCursor)
 
 
 heading2 tc =

@@ -1,11 +1,11 @@
-module Parser.Parser exposing (hashMarks, parse, parseHeading, parseItem, parseList, parseSimple, parser)
+module L1.Parser exposing (hashMarks, parse, parseHeading, parseItem, parseList, parseSimple, parser)
 
+import L1.AST as AST exposing (Element(..), Name(..), VerbatimType(..))
+import L1.Error exposing (Context(..), Problem(..))
+import L1.Loc as Loc exposing (Position)
 import Library.ParserTools as T
 import Library.StringParser as XString
-import Parser.AST as AST exposing (Element(..), Name(..), VerbatimType(..))
 import Parser.Advanced as Parser exposing ((|.), (|=))
-import Parser.Error exposing (Context(..), Problem(..))
-import Parser.Loc as Loc exposing (Position)
 
 
 type alias ErrorMessage =

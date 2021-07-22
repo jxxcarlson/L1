@@ -20,9 +20,9 @@ module Library.StringParser exposing
 
 {- (text -}
 
+import L1.Error exposing (Context(..), Problem(..))
 import Library.ParserTools as ParserTools
 import Parser.Advanced exposing ((|.), (|=))
-import Parser.Error exposing (Context(..), Problem(..))
 
 
 type alias Parser a =

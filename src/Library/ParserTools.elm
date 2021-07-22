@@ -19,8 +19,8 @@ module Library.ParserTools exposing
     , text
     )
 
+import L1.Error exposing (Context(..), Problem(..))
 import Parser.Advanced as Parser exposing ((|.), (|=))
-import Parser.Error exposing (Context(..), Problem(..))
 
 
 type alias Parser a =

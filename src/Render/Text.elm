@@ -1,8 +1,8 @@
 module Render.Text exposing (print, printList_, print_)
 
-import Parser.AST exposing (Element(..), Element_(..), Name(..))
+import L1.AST exposing (Element(..), Element_(..), Name(..))
+import L1.Error exposing (Context(..), Problem(..))
 import Parser.Advanced
-import Parser.Error exposing (Context(..), Problem(..))
 
 
 type alias ParseError =
@@ -72,14 +72,3 @@ print_ element =
 printList_ : List Element_ -> String
 printList_ elements =
     String.join " " (List.map print_ elements)
-
-
-
---rt : String -> Bool
---rt str =
---    (Parser.Driver.pl str |> printList_) == str
---
---
---rt_ : String -> Bool
---rt_ str =
---    (Parser.Driver.pl str |> printList_ |> normalize) == normalize str

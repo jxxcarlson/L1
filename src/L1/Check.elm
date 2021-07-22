@@ -1,4 +1,4 @@
-module Parser.Check exposing (make, reduces, reduces2)
+module L1.Check exposing (make, reduces, reduces2)
 
 import Dict exposing (Dict)
 import Library.Console as Console

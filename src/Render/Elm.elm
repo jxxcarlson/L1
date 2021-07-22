@@ -10,12 +10,12 @@ import Html exposing (Html)
 import Html.Attributes as HA
 import Html.Keyed
 import Json.Encode
+import L1.AST as AST exposing (Element(..), Element_(..), Name(..), VerbatimType(..))
+import L1.Error exposing (Context(..), Problem(..))
+import L1.MetaData as MetaData
+import L1.Utility
 import Library.Utility as Utility
-import Parser.AST as AST exposing (Element(..), Element_(..), Name(..), VerbatimType(..))
 import Parser.Advanced
-import Parser.Error exposing (Context(..), Problem(..))
-import Parser.MetaData as MetaData
-import Parser.Utility
 
 
 type alias ParseError =

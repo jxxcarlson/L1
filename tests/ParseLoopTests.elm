@@ -2,8 +2,8 @@ module ParseLoopTests exposing (..)
 
 import Expect exposing (Expectation)
 import Fuzz exposing (Fuzzer, int, list, string)
-import Parser.AST exposing (Element_(..), Name(..), simplify)
-import Parser.Driver exposing (pl_)
+import L1.AST exposing (Element_(..), Name(..), simplify)
+import L1.Driver exposing (pl_)
 import Test exposing (..)
 
 

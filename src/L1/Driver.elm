@@ -1,11 +1,11 @@
-module Parser.Driver exposing (parse, parseLoop, pl, pl_)
+module L1.Driver exposing (parse, parseLoop, pl, pl_)
 
-import Parser.AST as AST exposing (Element(..))
+import L1.AST as AST exposing (Element(..))
+import L1.Error exposing (Context(..), Problem(..))
+import L1.Loop as Loop
+import L1.Parser as Parser
+import L1.TextCursor exposing (TextCursor)
 import Parser.Advanced as PA
-import Parser.Error exposing (Context(..), Problem(..))
-import Parser.Loop as Loop
-import Parser.Parser as Parser
-import Parser.TextCursor exposing (TextCursor)
 
 
 parseLoop : (String -> Element) -> Int -> String -> TextCursor

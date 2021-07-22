@@ -1,4 +1,4 @@
-module Parser.AST exposing
+module L1.AST exposing
     ( Element(..)
     , Element_(..)
     , Name(..)
@@ -19,10 +19,10 @@ module Parser.AST exposing
     , toStringList
     )
 
+import L1.Error exposing (..)
+import L1.Loc as Loc
+import L1.MetaData exposing (MetaData)
 import Parser.Advanced as Parser
-import Parser.Error exposing (..)
-import Parser.Loc as Loc
-import Parser.MetaData exposing (MetaData)
 
 
 type Element
@@ -205,7 +205,7 @@ join : Element -> List Element -> Element
 join el list =
     case el of
         Element name (EList list1 _) meta ->
-            Element name (EList (list1 ++ list) Parser.MetaData.dummy) meta
+            Element name (EList (list1 ++ list) L1.MetaData.dummy) meta
 
         _ ->
             el
@@ -215,7 +215,7 @@ join2 : Element -> List Element -> Element
 join2 el list =
     case el of
         Element name (EList list1 _) meta ->
-            Element name (EList (list1 ++ list) Parser.MetaData.dummy) meta
+            Element name (EList (list1 ++ list) L1.MetaData.dummy) meta
 
         _ ->
             el
