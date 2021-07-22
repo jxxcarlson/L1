@@ -9,14 +9,14 @@ import Parser.Advanced as PA
 
 
 parseLoop : (String -> Element) -> Int -> String -> TextCursor
-parseLoop parse_ generation str =
-    Loop.parseLoop parse_ generation str
+parseLoop parser generation str =
+    Loop.parseLoop parser generation str
 
 
 parse : (String -> Element) -> Int -> String -> List AST.Element
-parse parse_ generation str =
+parse parser generation str =
     str
-        |> parseLoop parse_ generation
+        |> parseLoop parser generation
         |> .complete
 
 
