@@ -22,6 +22,13 @@ type alias ParseError =
     Parser.Advanced.DeadEnd Context Problem
 
 
+{-| The 'generation' field is used by 'mathText', which
+is keyed node. The generation is updated on each
+keystroke (or debounced keystroke). One has to do
+this to inform the virtual DOM that the math
+element has changed. Otherwise it will not respond
+to edits.
+-}
 type alias RenderArgs =
     { width : Int
     , selectedId : String
@@ -61,6 +68,7 @@ renderElementDict =
         , ( "m", renderMath )
         , ( "mathblock", mathblock )
         , ( "codeblock", codeblock )
+        , ( "indent", indent )
         , ( "mb", mathblock )
         , ( "link", link )
         , ( "image", image )
@@ -204,6 +212,15 @@ gray renderArgs _ _ body =
 quoted : FRender msg
 quoted renderArgs _ _ body =
     render renderArgs body
+
+
+indent : FRender msg
+indent renderArgs _ _ body =
+    column [ indentPadding ] [ render renderArgs body ]
+
+
+indentPadding =
+    E.paddingEach { left = 18, right = 0, top = 0, bottom = 0 }
 
 
 code1 : RenderArgs -> String -> E.Element msg
