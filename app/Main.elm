@@ -7,7 +7,6 @@ import Element exposing (..)
 import Element.Background as Background
 import Element.Font as Font
 import Element.Input as Input
-import Element.Keyed as Keyed
 import File.Download as Download
 import Html exposing (Html)
 import L1.Chunk
@@ -234,8 +233,6 @@ inputText model =
         { onChange = InputText
         , text = model.input
         , placeholder = Nothing
-
-        --, label = Input.labelAbove [ fontGray 0.9 ] <| el [] (text "Source text")
         , label = Input.labelHidden "Enter source text here"
         , spellcheck = False
         }

@@ -270,20 +270,35 @@ code renderArgs _ _ body =
 
 
 fontRGB : FRender msg
+
+
+
+-- fontRGB renderArgs _ _ body =
+
+
 fontRGB renderArgs _ _ body =
     let
-        colorArgs =
-            List.take 3 (AST.toStringList body)
+        _ =
+            Debug.log "XXX body" body
 
-        textArgs =
-            List.drop 3 (AST.toList body) |> List.map (AST.map (\x -> " " ++ x))
+        ( args, realBody ) =
+            AST.argsAndBody 3 body
+
+        _ =
+            Debug.log "XXX" args
+
+        --colorArgs =
+        --    List.take 3 (AST.toStringList body)
+        --
+        --textArgs =
+        --    List.drop 3 (AST.toList body) |> List.map (AST.map (\x -> " " ++ x))
     in
-    case convertRGB colorArgs of
+    case convertRGB args of
         Nothing ->
             el [ Font.color redColor ] (text "Bad RGB args")
 
         Just { r, b, g } ->
-            paragraph [ Font.color (E.rgb255 r g b), E.paddingXY 4 2 ] (List.map (render renderArgs) textArgs)
+            paragraph [ Font.color (E.rgb255 r g b), E.paddingXY 4 2 ] (List.map (render renderArgs) realBody)
 
 
 link : FRender msg
@@ -479,6 +494,10 @@ isDisplayMathMode displayMode =
 
 convertRGB : List String -> Maybe { r : Int, g : Int, b : Int }
 convertRGB data =
+    let
+        _ =
+            Debug.log "XXX Data" data
+    in
     case data of
         r :: g :: b :: [] ->
             Just

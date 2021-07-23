@@ -3,6 +3,7 @@ module L1.AST exposing
     , Element_(..)
     , Name(..)
     , VerbatimType(..)
+    , argsAndBody
     , body
     , body_
     , getText
@@ -21,7 +22,7 @@ module L1.AST exposing
 
 import L1.Error exposing (..)
 import L1.Loc as Loc
-import L1.MetaData exposing (MetaData)
+import L1.MetaData as MetaData exposing (MetaData)
 import Parser.Advanced as Parser
 
 
@@ -205,7 +206,7 @@ join : Element -> List Element -> Element
 join el list =
     case el of
         Element name (EList list1 _) meta ->
-            Element name (EList (list1 ++ list) L1.MetaData.dummy) meta
+            Element name (EList (list1 ++ list) MetaData.dummy) meta
 
         _ ->
             el
@@ -215,7 +216,7 @@ join2 : Element -> List Element -> Element
 join2 el list =
     case el of
         Element name (EList list1 _) meta ->
-            Element name (EList (list1 ++ list) L1.MetaData.dummy) meta
+            Element name (EList (list1 ++ list) MetaData.dummy) meta
 
         _ ->
             el
@@ -265,3 +266,50 @@ indexedMap f list =
 joinText : List Element -> String
 joinText elements =
     List.map getText elements |> String.join " "
+
+
+argsAndBody : Int -> Element -> ( List String, List Element )
+argsAndBody n element =
+    case element of
+        Element name body__ meta ->
+            case body__ of
+                EList [] _ ->
+                    ( [], [] )
+
+                EList (first :: rest) _ ->
+                    let
+                        args =
+                            getText first |> String.words
+
+                        realArgs =
+                            List.take n args
+
+                        lastWords =
+                            List.drop n args |> String.join " "
+
+                        elt =
+                            Text lastWords MetaData.dummy
+                    in
+                    ( realArgs, elt :: rest )
+
+                _ ->
+                    ( [], [] )
+
+        EList (first :: rest) _ ->
+            let
+                args =
+                    getText first |> String.words
+
+                realArgs =
+                    List.take n args
+
+                lastWords =
+                    List.drop n args |> String.join " "
+
+                elt =
+                    Text lastWords MetaData.dummy
+            in
+            ( realArgs, elt :: rest )
+
+        _ ->
+            ( [], [] )
