@@ -29,8 +29,8 @@ parseLoop parser generation str =
             ParserTools.loop (TextCursor.init generation str) (nextCursor parser)
                 |> (\tc_ -> { tc_ | complete = List.reverse tc_.complete })
 
-        _ =
-            Debug.log (L1.Print.print result) "-"
+        --_ =
+        --    Debug.log (L1.Print.print result) "-"
     in
     result
 
@@ -55,11 +55,8 @@ nextCursor parser cursor =
 
     else
         let
-            _ =
-                Debug.log (L1.Print.print cursor) ""
-
             --_ =
-            --    Debug.log "STACK" cursor.stack
+            --    Debug.log (L1.Print.print cursor) ""
             textToProcess =
                 String.dropLeft cursor.scanPoint cursor.source
 
@@ -105,10 +102,6 @@ nextCursor parser cursor =
 
 
 exit parser cursor message =
-    let
-        _ =
-            Debug.log (Console.bgRed <| String.fromInt cursor.count ++ "EXIT Loop, (" ++ message ++ ")")
-    in
     ParserTools.Done { cursor | message = message }
 
 
@@ -125,9 +118,9 @@ push cursor ({ prefix, isMatch } as prefixData) =
     case Config.lookup Configuration.configuration prefix of
         Nothing ->
             ParserTools.Loop <|
-                TextCursor.push (Debug.log (Console.cyan "PUSHING MARK with prefix") prefixData)
+                TextCursor.push prefixData
                     (TextCursor.EndMark_ prefix)
-                    { cursor | message = "PUSH Endmark " ++ prefix }
+                    { cursor | message = "PUSH E" }
 
         Just expectation ->
             let
@@ -141,14 +134,10 @@ push cursor ({ prefix, isMatch } as prefixData) =
                         NormalScan
             in
             ParserTools.Loop <|
-                TextCursor.push (Debug.log (Console.cyan "PUSHING with prefix") prefixData) (TextCursor.Expect_ expectation) { cursor | message = "PUSH", scannerType = scannerType }
+                TextCursor.push prefixData (TextCursor.Expect_ expectation) { cursor | message = "PUSH", scannerType = scannerType }
 
 
 shortcircuit prefix cursor =
-    let
-        _ =
-            Debug.log (Console.bgBlue "SHORTCIRCUIT") prefix
-    in
     if List.member prefix [ "#", "##", "###", "####" ] then
         ParserTools.Done <| Handle.heading2 cursor
 

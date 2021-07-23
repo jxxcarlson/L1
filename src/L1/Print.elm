@@ -20,16 +20,10 @@ print cursor =
         ++ printSimplifiedStack cursor.stack
 
 
-
---|> Library.Utility.normalize
--- |> String.replace "[ " "["
--- |> String.trim
-
-
 printMessage cursor =
     (String.fromInt cursor.count |> String.padLeft 2 '.')
-        ++ (cursor.message |> String.padLeft 6 '.')
-        ++ Debug.toString cursor.scannerType
+        ++ (cursor.message |> String.padLeft 7 '.')
+        -- ++ Debug.toString cursor.scannerType
         ++ " :: "
         |> Console.bgCyan
         |> Console.blue

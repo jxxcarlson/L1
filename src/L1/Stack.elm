@@ -43,8 +43,7 @@ isStrictlyReducible stack =
 
 isReducibleWith : String -> List StackItem -> Bool
 isReducibleWith str stack =
-    ---stack |> simplifyStack |> (\st -> st ++ [ str ]) |> Debug.log (Console.yellow "SIMPLIFIED STACK") |> Check.reduces
-    stack |> simplifyStack |> (\st -> str :: st) |> Debug.log (Console.yellow "SIMPLIFIED STACK") |> Check.reduces
+    stack |> simplifyStack |> (\st -> str :: st) |> Check.reduces
 
 
 isNotReducibleWith : String -> List StackItem -> Bool

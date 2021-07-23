@@ -29,10 +29,6 @@ branch configuration_ tc firstChar prefix_ =
             && Maybe.map (Stack.beginSymbol >> Config.isVerbatimSymbol) (List.head tc.stack)
             == Just True
     then
-        let
-            _ =
-                Debug.log (Console.magenta "BRANCH") 1
-        in
         POP
 
     else if Config.notDelimiter Configuration.configuration Config.AllDelimiters firstChar then
@@ -42,18 +38,10 @@ branch configuration_ tc firstChar prefix_ =
         PUSH { prefix = prefix, isMatch = isMatch }
 
     else if canPop configuration_ tc prefix_ then
-        let
-            _ =
-                Debug.log (Console.magenta "BRANCH") 2
-        in
         POP
 
     else
         COMMIT
-
-
-
---|> Debug.log (Console.cyan "BRANCH")
 
 
 {-| The parser has paused at character c. If the prefix of the
@@ -61,11 +49,7 @@ remaining source text that begins with character c what we expect?
 -}
 canPop : Configuration -> TextCursor -> String -> Bool
 canPop configuration_ tc prefix =
-    let
-        _ =
-            Debug.log (Console.cyan "canPop, isReducibleWith") ( prefix, tc.stack |> Stack.simplifyStack )
-    in
-    Stack.isReducibleWith prefix tc.stack |> Debug.log (Console.cyan "canPop")
+    Stack.isReducibleWith prefix tc.stack
 
 
 canPopPrecondition : Configuration -> TextCursor -> String -> Bool
@@ -104,22 +88,16 @@ canPush configuration_ tc prefix =
 
 canPushNonVerbatim : Configuration -> TextCursor -> String -> { value : Bool, prefix : String, isMatch : Bool }
 canPushNonVerbatim configuration_ tc prefix =
-    (let
-        _ =
-            Debug.log (Console.yellow "canPushNonVerbatim") prefix
-     in
-     if prefix == "" then
+    if prefix == "" then
         { value = False, prefix = "", isMatch = False }
 
-     else if canPush2 configuration_ tc prefix then
+    else if canPush2 configuration_ tc prefix then
         { value = True, prefix = prefix, isMatch = False }
 
-     else
+    else
         -- Try a substring.  A prefix might be "|" or "||", for example,
         -- So we try "||" and if that fails, we try "|"
         canPush configuration_ tc (String.dropLeft 1 prefix)
-    )
-        |> Debug.log (Console.yellow "canPushNonVerbatim, value")
 
 
 canPush2 : Configuration -> { a | scanPoint : Int, stack : List Stack.StackItem } -> String -> Bool

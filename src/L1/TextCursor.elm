@@ -184,10 +184,10 @@ push ({ prefix, isMatch } as prefixData) proto tc =
                 EndMark_ prefix_ ->
                     if newContent == "" then
                         -- TODO: need real position
-                        Debug.log (Console.yellow "PUSH END MARK (1)") <| Stack.EndMark { content = prefix_, position = { start = tc.scanPoint, end = tc.scanPoint + scanPointIncrement } } :: tc.stack
+                        Stack.EndMark { content = prefix_, position = { start = tc.scanPoint, end = tc.scanPoint + scanPointIncrement } } :: tc.stack
 
                     else
-                        Debug.log (Console.yellow "PUSH END MARK (2)") <| Stack.TextItem { content = newContent, position = { start = tc.scanPoint + 1, end = tc.scanPoint + String.length newContent } } :: Stack.EndMark { content = prefix_, position = { start = -1, end = -1 } } :: tc.stack
+                        Stack.TextItem { content = newContent, position = { start = tc.scanPoint + 1, end = tc.scanPoint + String.length newContent } } :: Stack.EndMark { content = prefix_, position = { start = -1, end = -1 } } :: tc.stack
     in
     { tc
         | count = tc.count + 1
@@ -203,10 +203,6 @@ pop parse prefix cursor =
     -- case of language L1.  It is time to pop the stack
     -- and update the cursor.  We split this operation into
     -- two case, depending on whether cursor.text is empty.
-    --let
-    --    _ =
-    --        Debug.log (Console.cyan "POP, prefix") prefix
-    --in
     case List.head cursor.stack of
         Nothing ->
             { cursor | count = cursor.count + 1, scanPoint = cursor.scanPoint + 1, scannerType = NormalScan }
@@ -252,9 +248,6 @@ commit_ parse tc =
 finishUp : TextCursor -> TextCursor
 finishUp tc =
     let
-        _ =
-            Debug.log (Console.yellow "finishUp") "!!"
-
         parsed =
             if tc.text == "" then
                 tc.parsed
@@ -270,9 +263,6 @@ finishUp tc =
 
 finishUpWithReducibleStack parse tc =
     let
-        _ =
-            Debug.log (Console.yellow "finishUpWithReducibleStack") "!!"
-
         stackData =
             tc.stack |> List.reverse |> List.map Stack.show |> String.join ""
     in

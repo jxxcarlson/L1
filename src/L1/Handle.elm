@@ -31,7 +31,7 @@ item tc =
                     goodstuff
 
                 Err _ ->
-                    Text ("Error on '" ++ tc.source ++ "'") MetaData.dummy
+                    Element (Name "highlight") (Text ("Error on '" ++ tc.source ++ "'") MetaData.dummy) MetaData.dummy
     in
     { tc | complete = parsed_ :: tc.complete }
 
@@ -39,7 +39,7 @@ item tc =
 pipe tc =
     let
         source_ =
-            "[" ++ String.dropLeft 1 tc.source ++ "]" |> Debug.log (Console.bgBlue "PIPE SOURCE")
+            "[" ++ String.dropLeft 1 tc.source ++ "]"
     in
     { tc | complete = Parser.parse tc.generation source_ :: tc.complete }
 
