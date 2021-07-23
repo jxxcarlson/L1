@@ -206,7 +206,7 @@ wordCountElement str =
 
 outputDisplay_ : Model -> Element Msg
 outputDisplay_ model =
-    Keyed.column
+    column
         [ spacing 18
         , Background.color (Element.rgb 1.0 1.0 1.0)
         , paddingXY 24 36
@@ -216,9 +216,7 @@ outputDisplay_ model =
         , moveUp 9
         , Font.size 12
         ]
-        (List.map (\para -> paragraph [] para) (renderDocument model.count model.input)
-            |> keyIt model.count
-        )
+        (List.map (\para -> paragraph [] para) (renderDocument model.count model.input))
 
 
 keyIt : Int -> List b -> List ( String, b )
