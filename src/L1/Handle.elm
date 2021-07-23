@@ -18,9 +18,17 @@ heading2 tc =
                     goodstuff
 
                 Err _ ->
-                    Text ("Error on '" ++ tc.source ++ "'") MetaData.dummy
+                    errorElement tc.source
     in
     { tc | complete = parsed_ :: tc.complete }
+
+
+errorElement message =
+    EList
+        [ Element (Name "redlight") (Text "Error " MetaData.dummy) MetaData.dummy
+        , Element (Name "bluelight") (Text message MetaData.dummy) MetaData.dummy
+        ]
+        MetaData.dummy
 
 
 item tc =
@@ -31,7 +39,7 @@ item tc =
                     goodstuff
 
                 Err _ ->
-                    Element (Name "highlight") (Text ("Error on '" ++ tc.source ++ "'") MetaData.dummy) MetaData.dummy
+                    errorElement tc.source
     in
     { tc | complete = parsed_ :: tc.complete }
 

@@ -46,6 +46,8 @@ renderElementDict =
         , ( "underline", underline )
         , ( "hide", hide )
         , ( "highlight", highlight )
+        , ( "bluelight", bluelight )
+        , ( "redlight", redlight )
         , ( "highlightRGB", highlight )
         , ( "fontRGB", fontRGB )
         , ( "red", red )
@@ -162,6 +164,16 @@ hide renderArgs _ _ body =
 highlight : FRender msg
 highlight renderArgs _ _ body =
     el [ Background.color yellowColor, E.paddingXY 4 2 ] (render renderArgs body)
+
+
+bluelight : FRender msg
+bluelight renderArgs _ _ body =
+    el [ Background.color lightBlueColor, E.paddingXY 4 2 ] (render renderArgs body)
+
+
+redlight : FRender msg
+redlight renderArgs _ _ body =
+    el [ Background.color lightRedColor, E.paddingXY 4 2 ] (render renderArgs body)
 
 
 red : FRender msg
@@ -515,8 +527,16 @@ redColor =
     E.rgb 0.7 0 0
 
 
+lightRedColor =
+    E.rgb 1.0 0.8 0.8
+
+
 blueColor =
     E.rgb 0 0 0.8
+
+
+lightBlueColor =
+    E.rgb 0.8 0.8 1.0
 
 
 darkBlueColor =
