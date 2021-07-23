@@ -38,25 +38,43 @@ Items must be preceded and followed by a blank line.  The colon symbol must be i
 |heading3 Blocks
 
 A [i block element] is an alternate way of writing an element without having to worry about it being closed by a right bracket `]`.  However, this method has much better error-handling properties.
+Here is an indentation block:
 
 ||codeblock
-|mathblock
-\\int_0^1 x^n dx
-  =
-\\frac{1}{n+1}
+|indent
+This is a test.
+I repeat: [i a test!]
 
-This block is rendered as
+It is rendered as below:
 
-|mathblock
-\\int_0^1 x^n dx
-  =
-\\frac{1}{n+1}
+|indent
+This is a test.
+I repeat: [i a test!]
 
 Note the pipe symbol `|` in first position, that is, at the left margin.  Because the pipe symbol cannot start a block element unless it is first position,  one can still say things like [blue a = (b|c)]. A  block consists of its first line, which names the block, and its body, which consists of non-blank lines followed by a blank line. The first line always has form `|name` with no space between `|` and `name.`
 
+### Verbatim blocks
+
+Below is a block for displayed math text.  Note the double pipe symbol.  It is used for [i verbatim]
+blocks.  These are blocks whose body is not parsed, i.e., are passed on directly to the renderer.
+
+||codeblock
+||mathblock
+\\int_0^1 x^n dx
+  =
+\\frac{1}{n+1}
+
+It is rendered as
+
+||mathblock
+\\int_0^1 x^n dx
+  =
+\\frac{1}{n+1}
+
+
 For inline mathematics, one still has the familiar `$a^2 + b^2 = c^2$`, which renders as $a^2 + b^2 = c^2$.
 
-### Verbatim blocks
+
 
 One can also have verbatim blocks, where the body is not subject to the usual rules, e.g.,
 
