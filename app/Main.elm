@@ -227,42 +227,6 @@ keyIt k list =
 
 
 
--- renderDocument : Int -> String -> List (List (Element Msg))
--- RENDER STRING TO HTML MSG
-
-
-initState k =
-    { generation = k
-    , blockOffset = 0
-    , selectedId = ""
-    , width = 300
-    }
-
-
-initStateWithData k data =
-    { generation = k
-    , blockOffset = 0
-    , selectedId = ""
-    , width = 300
-    , parserData = data
-    }
-
-
-paragraphFormat =
-    { maximumWidth = 80, optimalWidth = 70, stringWidth = String.length }
-
-
-paragraphFormat2 =
-    { maximumWidth = 160, optimalWidth = 150, stringWidth = String.length }
-
-
-
---keyedNode : Int -> List Html.Parser.Node -> Element msg
---keyedNode k element =
---    Html.Parser.Util.toVirtualDom element
---        |> keyIt k
---        |> Html.Keyed.node "div" []
---        |> Element.html
 -- INPUT
 
 
