@@ -29,7 +29,7 @@ main =
 
 
 type alias Model =
-    { input : String
+    { sourceText : String
     , count : Int
     , windowHeight : Int
     , windowWidth : Int
@@ -55,7 +55,7 @@ initialText =
 
 init : Flags -> ( Model, Cmd Msg )
 init flags =
-    ( { input = initialText
+    ( { sourceText = initialText
       , count = 1
       , windowHeight = flags.height
       , windowWidth = flags.width
@@ -90,7 +90,7 @@ update msg model =
 
         InputText str ->
             ( { model
-                | input = String.trim str
+                | sourceText = String.trim str
                 , count = model.count + 1
               }
             , Cmd.none
@@ -98,14 +98,14 @@ update msg model =
 
         ClearText ->
             ( { model
-                | input = ""
+                | sourceText = ""
                 , count = model.count + 1
               }
             , Cmd.none
             )
 
         LoadDocumentText text ->
-            ( { model | input = text, count = model.count + 1 }, Cmd.none )
+            ( { model | sourceText = text, count = model.count + 1 }, Cmd.none )
 
         ExportMarkdown ->
             ( model, exportMarkdown model "article" )
@@ -118,7 +118,7 @@ exportMarkdown : Model -> String -> Cmd msg
 exportMarkdown model fileName =
     let
         exportData =
-            toMarkdown model.input
+            toMarkdown model.sourceText
     in
     download (fileName ++ ".md") "text/markdown" exportData
 
@@ -186,7 +186,7 @@ rhs model =
             , moveUp 9
             , Font.size 14
             ]
-            [ dummyButton, text ("generation: " ++ String.fromInt model.count), wordCountElement model.input ]
+            [ dummyButton, text ("generation: " ++ String.fromInt model.count), wordCountElement model.sourceText ]
         , renderedText model
         ]
 
@@ -213,7 +213,7 @@ renderedText model =
         , moveUp 9
         , Font.size 12
         ]
-        (List.map (\para -> paragraph [] para) (renderDocument model.count model.input))
+        (List.map (\para -> paragraph [] para) (renderDocument model.count model.sourceText))
 
 
 keyIt : Int -> List b -> List ( String, b )
@@ -229,7 +229,7 @@ inputText : Model -> Element Msg
 inputText model =
     Input.multiline [ height (px (panelHeight_ model)), width (px panelWidth_), Font.size 14 ]
         { onChange = InputText
-        , text = model.input
+        , text = model.sourceText
         , placeholder = Nothing
         , label = Input.labelHidden "Enter source text here"
         , spellcheck = False
