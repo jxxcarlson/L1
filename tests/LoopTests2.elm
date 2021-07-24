@@ -131,9 +131,9 @@ suite =
                     "[a [b c] d]"
                         |> pl_
                         |> Expect.equal [ Element_ (Name "a") (EList_ [ Element_ (Name "b") (EList_ [ Text_ "c " ]), Text_ "  d" ]) ]
+            , test "[a $b c$ [d e]]" <|
+                \_ ->
+                    "[a $b c$ [d e]]"
+                        |> pl_
+                        |> Expect.equal [ Text_ " ", Element_ (Name "a") (EList_ [ Verbatim_ Math "b c ", Text_ " ", Element_ (Name "d") (EList_ [ Text_ "e " ]) ]) ]
             ]
-
-
-
--- "[a [b c] d]"
--- [Element_ (Name "a") (EList_ [Element_ (Name "b") (EList_ [Text_ ("c ")]),Text_ ("  d")])]
