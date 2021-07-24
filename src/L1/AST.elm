@@ -106,6 +106,9 @@ getText element =
         Element _ body__ _ ->
             getText body__
 
+        Verbatim _ str _ ->
+            str
+
         EList list _ ->
             List.map getText list |> String.join " "
 
