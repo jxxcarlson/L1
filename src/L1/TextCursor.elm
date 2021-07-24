@@ -13,7 +13,7 @@ import L1.AST as AST exposing (Element(..), Name(..))
 import L1.Config as Config exposing (Configuration, EType(..), Expectation)
 import L1.Configuration as Configuration
 import L1.MetaData as MetaData exposing (MetaData)
-import L1.Stack as Stack exposing (StackItem)
+import L1.Stack as Stack exposing (StackItem(..))
 import Library.Console as Console
 import Library.ParserTools as ParserTools
 import Library.Utility exposing (debug)
@@ -140,14 +140,21 @@ add parse_ str tc =
         _ =
             debug "add, String.length str" ( str, String.length str )
     in
-    { tc
-        | count = tc.count + 1
+    if tc.stack == [] then
+        { tc
+            | count = tc.count + 1
+            , scanPoint = tc.scanPoint + String.length str
+            , complete = parse_ str :: tc.parsed ++ tc.complete
+            , parsed = []
+        }
 
-        -- , stack = TextItem { content = str } :: tc.stack
-        , scanPoint = tc.scanPoint + String.length str
-        , complete = parse_ str :: tc.parsed ++ tc.complete
-        , parsed = []
-    }
+    else
+        { tc
+            | count = tc.count + 1
+            , stack = TextItem { content = str, position = { start = 0, end = String.length str } } :: tc.stack
+            , scanPoint = tc.scanPoint + String.length str
+            , parsed = []
+        }
 
 
 {-| A
