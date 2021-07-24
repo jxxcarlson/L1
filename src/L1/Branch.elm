@@ -33,19 +33,6 @@ branch configuration_ tc firstChar prefix_ =
         POP
 
     else if Config.notDelimiter Configuration.configuration Config.AllDelimiters firstChar then
-        let
-            _ =
-                debug "firstChar" firstChar
-
-            _ =
-                debug "stack" (List.map Stack.show tc.stack)
-
-            _ =
-                debug "stack" (Stack.simplifyStack tc.stack |> List.reverse |> String.join "")
-
-            _ =
-                debug "is reducible" (Stack.isReducible tc.stack)
-        in
         ADD
 
     else if value then

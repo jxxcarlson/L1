@@ -278,20 +278,8 @@ fontRGB : FRender msg
 
 fontRGB renderArgs _ _ body =
     let
-        _ =
-            Debug.log "XXX body" body
-
         ( args, realBody ) =
             AST.argsAndBody 3 body
-
-        _ =
-            Debug.log "XXX" args
-
-        --colorArgs =
-        --    List.take 3 (AST.toStringList body)
-        --
-        --textArgs =
-        --    List.drop 3 (AST.toList body) |> List.map (AST.map (\x -> " " ++ x))
     in
     case convertRGB args of
         Nothing ->
@@ -303,7 +291,7 @@ fontRGB renderArgs _ _ body =
 
 link : FRender msg
 link renderArgs name args body =
-    case AST.getTextList body of
+    case AST.getArgs body of
         label :: url :: rest ->
             E.newTabLink []
                 { url = url
@@ -363,17 +351,14 @@ item renderArgs name args body =
 image : FRender msg
 image renderArgs name _ body =
     let
-        args_ =
-            getText2 body |> String.words
-
         args =
-            List.take (List.length args_ - 1) args_
+            body |> AST.getTextList |> List.reverse
 
         url =
-            List.head (List.reverse args_) |> Maybe.withDefault "no-image"
+            List.head args |> Maybe.withDefault "no-image"
 
         dict =
-            Utility.keyValueDict args
+            Utility.keyValueDict (List.drop 1 args)
 
         description =
             Dict.get "caption" dict |> Maybe.withDefault ""
@@ -494,10 +479,6 @@ isDisplayMathMode displayMode =
 
 convertRGB : List String -> Maybe { r : Int, g : Int, b : Int }
 convertRGB data =
-    let
-        _ =
-            Debug.log "XXX Data" data
-    in
     case data of
         r :: g :: b :: [] ->
             Just

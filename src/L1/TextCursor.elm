@@ -133,13 +133,6 @@ advanceVerbatim verbatimChar str =
 
 add : (String -> Element) -> String -> TextCursor -> TextCursor
 add parse_ str tc =
-    let
-        _ =
-            debug "add, tc.scanpoint" tc.scanPoint
-
-        _ =
-            debug "add, String.length str" ( str, String.length str )
-    in
     if tc.stack == [] then
         { tc
             | count = tc.count + 1

@@ -6,6 +6,7 @@ module L1.AST exposing
     , argsAndBody
     , body
     , body_
+    , getArgs
     , getText
     , getTextList
     , indexedMap
@@ -114,6 +115,28 @@ getText element =
 
         _ ->
             ""
+
+
+getArgs : Element -> List String
+getArgs element =
+    (case element of
+        Text s _ ->
+            [ s ]
+
+        Element _ body__ _ ->
+            getArgs body__
+
+        Verbatim _ str _ ->
+            [ str ]
+
+        EList list _ ->
+            List.map getText list
+
+        _ ->
+            []
+    )
+        |> List.map String.trim
+        |> List.filter (\s -> s /= "")
 
 
 getTextList : Element -> List String
