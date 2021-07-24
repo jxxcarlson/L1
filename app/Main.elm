@@ -13,8 +13,10 @@ import Html exposing (Html)
 import L1.Chunk
 import L1.Document
 import L1.Parser
+import Process
 import Render.Elm
 import Render.Markdown
+import Task
 
 
 main =
@@ -28,7 +30,6 @@ main =
 
 type alias Model =
     { input : String
-    , renderedText : List (Element Msg)
     , count : Int
     , windowHeight : Int
     , windowWidth : Int
@@ -41,6 +42,7 @@ type Msg
     | ClearText
     | LoadDocumentText String
     | ExportMarkdown
+    | IncrementCounter
 
 
 type alias Flags =
@@ -54,12 +56,11 @@ initialText =
 init : Flags -> ( Model, Cmd Msg )
 init flags =
     ( { input = initialText
-      , renderedText = render 0 initialText
-      , count = 0
+      , count = 1
       , windowHeight = flags.height
       , windowWidth = flags.width
       }
-    , Cmd.none
+    , Process.sleep 100 |> Task.perform (always IncrementCounter)
     )
 
 
@@ -103,17 +104,19 @@ update msg model =
         ClearText ->
             ( { model
                 | input = ""
-                , renderedText = render model.count ""
                 , count = model.count + 1
               }
             , Cmd.none
             )
 
         LoadDocumentText text ->
-            ( { model | input = text }, Cmd.none )
+            ( { model | input = text, count = model.count + 1 }, Cmd.none )
 
         ExportMarkdown ->
             ( model, exportMarkdown model "article" )
+
+        IncrementCounter ->
+            ( model, Cmd.none )
 
 
 exportMarkdown : Model -> String -> Cmd msg
