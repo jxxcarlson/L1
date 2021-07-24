@@ -352,7 +352,7 @@ image : FRender msg
 image renderArgs name _ body =
     let
         args =
-            body |> AST.getTextList |> List.reverse
+            body |> AST.getArgs |> List.reverse
 
         url =
             List.head args |> Maybe.withDefault "no-image"

@@ -3,7 +3,7 @@ module Data.Article exposing (text)
 
 text =
     """
-[image caption:Camperdown-Prospect-Park-Brooklyn https://upload.wikimedia.org/wikipedia/commons/2/20/Camperdown_Elm_Prospect_Park_Brooklyn.jpg]
+[image "caption:Camperdown Elm Tree, Prospect Park Brooklyn" https://upload.wikimedia.org/wikipedia/commons/2/20/Camperdown_Elm_Prospect_Park_Brooklyn.jpg]
 
 # Fault-Tolerant Parsing
 
@@ -98,10 +98,13 @@ where `((c.stack))` means [i make a  valid element whose text comes from] `c.sta
 
 
 
+
 ## References
 
+1. [link "Matt Griffith, elm-markup" https://package.elm-lang.org/packages/mdgriffith/elm-markup/latest/)]
 
-[link "Error recovery with parser combinators"  "https://eyalkalderon.com/blog/nom-error-recovery/"]
+2. [link "Discussion on Elm discourse" https://discourse.elm-lang.org/t/parsers-with-error-recovery/6262]
 
+3. [link "Error recovery with parser combinators"  "https://eyalkalderon.com/blog/nom-error-recovery/"]
 
 """

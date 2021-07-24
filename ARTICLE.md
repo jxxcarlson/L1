@@ -2,7 +2,7 @@
 
 Fault-tolerant parsing has been studied by many ... XXXX.  The approach
 taken here is based on Matthew Griffiths' work in [elm-markup](https://package.elm-lang.org/packages/mdgriffith/elm-ui/latest/), which introduces
-the notion of a *TextCursor* and Rob Simmons' work on [Brilliant.org's](https://brilliant.org) Camperdown parser.
+the notion of a *TextCursor* and work at [Brilliant.org's](https://brilliant.org) on a domain-specific parser by the team led by Rob Simmons.
 For purposes of exposition, we will discuss the main ideas in the context
 of fault-tolerant parser for a simple markup language which we
 call L1.  It can be thought of as a kind of mini-Camperdown.  There is a pre-alpha demo at [github.io](https://jxxcarlson.github.io/app/L1/) with code on [github](https://github.com/jxxcarlson/L1).
@@ -195,7 +195,7 @@ completed = [(tasty.), (b very), (i was), (The fish)]
 stack = [ ]
 ```
 
-Here `(x)` means `parse x)`.  Thus `(The fish)` is really text element
+Here `(x)` means `parse x`.  Thus `(The fish)` is really text element
 `[Text "The fish"]` and  `(i was)` is really `Element (Name "i") (Text "was")`.  The fact that the stack is empty means that all of the text was parsed. We can now commit the cursor and extract the AST by reversing the list *complete.*
 
 
@@ -239,7 +239,13 @@ The point is recover in such a way that the author can examine a complete, prese
 
 
 
+### References
 
+1. [Matt Griffith, elm-markup](https://package.elm-lang.org/packages/mdgriffith/elm-markup/latest/)
+
+2. [Discussion on Elm discourse](https://discourse.elm-lang.org/t/parsers-with-error-recovery/6262)
+
+3. [Error recovery with parser combinators](https://eyalkalderon.com/blog/nom-error-recovery/)
 
 
 
