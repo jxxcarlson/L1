@@ -95,7 +95,6 @@ update msg model =
         InputText str ->
             ( { model
                 | input = String.trim str
-                , renderedText = render model.count (String.trim str)
                 , count = model.count + 1
               }
             , Cmd.none
@@ -161,14 +160,14 @@ mainColumn model =
         [ column [ spacing 48, width (px appWidth_), height (px (appHeight_ model)) ]
             [ title "D"
             , column [ spacing 12 ]
-                [ row [ spacing 12 ] [ inputElement model, outputDisplay model ]
+                [ row [ spacing 12 ] [ editor model, rhs model ]
                 ]
             , row [ Font.size 14, Font.color whiteColor ] []
             ]
         ]
 
 
-inputElement model =
+editor model =
     column [ spacing 8, moveUp 9 ]
         [ row [ spacing 12 ] [ exampleDocButton, articleButton, exportToMarkdownButton ]
         , inputText model
@@ -180,8 +179,8 @@ title str =
     row [ centerX, fontGray 0.9 ] [ text str ]
 
 
-outputDisplay : Model -> Element Msg
-outputDisplay model =
+rhs : Model -> Element Msg
+rhs model =
     column [ spacing 8 ]
         [ row
             [ fontGray 0.9
@@ -190,7 +189,7 @@ outputDisplay model =
             , Font.size 14
             ]
             [ dummyButton, text ("generation: " ++ String.fromInt model.count), wordCountElement model.input ]
-        , outputDisplay_ model
+        , renderedText model
         ]
 
 
@@ -204,8 +203,8 @@ wordCountElement str =
     row [ spacing 8 ] [ el [] (text <| "words:"), el [] (text <| String.fromInt <| wordCount <| str) ]
 
 
-outputDisplay_ : Model -> Element Msg
-outputDisplay_ model =
+renderedText : Model -> Element Msg
+renderedText model =
     column
         [ spacing 18
         , Background.color (Element.rgb 1.0 1.0 1.0)

@@ -68,7 +68,7 @@ It is rendered as
 
 ||mathblock
 \\int_0^1 x^n dx
-  =
+ =
 \\frac{1}{n+1}
 
 
@@ -76,27 +76,45 @@ For inline mathematics, one still has the familiar `$a^2 + b^2 = c^2$`, which re
 
 
 
-One can also have verbatim blocks, where the body is not subject to the usual rules, e.g.,
+Verbatim blocks are also used for code:
 
 ||codeblock
 ||codeblock
-a[i] = 1
-    b[j] = 2
+import sys
+"""
+        ++ String.fromChar '\u{00A0}'
+        ++ """
+capital = float(sys.argv[1])
+...
 
 which is rendered as
 
 ||codeblock
-a[i] = 1
-    b[j] = 2
+import sys
+"""
+        ++ String.fromChar '\u{00A0}'
+        ++ """
+capital = float(sys.argv[1])
+rate = float(sys.argv[2])/100.0
+years = int(sys.argv[3])
+"""
+        ++ String.fromChar '\u{00A0}'
+        ++ """
+for i in range(0, years):
+  capital = (1 + rate)*capital
+  print "%3d %8.0f" % (i, capital)
 
-Verbatim blocks begin with a double pipe `||` and in all other respects are like ordinary blocks.  Note that for inline code, one can use backticks, just as in Markdown:
+Verbatim blocks begin with a double pipe `||` and in all other respects are like ordinary blocks.
+[b Caveat:] When you have multiple paragraphs in a verbatim block, as above, the "blank" lines must contain at least one space.
+
+
+For inline code, one can use backticks, just as in Markdown:
 
 ||codeblock
-This is code: `a[i] = 1.`
+`a[i] = 1.`
 
-The rendered form is
+The rendered form is `a[i] = 1`
 
-:`a[i] = 1`
 
 
 
