@@ -29,8 +29,8 @@ parseLoop parser generation str =
             ParserTools.loop (TextCursor.init generation str) (nextCursor parser)
                 |> (\tc_ -> { tc_ | complete = List.reverse tc_.complete })
 
-        --_ =
-        --    Debug.log (L1.Print.print result) "-"
+        _ =
+            Debug.log (L1.Print.print result) "-"
     in
     result
 
@@ -55,8 +55,9 @@ nextCursor parser cursor =
 
     else
         let
-            --_ =
-            --    Debug.log (L1.Print.print cursor) ""
+            _ =
+                Debug.log (L1.Print.print cursor) ""
+
             textToProcess =
                 String.dropLeft cursor.scanPoint cursor.source
 
