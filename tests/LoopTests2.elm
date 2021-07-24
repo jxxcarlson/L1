@@ -115,17 +115,17 @@ suite =
                 \_ ->
                     "[b L1 GOOD"
                         |> pl_
-                        |> Expect.equal [ Element_ (Name "error") (Text_ " unmatched ["), Text_ "b L1 GOOD" ]
+                        |> Expect.equal [ Element_ (Name "error") (Text_ " unmatched '['"), Text_ "b L1 GOOD" ]
             , test "[b L1 is  [i somewhat] like Lisp" <|
                 \_ ->
                     "[b L1 is  [i somewhat] like Lisp"
                         |> pl_
-                        |> Expect.equal [ Element_ (Name "error") (Text_ " unmatched ["), Text_ "b L1 is  ", Element_ (Name "i") (EList_ [ Text_ "somewhat" ]), Text_ " like Lisp" ]
+                        |> Expect.equal [ Element_ (Name "error") (Text_ " unmatched '['"), Text_ "b L1 is  ", Element_ (Name "i") (EList_ [ Text_ "somewhat" ]), Text_ " like Lisp" ]
             , test "[b aa] $i BB cc" <|
                 \_ ->
                     "[b aa] $i BB cc"
                         |> pl_
-                        |> Expect.equal [ Element_ (Name "b") (EList_ [ Text_ "aa" ]), Text_ " ", Element_ (Name "error") (Text_ " unmatched $"), Text_ "i BB cc" ]
+                        |> Expect.equal [ Element_ (Name "b") (EList_ [ Text_ "aa" ]), Text_ " ", Element_ (Name "error") (Text_ " unmatched '$'"), Text_ "i BB cc" ]
             , test "[a [b c] d]" <|
                 \_ ->
                     "[a [b c] d]"
