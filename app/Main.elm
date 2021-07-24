@@ -64,11 +64,6 @@ init flags =
     )
 
 
-render : Int -> String -> List (Element Msg)
-render k str =
-    Render.Elm.renderList renderArgs (L1.Chunk.parse (L1.Parser.parse k) k str)
-
-
 renderDocument : Int -> String -> List (List (Element Msg))
 renderDocument generation document =
     document
