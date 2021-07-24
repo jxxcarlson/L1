@@ -11,7 +11,7 @@ text =
 
 :[i italic text is very [b bold]]
 
-|heading2 Conveniences
+| heading2 Conveniences
 
 In addition to the basic syntax, there are conveniences for common constructs.
 Titles and section headings, for example, can be done as in Markdown:
@@ -22,7 +22,7 @@ Such a heading must be preceded and followed by a blank line.
 
 Conveniences can always be written in the standard way, e.g., `[heading1 The Markup Language]`.
 
-|heading3 Items
+| heading3 Items
 
 
 Items are a convenience used to indent text:
@@ -35,19 +35,19 @@ which renders as
 
 Items must be preceded and followed by a blank line.  The colon symbol must be in first position.
 
-|heading3 Blocks
+| heading3 Blocks
 
 A [i block element] is an alternate way of writing an element without having to worry about it being closed by a right bracket `]`.  However, this method has much better error-handling properties.
 Here is an indentation block:
 
-||codeblock
-|indent
+|| codeblock
+| indent
 This is a test.
 I repeat: [i a test!]
 
 It is rendered as below:
 
-|indent
+| indent
 This is a test.
 I repeat: [i a test!]
 
@@ -58,15 +58,15 @@ Note the pipe symbol `|` in first position, that is, at the left margin.  Becaus
 Below is a block for displayed math text.  Note the double pipe symbol.  It is used for [i verbatim]
 blocks.  These are blocks whose body is not parsed, i.e., are passed on directly to the renderer.
 
-||codeblock
-||mathblock
+|| codeblock
+|| mathblock
 \\int_0^1 x^n dx
   =
 \\frac{1}{n+1}
 
 It is rendered as
 
-||mathblock
+|| mathblock
 \\int_0^1 x^n dx
  =
 \\frac{1}{n+1}
@@ -78,8 +78,8 @@ For inline mathematics, one still has the familiar `$a^2 + b^2 = c^2$`, which re
 
 Verbatim blocks are also used for code:
 
-||codeblock
-||codeblock
+|| codeblock
+|| codeblock
 import sys
 """
         ++ String.fromChar '\u{00A0}'
@@ -89,7 +89,7 @@ capital = float(sys.argv[1])
 
 which is rendered as
 
-||codeblock
+|| codeblock
 import sys
 """
         ++ String.fromChar '\u{00A0}'
@@ -110,7 +110,7 @@ Verbatim blocks begin with a double pipe `||` and in all other respects are like
 
 For inline code, one can use backticks, just as in Markdown:
 
-||codeblock
+|| codeblock
 `a[i] = 1.`
 
 The rendered form is `a[i] = 1`
@@ -153,14 +153,14 @@ Below are some Markdown-like examples.   Compare the source and rendered text to
 
 Use the model below for links:
 
-||codeblock
+|| codeblock
 [link NYT https://nytimes.com]
 
 :[link NYT https://nytimes.com]
 
 ### Colors:
 
-||codeblock
+|| codeblock
  This is [red red meat].  [gray (We shouldn't eat so much)]
 
 :This is [red red meat].  [gray (We shouldn't eat so much.)]

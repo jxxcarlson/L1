@@ -47,7 +47,7 @@ item tc =
 pipe tc =
     let
         source_ =
-            "[" ++ String.dropLeft 1 tc.source ++ "]"
+            "[" ++ String.trimLeft (String.dropLeft 1 tc.source) ++ "]"
     in
     { tc | complete = Parser.parse tc.generation source_ :: tc.complete }
 
@@ -67,7 +67,7 @@ doublePipe tc =
                     List.drop 1 lines |> String.join "\n"
 
                 element =
-                    Element (Name (String.dropLeft 2 name)) (Text body MetaData.dummy) MetaData.dummy
+                    Element (Name (String.trimLeft (String.dropLeft 2 name))) (Text body MetaData.dummy) MetaData.dummy
             in
             { tc | complete = element :: tc.complete }
 

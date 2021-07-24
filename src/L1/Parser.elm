@@ -159,6 +159,7 @@ blockParser generation =
         Parser.succeed (\start name elements end source -> Element (Name name.content) (EList elements (meta generation start end)) (meta generation start end))
             |= Parser.getOffset
             |. pipeMark
+            --|. Parser.spaces
             |= T.text Char.isAlpha Char.isAlpha
             |. Parser.chompWhile (\c -> c == ' ')
             |= listParser generation 0
