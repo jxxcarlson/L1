@@ -5,6 +5,7 @@ import L1.Configuration as Configuration
 import L1.Stack as Stack
 import L1.TextCursor exposing (TextCursor)
 import Library.Console as Console
+import Library.Utility exposing (debug)
 
 
 type Operation
@@ -32,6 +33,19 @@ branch configuration_ tc firstChar prefix_ =
         POP
 
     else if Config.notDelimiter Configuration.configuration Config.AllDelimiters firstChar then
+        let
+            _ =
+                debug "firstChar" firstChar
+
+            _ =
+                debug "stack" (List.map Stack.show tc.stack)
+
+            _ =
+                debug "stack" (Stack.simplifyStack tc.stack |> List.reverse |> String.join "")
+
+            _ =
+                debug "is reducible" (Stack.isReducible tc.stack)
+        in
         ADD
 
     else if value then

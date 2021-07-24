@@ -1,6 +1,7 @@
 module Library.Utility exposing
     ( clipEnds
     , commaSeparatedToList
+    , debug
     , dropWords
     , entities
     , ifApply
@@ -14,8 +15,13 @@ module Library.Utility exposing
     )
 
 import Dict exposing (Dict)
+import Library.Console as Console
 import Maybe.Extra
 import Regex
+
+
+debug str x =
+    Debug.log (Console.yellow str) x
 
 
 squeeze : String -> String

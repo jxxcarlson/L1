@@ -16,6 +16,7 @@ import L1.MetaData as MetaData exposing (MetaData)
 import L1.Stack as Stack exposing (StackItem)
 import Library.Console as Console
 import Library.ParserTools as ParserTools
+import Library.Utility exposing (debug)
 import List.Extra
 import Parser.Advanced
 
@@ -31,6 +32,7 @@ type alias TextCursor =
     ---
     , source : String
     , text : String
+    , verbatimPrefix : Maybe String
     , parsed : List Element -- might be incorporated later
     , complete : List Element -- no changes will be made
     , stack : List StackItem -- a stack of unclosed elements
@@ -66,6 +68,7 @@ init generation source =
     --
     , source = source
     , text = ""
+    , verbatimPrefix = Nothing
     , parsed = []
     , complete = []
     , stack = []
@@ -130,6 +133,13 @@ advanceVerbatim verbatimChar str =
 
 add : (String -> Element) -> String -> TextCursor -> TextCursor
 add parse_ str tc =
+    let
+        _ =
+            debug "add, tc.scanpoint" tc.scanPoint
+
+        _ =
+            debug "add, String.length str" ( str, String.length str )
+    in
     { tc
         | count = tc.count + 1
 
@@ -169,6 +179,24 @@ push ({ prefix, isMatch } as prefixData) proto tc =
                     else
                         String.length prefix + newText.finish - newText.start
 
+        ( verbatimPrefix, scannerType ) =
+            case ( Config.isVerbatimSymbol prefix, Just prefix == tc.verbatimPrefix ) of
+                -- TURN ON VERBATIM SCANNING: Fresh verbatim prefix
+                ( True, False ) ->
+                    case String.uncons prefix of
+                        Nothing ->
+                            ( Nothing, NormalScan )
+
+                        Just ( ch, _ ) ->
+                            ( Just prefix, VerbatimScan ch )
+
+                -- TURN OFF VERBATIM SCANNING: second occurrence of a verbatim prefix
+                ( True, True ) ->
+                    ( Nothing, NormalScan )
+
+                _ ->
+                    ( tc.verbatimPrefix, tc.scannerType )
+
         newStack =
             case proto of
                 Expect_ expectation ->
@@ -191,6 +219,8 @@ push ({ prefix, isMatch } as prefixData) proto tc =
     in
     { tc
         | count = tc.count + 1
+        , verbatimPrefix = verbatimPrefix
+        , scannerType = scannerType
         , scanPoint = tc.scanPoint + scanPointIncrement
         , stack = newStack
     }

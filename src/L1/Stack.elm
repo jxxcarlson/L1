@@ -38,7 +38,7 @@ isReducible stack =
 
 isStrictlyReducible : List StackItem -> Bool
 isStrictlyReducible stack =
-    (simplifyStack >> Check.reduces2) stack == []
+    (simplifyStack >> Check.reduceList) stack == []
 
 
 isReducibleWith : String -> List StackItem -> Bool

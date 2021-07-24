@@ -1,4 +1,4 @@
-module L1.Check exposing (make, reduces, reduces2)
+module L1.Check exposing (make, reduceList, reduceList2, reduces)
 
 import Dict exposing (Dict)
 import Library.Console as Console
@@ -57,8 +57,8 @@ reduces symbolList =
             False
 
 
-reduces2 : List String -> List String
-reduces2 list =
+reduceList : List String -> List String
+reduceList list =
     case list of
         [] ->
             []
@@ -70,7 +70,26 @@ reduces2 list =
 
                 Just ( last, rest2 ) ->
                     if matches first last then
-                        reduces2 rest2
+                        reduceList rest2
+
+                    else
+                        list
+
+
+reduceList2 : List String -> List String
+reduceList2 list =
+    case list of
+        [] ->
+            []
+
+        first :: rest ->
+            case List.Extra.unconsLast rest of
+                Nothing ->
+                    list
+
+                Just ( last, rest2 ) ->
+                    if matches first last then
+                        reduceList rest2
 
                     else
                         list
@@ -84,6 +103,9 @@ matches first last =
         True
 
     else if first == "`" && last == "`" then
+        True
+
+    else if first == "\"" && last == "\"" then
         True
 
     else
