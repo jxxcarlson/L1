@@ -4,7 +4,7 @@ module DifferTests exposing (..)
 
 import Expect exposing (Expectation)
 import Fuzz exposing (Fuzzer, int, list, string)
-import Library.Differ exposing (..)
+import L1.Library.Differ exposing (..)
 import Test exposing (..)
 
 

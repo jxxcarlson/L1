@@ -2,8 +2,8 @@ module StackReduceTests exposing (..)
 
 import Expect exposing (Expectation)
 import Fuzz exposing (Fuzzer, int, list, string)
-import L1.AST exposing (Element_(..), Name(..), simplify)
-import L1.Check as Check
+import L1.Parser.AST exposing (Element_(..), Name(..), simplify)
+import L1.Parser.Check as Check
 import Test exposing (..)
 
 
