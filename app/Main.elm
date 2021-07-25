@@ -2,6 +2,7 @@ module Main exposing (..)
 
 import Browser
 import Data.Article
+import Data.Article2
 import Data.Example
 import Element exposing (..)
 import Element.Background as Background
@@ -268,7 +269,7 @@ exampleDocButton =
 articleButton : Element Msg
 articleButton =
     Input.button buttonStyle2
-        { onPress = Just (LoadDocumentText Data.Article.text)
+        { onPress = Just (LoadDocumentText Data.Article2.text)
         , label = el [ centerX, centerY, Font.size 14 ] (text "Article")
         }
 

@@ -7,7 +7,6 @@ text =
 
 
 [b L1] is a markup language with a syntax somewhat like Lisp, but with square brackets instead of parentheses.  To make bold text, we say `[b bold text]`, and for italic, we say `[i italic text]`.
-
 Elements can be nested as in `[i italic text is very [b bold]]`, which renders as
 
 :[i italic text is very [b bold]]

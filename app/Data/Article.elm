@@ -11,7 +11,12 @@ The goal of this article is to explain  how one can implement a fault-tolerant p
 To put the notion of fault-tolerance in context, recall that the task of a  parser is to read source text in some language, then convert it to an abstract syntax tree (AST).  Classical parsers act like a dumb pipe, consuming the source text and producing the AST in one go, but bailing out when an error is encountered. Such behavior is not suited for interactive language editors, be they for programming languages or markup languages.  In an interactive environoment, the source text will pass in and out of error states, potentially  on each keystroke. A fault-tolerant parser should in all cases return an abstract syntax tree that makes sense.  This means that (a) most of the text is parsed as one expects, e.g., a new error at the halfway point does not necessarily invalidate the latter half which had already been correctly parsed in previous edits; (b) error text is converted into a valid node of the AST which displays the text in question, signals that it is an error, and gives some insight into the nature of the error.
 
 
-The strategy for fault-tolerant parsing discussed here is based on Matt Griffith's project [link mdgriffith/elm-markup https://package.elm-lang.org/packages/mdgriffith/elm-markup/latest/], in which he introduced the notion of [i TextCursor] and a study of the code for [i Camperdown], a fault-tolerant parser that the ed-tech company [link Brillant.org https://brilliant.org] developed for its internal authoring tools.
+The strategy for fault-tolerant parsing discussed here is based
+on (1) Matt Griffith's project
+[link "mdgriffith/elm-markup" https://package.elm-lang.org/packages/mdgriffith/elm-markup/latest/],
+in which he introduced the notion of [i TextCursor] and (2)
+the domain-specific parser developed by the team at
+ [link "Brillant.org" https://brilliant.org] led by Rob Simmons.
 
 The Camperdown parser can be configured for applications ranging from Markdown-style languages to a kind of mini-LaTeX to interactive story-telling (see XXX).  The aim here is to present the main ideas of Camperdown in a simple yet nontrivial context that will be helpful both on its own and as a warmup to understanding and using Camperdown itself. The  codebase for [b L1] is small, with the core `textCursor` module, the largest of the bunch,  weighing in at just over 200 lines of code. Here are a few sentences in [b L1]:
 
