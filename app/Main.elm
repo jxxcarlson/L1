@@ -10,10 +10,7 @@ import Element.Input as Input
 import Element.Keyed as Keyed
 import File.Download as Download
 import Html exposing (Html)
-import L1.Parser.Chunk
-import L1.Parser.Document
-import L1.Parser.Parser
-import L1.Render.Elm
+import L1.API
 import L1.Render.Markdown
 import Process
 import Task
@@ -62,13 +59,6 @@ init flags =
       }
     , Process.sleep 100 |> Task.perform (always IncrementCounter)
     )
-
-
-renderDocument : Int -> String -> List (List (Element Msg))
-renderDocument generation document =
-    document
-        |> L1.Parser.Document.parse generation
-        |> List.map (\para -> L1.Render.Elm.renderList { renderArgs | generation = generation } para)
 
 
 renderArgs =
@@ -226,7 +216,7 @@ renderedText model =
         , moveUp 9
         , Font.size 12
         ]
-        (List.map (\para -> paragraph [] para) (renderDocument model.count model.sourceText))
+        (List.map (\para -> paragraph [] para) (L1.API.renderDocument renderArgs model.count model.sourceText))
 
 
 
