@@ -1,5 +1,6 @@
 module L1.Library.Utility exposing
-    ( clipEnds
+    ( at
+    , clipEnds
     , commaSeparatedToList
     , debug
     , dropWords
