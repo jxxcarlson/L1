@@ -26,7 +26,7 @@ Titles and section headings, for example, can be done as in Markdown:
 
 Such a heading must be preceded and followed by a blank line.
 
-Conveniences can always be written in the standard way, e.g., `[heading1 The Markup Language]`.
+Conveniences can always be written in the standard way, e.g., `[heading1 The L1 Markup Language]`.
 
 | heading3 Items
 

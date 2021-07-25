@@ -346,7 +346,7 @@ headerPadding level =
 
 item : FRender msg
 item renderArgs name args body =
-    el [ paddingEach { left = 24, right = 0, top = 0, bottom = 0 } ] (render renderArgs body)
+    column [ paddingEach { left = 24, right = 0, top = 0, bottom = 0 } ] [ render renderArgs body ]
 
 
 image : FRender msg
