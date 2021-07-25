@@ -99,11 +99,12 @@ scanPoint stackItem =
             data.scanPoint
 
         TextItem _ ->
-            -- TODO: not a good idea
-            -1
+            -- TODO: not a good idea (Danger)
+            -7
 
         EndMark _ ->
-            -1
+            -- TODO: and neither is this! (Danger)
+            -9
 
 
 startPosition : StackItem -> Int
