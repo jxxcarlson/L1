@@ -69,6 +69,11 @@ renderElementDict =
         , ( "image", image )
         , ( "heading", heading )
         , ( "item", item )
+        , ( "heading1", heading1 )
+        , ( "heading2", heading2 )
+        , ( "heading3", heading3 )
+        , ( "heading4", heading4 )
+        , ( "codeblock", codeblock )
         ]
 
 
@@ -218,6 +223,26 @@ item renderArgs name args body =
     "-  " ++ transform renderArgs body
 
 
+heading1 : FRender
+heading1 renderArgs name args body =
+    "# " ++ transform renderArgs body
+
+
+heading2 : FRender
+heading2 renderArgs name args body =
+    "## " ++ transform renderArgs body
+
+
+heading3 : FRender
+heading3 renderArgs name args body =
+    "### " ++ transform renderArgs body
+
+
+heading4 : FRender
+heading4 renderArgs name args body =
+    "#### " ++ transform renderArgs body
+
+
 image : FRender
 image renderArgs name _ body =
     let
@@ -244,6 +269,11 @@ math renderArgs name args body =
 mathblock : FRender
 mathblock rendArgs name args body =
     "$$" ++ getText2 body ++ "$$"
+
+
+codeblock : FRender
+codeblock rendArgs name args body =
+    "```\n" ++ getText2 body ++ "\n```"
 
 
 

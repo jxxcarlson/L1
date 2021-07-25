@@ -7,7 +7,6 @@ import Element exposing (..)
 import Element.Background as Background
 import Element.Font as Font
 import Element.Input as Input
-import Element.Keyed as Keyed
 import File.Download as Download
 import Html exposing (Html)
 import L1.API
@@ -53,7 +52,7 @@ initialText =
 init : Flags -> ( Model, Cmd Msg )
 init flags =
     ( { sourceText = initialText
-      , count = 1
+      , count = 0
       , windowHeight = flags.height
       , windowWidth = flags.width
       }
@@ -80,7 +79,7 @@ update msg model =
 
         InputText str ->
             ( { model
-                | sourceText = String.trim str
+                | sourceText = str -- String.trim str
                 , count = model.count + 1
               }
             , Cmd.none
@@ -146,7 +145,7 @@ mainColumn : Model -> Element Msg
 mainColumn model =
     column (mainColumnStyle model)
         [ column [ spacing 48, width (px appWidth_), height (px (appHeight_ model)) ]
-            [ title "D"
+            [ title "L1 Demo App"
             , column [ spacing 12 ]
                 [ row [ spacing 12 ] [ editor model, rhs model ]
                 ]
@@ -159,14 +158,6 @@ editor model =
     column [ spacing 8, moveUp 9 ]
         [ row [ spacing 12 ] [ exampleDocButton, articleButton, exportToMarkdownButton ]
         , inputText model
-        ]
-
-
-editor2 : Model -> Element Msg
-editor2 model =
-    column [ spacing 8, moveUp 9 ]
-        [ row [ spacing 12 ] [ exampleDocButton, articleButton, exportToMarkdownButton ]
-        , Keyed.column [] (keyIt model.count [ inputText model ])
         ]
 
 
