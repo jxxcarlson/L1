@@ -21,6 +21,11 @@ import Maybe.Extra
 import Regex
 
 
+at : Int -> String -> String
+at k str =
+    String.slice k (k + 1) str
+
+
 debug str x =
     --Debug.log (Console.yellow str) x
     str ++ x
