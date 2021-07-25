@@ -172,6 +172,19 @@ editor model =
         ]
 
 
+editor2 : Model -> Element Msg
+editor2 model =
+    column [ spacing 8, moveUp 9 ]
+        [ row [ spacing 12 ] [ exampleDocButton, articleButton, exportToMarkdownButton ]
+        , Keyed.column [] (keyIt model.count [ inputText model ])
+        ]
+
+
+keyIt : Int -> List b -> List ( String, b )
+keyIt k list =
+    List.indexedMap (\i e -> ( String.fromInt (i + k), e )) list
+
+
 title : String -> Element msg
 title str =
     row [ centerX, fontGray 0.9 ] [ text str ]
@@ -214,11 +227,6 @@ renderedText model =
         , Font.size 12
         ]
         (List.map (\para -> paragraph [] para) (renderDocument model.count model.sourceText))
-
-
-keyIt : Int -> List b -> List ( String, b )
-keyIt k list =
-    List.indexedMap (\i e -> ( String.fromInt (i + k), e )) list
 
 
 
