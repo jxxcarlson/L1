@@ -1,10 +1,10 @@
-module L1.Chunk exposing (parse, parseLoop, pl, pl_)
+module L1.Parser.Chunk exposing (parse, parseLoop, pl, pl_)
 
-import L1.AST as AST exposing (Element(..))
-import L1.Error exposing (Context(..), Problem(..))
-import L1.Loop as Loop
-import L1.Parser as Parser
-import L1.TextCursor exposing (TextCursor)
+import L1.Parser.AST as AST exposing (Element(..))
+import L1.Parser.Error exposing (Context(..), Problem(..))
+import L1.Parser.Loop as Loop
+import L1.Parser.Parser as Parser
+import L1.Parser.TextCursor exposing (TextCursor)
 import Parser.Advanced as PA
 
 

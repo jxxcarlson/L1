@@ -1,4 +1,4 @@
-module Library.Utility exposing
+module L1.Library.Utility exposing
     ( clipEnds
     , commaSeparatedToList
     , debug
@@ -15,7 +15,7 @@ module Library.Utility exposing
     )
 
 import Dict exposing (Dict)
-import Library.Console as Console
+import L1.Library.Console as Console
 import Maybe.Extra
 import Regex
 

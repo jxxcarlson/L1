@@ -1,4 +1,4 @@
-module L1.Config exposing
+module L1.Parser.Config exposing
     ( Configuration
     , DelimiterTypes(..)
     , EType(..)

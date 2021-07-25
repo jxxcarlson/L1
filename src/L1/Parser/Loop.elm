@@ -1,15 +1,15 @@
-module L1.Loop exposing (nextCursor, parseLoop)
+module L1.Parser.Loop exposing (nextCursor, parseLoop)
 
-import L1.AST as AST exposing (Element(..), Name(..))
-import L1.Branch as Branch exposing (Operation(..), branch)
-import L1.Config as Config exposing (Configuration, EType(..))
-import L1.Configuration as Configuration
-import L1.Error exposing (Context, Problem)
-import L1.Handle as Handle
-import L1.Print
-import L1.TextCursor as TextCursor exposing (ScannerType(..), TextCursor)
-import Library.Console as Console
-import Library.ParserTools as ParserTools
+import L1.Library.Console as Console
+import L1.Library.ParserTools as ParserTools
+import L1.Parser.AST as AST exposing (Element(..), Name(..))
+import L1.Parser.Branch as Branch exposing (Operation(..), branch)
+import L1.Parser.Config as Config exposing (Configuration, EType(..))
+import L1.Parser.Configuration as Configuration
+import L1.Parser.Error exposing (Context, Problem)
+import L1.Parser.Handle as Handle
+import L1.Parser.Print
+import L1.Parser.TextCursor as TextCursor exposing (ScannerType(..), TextCursor)
 import Parser.Advanced as Parser exposing ((|.), (|=))
 
 
@@ -30,7 +30,7 @@ parseLoop parser generation str =
                 |> (\tc_ -> { tc_ | complete = List.reverse tc_.complete })
 
         --_ =
-        --    Debug.log (L1.Print.print result) "-"
+        --    Debug.log (L1.Parser.Print.print result) "-"
     in
     result
 

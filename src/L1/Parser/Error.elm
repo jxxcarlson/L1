@@ -1,4 +1,4 @@
-module L1.Error exposing (Context(..), Problem(..), heading)
+module L1.Parser.Error exposing (Context(..), Problem(..), heading)
 
 
 type Problem

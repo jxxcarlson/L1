@@ -1,7 +1,7 @@
-module L1.Check exposing (make, reduceList, reduceList2, reduces)
+module L1.Parser.Check exposing (make, reduceList, reduceList2, reduces)
 
 import Dict exposing (Dict)
-import Library.Console as Console
+import L1.Library.Console as Console
 import List.Extra
 
 

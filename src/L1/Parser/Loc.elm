@@ -1,4 +1,4 @@
-module L1.Loc exposing (Position, dummy, positionOfList)
+module L1.Parser.Loc exposing (Position, dummy, positionOfList)
 
 {-| Used to identify a piece of text in the source
 -}

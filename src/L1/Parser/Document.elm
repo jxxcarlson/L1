@@ -1,8 +1,8 @@
-module L1.Document exposing (groupLines, parse, split)
+module L1.Parser.Document exposing (groupLines, parse, split)
 
-import L1.AST exposing (Element)
-import L1.Chunk
-import L1.Parser
+import L1.Parser.AST exposing (Element)
+import L1.Parser.Chunk
+import L1.Parser.Parser
 
 
 type alias Document =
@@ -14,7 +14,7 @@ parse generation doc =
     let
         p : String -> List Element
         p =
-            L1.Chunk.parse (L1.Parser.parse generation) generation
+            L1.Parser.Chunk.parse (L1.Parser.Parser.parse generation) generation
     in
     doc
         |> split

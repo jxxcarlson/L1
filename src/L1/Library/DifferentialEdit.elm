@@ -1,6 +1,6 @@
-module Library.DifferentialEdit exposing (..)
+module L1.Library.DifferentialEdit exposing (..)
 
-import Library.Differ
+import L1.Library.Differ
 
 
 type alias EditRecord a b =

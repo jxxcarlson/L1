@@ -1,10 +1,10 @@
-module L1.Print exposing (..)
+module L1.Parser.Print exposing (..)
 
-import L1.Stack as Stack
-import L1.TextCursor exposing (TextCursor)
-import Library.Console as Console
-import Library.Utility
-import Render.Text
+import L1.Library.Console as Console
+import L1.Library.Utility
+import L1.Parser.Stack as Stack
+import L1.Parser.TextCursor exposing (TextCursor)
+import L1.Render.Text
 
 
 print : TextCursor -> String
@@ -51,11 +51,11 @@ printCursorText cursor =
 
 
 printParsed cursor =
-    cursor.parsed |> List.map Render.Text.print |> String.join " " |> (\x -> x ++ " ") |> Console.bgCyan |> Console.black
+    cursor.parsed |> List.map L1.Render.Text.print |> String.join " " |> (\x -> x ++ " ") |> Console.bgCyan |> Console.black
 
 
 printComplete cursor =
-    cursor.complete |> List.map Render.Text.print |> String.join " " |> (\x -> x ++ " ") |> Console.bgBlue
+    cursor.complete |> List.map L1.Render.Text.print |> String.join " " |> (\x -> x ++ " ") |> Console.bgBlue
 
 
 printStackItem : Stack.StackItem -> String

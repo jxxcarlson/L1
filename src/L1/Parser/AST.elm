@@ -1,4 +1,4 @@
-module L1.AST exposing
+module L1.Parser.AST exposing
     ( Element(..)
     , Element_(..)
     , Name(..)
@@ -21,9 +21,9 @@ module L1.AST exposing
     , toStringList
     )
 
-import L1.Error exposing (..)
-import L1.Loc as Loc
-import L1.MetaData as MetaData exposing (MetaData)
+import L1.Parser.Error exposing (..)
+import L1.Parser.Loc as Loc
+import L1.Parser.MetaData as MetaData exposing (MetaData)
 import Parser.Advanced as Parser
 
 

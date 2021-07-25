@@ -1,4 +1,4 @@
-module Library.StringParser exposing
+module L1.Library.StringParser exposing
     ( isNonLanguageChar
     , isNotExtendedLanguageChar
     , textListWithPredicate
@@ -20,8 +20,8 @@ module Library.StringParser exposing
 
 {- (text -}
 
-import L1.Error exposing (Context(..), Problem(..))
-import Library.ParserTools as ParserTools
+import L1.Library.ParserTools as ParserTools
+import L1.Parser.Error exposing (Context(..), Problem(..))
 import Parser.Advanced exposing ((|.), (|=))
 
 

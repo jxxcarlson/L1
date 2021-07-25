@@ -1,4 +1,4 @@
-module L1.Stack exposing
+module L1.Parser.Stack exposing
     ( StackItem(..)
     , StackItemData
     , beginSymbol
@@ -15,10 +15,10 @@ module L1.Stack exposing
     , startPosition
     )
 
-import L1.Check as Check
-import L1.Config as Config
-import L1.Loc exposing (Position)
-import Library.Console as Console
+import L1.Library.Console as Console
+import L1.Parser.Check as Check
+import L1.Parser.Config as Config
+import L1.Parser.Loc exposing (Position)
 
 
 type StackItem

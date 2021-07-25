@@ -1,13 +1,13 @@
-module Render.Markdown exposing (testData, transform, transformDocument, transformList)
+module L1.Render.Markdown exposing (testData, transform, transformDocument, transformList)
 
 import Dict exposing (Dict)
 import Html exposing (Html)
 import Html.Attributes as HA
 import Html.Keyed
 import Json.Encode
-import L1.AST as AST exposing (Element(..), Element_(..), Name(..), VerbatimType(..))
-import L1.Document
-import L1.Error exposing (Context(..), Problem(..))
+import L1.Parser.AST as AST exposing (Element(..), Element_(..), Name(..), VerbatimType(..))
+import L1.Parser.Document
+import L1.Parser.Error exposing (Context(..), Problem(..))
 import Parser.Advanced
 
 
@@ -75,7 +75,7 @@ renderElementDict =
 transformDocument : String -> String
 transformDocument doc =
     doc
-        |> L1.Document.parse 0
+        |> L1.Parser.Document.parse 0
         |> List.map (transformList { width = 600 })
         |> String.join "\n\n"
 

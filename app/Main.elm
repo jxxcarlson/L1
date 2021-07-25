@@ -10,12 +10,12 @@ import Element.Input as Input
 import Element.Keyed as Keyed
 import File.Download as Download
 import Html exposing (Html)
-import L1.Chunk
-import L1.Document
-import L1.Parser
+import L1.Parser.Chunk
+import L1.Parser.Document
+import L1.Parser.Parser
+import L1.Render.Elm
+import L1.Render.Markdown
 import Process
-import Render.Elm
-import Render.Markdown
 import Task
 
 
@@ -67,8 +67,8 @@ init flags =
 renderDocument : Int -> String -> List (List (Element Msg))
 renderDocument generation document =
     document
-        |> L1.Document.parse generation
-        |> List.map (\para -> Render.Elm.renderList { renderArgs | generation = generation } para)
+        |> L1.Parser.Document.parse generation
+        |> List.map (\para -> L1.Render.Elm.renderList { renderArgs | generation = generation } para)
 
 
 renderArgs =
@@ -125,7 +125,7 @@ exportMarkdown model fileName =
 
 toMarkdown : String -> String
 toMarkdown content =
-    Render.Markdown.transformDocument content
+    L1.Render.Markdown.transformDocument content
 
 
 download : String -> String -> String -> Cmd msg

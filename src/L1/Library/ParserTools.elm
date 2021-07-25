@@ -1,4 +1,4 @@
-module Library.ParserTools exposing
+module L1.Library.ParserTools exposing
     ( Step(..)
     , StringData
     , between
@@ -19,7 +19,7 @@ module Library.ParserTools exposing
     , text
     )
 
-import L1.Error exposing (Context(..), Problem(..))
+import L1.Parser.Error exposing (Context(..), Problem(..))
 import Parser.Advanced as Parser exposing ((|.), (|=))
 
 

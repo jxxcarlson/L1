@@ -1,10 +1,10 @@
-module L1.Parser exposing (hashMarks, parse, parseHeading, parseItem, parseList, parseSimple, parser)
+module L1.Parser.Parser exposing (hashMarks, parse, parseHeading, parseItem, parseList, parseSimple, parser)
 
-import L1.AST as AST exposing (Element(..), Name(..), VerbatimType(..))
-import L1.Error exposing (Context(..), Problem(..))
-import L1.Loc as Loc exposing (Position)
-import Library.ParserTools as T
-import Library.StringParser as XString
+import L1.Library.ParserTools as T
+import L1.Library.StringParser as XString
+import L1.Parser.AST as AST exposing (Element(..), Name(..), VerbatimType(..))
+import L1.Parser.Error exposing (Context(..), Problem(..))
+import L1.Parser.Loc as Loc exposing (Position)
 import Parser.Advanced as Parser exposing ((|.), (|=))
 
 

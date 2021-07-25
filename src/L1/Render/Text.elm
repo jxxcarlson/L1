@@ -1,7 +1,7 @@
-module Render.Text exposing (print, printList_, print_)
+module L1.Render.Text exposing (print, printList_, print_)
 
-import L1.AST exposing (Element(..), Element_(..), Name(..))
-import L1.Error exposing (Context(..), Problem(..))
+import L1.Parser.AST exposing (Element(..), Element_(..), Name(..))
+import L1.Parser.Error exposing (Context(..), Problem(..))
 import Parser.Advanced
 
 

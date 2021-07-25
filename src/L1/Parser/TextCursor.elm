@@ -1,22 +1,22 @@
-module L1.TextCursor exposing
+module L1.Parser.TextCursor exposing
     ( TextCursor, init
     , ProtoStackItem(..), ScannerType(..), add, advance, advanceNormal, commit, pop, push
     )
 
-{-| TextCursor is the data structure used by L1.parseLoop.
+{-| TextCursor is the data structure used by L1.Parser.parseLoop.
 
 @docs TextCursor, init, incrementBlockIndex, incrementBlockOffset
 
 -}
 
-import L1.AST as AST exposing (Element(..), Name(..))
-import L1.Config as Config exposing (Configuration, EType(..), Expectation)
-import L1.Configuration as Configuration
-import L1.MetaData as MetaData exposing (MetaData)
-import L1.Stack as Stack exposing (StackItem(..))
-import Library.Console as Console
-import Library.ParserTools as ParserTools
-import Library.Utility exposing (debug)
+import L1.Library.Console as Console
+import L1.Library.ParserTools as ParserTools
+import L1.Library.Utility exposing (debug)
+import L1.Parser.AST as AST exposing (Element(..), Name(..))
+import L1.Parser.Config as Config exposing (Configuration, EType(..), Expectation)
+import L1.Parser.Configuration as Configuration
+import L1.Parser.MetaData as MetaData exposing (MetaData)
+import L1.Parser.Stack as Stack exposing (StackItem(..))
 import List.Extra
 import Parser.Advanced
 
@@ -230,7 +230,7 @@ pop : (String -> Element) -> String -> TextCursor -> TextCursor
 pop parse prefix cursor =
     -- The cursors' scanPoint is pointing at a character that
     -- signal the end of an element, e.g., ']' in the
-    -- case of language L1.  It is time to pop the stack
+    -- case of language L1.Parser.  It is time to pop the stack
     -- and update the cursor.  We split this operation into
     -- two case, depending on whether cursor.text is empty.
     case List.head cursor.stack of

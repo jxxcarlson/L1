@@ -1,4 +1,4 @@
-module Library.Differ exposing (DiffRecord, diff, differentialTransform)
+module L1.Library.Differ exposing (DiffRecord, diff, differentialTransform)
 
 
 type alias DiffRecord =

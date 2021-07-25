@@ -1,6 +1,6 @@
-module L1.Configuration exposing (configuration)
+module L1.Parser.Configuration exposing (configuration)
 
-import L1.Config as Config exposing (EType(..), Expectation, MarkPosition(..))
+import L1.Parser.Config as Config exposing (EType(..), Expectation, MarkPosition(..))
 
 
 configuration =

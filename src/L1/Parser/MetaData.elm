@@ -1,6 +1,6 @@
-module L1.MetaData exposing (MetaData, dummy)
+module L1.Parser.MetaData exposing (MetaData, dummy)
 
-import L1.Loc as Loc
+import L1.Parser.Loc as Loc
 
 
 type alias MetaData =
