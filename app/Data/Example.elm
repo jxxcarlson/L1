@@ -3,13 +3,19 @@ module Data.Example exposing (text)
 
 text =
     """
+
 # The L1 Markup Language
 
+[i by James Carlson, jxxcarlson@gmail.com ]
 
-[b L1] is a markup language with a syntax somewhat like Lisp, but with square brackets instead of parentheses.  To make bold text, we say `[b bold text]`, and for italic, we say `[i italic text]`.
-Elements can be nested as in `[i italic text is very [b bold]]`, which renders as
+
+[b L1] is a markup language with a syntax somewhat like Lisp, but with square brackets instead of parentheses. It is similar to and linguistically a descendant of [link "CaYaTeX" https:jxxcarlson.github.io/app/cayatex], work of this author and Nicholas Yang, but with more robust error-handling abilities.
+
+In L1, we say `[b bold text]` to make bold text, and for italic, we say `[i italic text]`. Elements can be nested as in `[i italic text is very [b bold]]`, which renders as
 
 :[i italic text is very [b bold]]
+
+The idea is a that the first part `f` of the expression ` [f a b c ...]` is a function,  `a`, `b`, `c`, ... are its arguments and the expression itself is a function application.  An element like `italic` in `[i italic text]` auto-evaluates to `italic`, that is, it is self-quoted.
 
 | heading2 Conveniences
 
