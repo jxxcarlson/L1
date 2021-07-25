@@ -215,7 +215,7 @@ push ({ prefix, isMatch } as prefixData) proto tc =
                         Stack.EndMark { content = prefix_, position = { start = tc.scanPoint, end = tc.scanPoint + scanPointIncrement } } :: tc.stack
 
                     else
-                        Stack.TextItem { content = newContent, position = { start = tc.scanPoint + 1, end = tc.scanPoint + String.length newContent } } :: Stack.EndMark { content = prefix_, position = { start = -1, end = -1 } } :: tc.stack
+                        Stack.TextItem { content = newContent, position = { start = tc.scanPoint + 1, end = tc.scanPoint + String.length newContent } } :: Stack.EndMark { content = prefix_, position = { start = tc.scanPoint, end = tc.scanPoint + 1 } } :: tc.stack
     in
     { tc
         | count = tc.count + 1
@@ -314,7 +314,8 @@ resolveError tc =
         errorPosition =
             maybeBottomOfStack
                 |> Maybe.map Stack.startPosition
-                |> Maybe.withDefault -1
+                -- TODO: DANGER! THE BELOW IS A REALLY BAD IDEA
+                |> Maybe.withDefault 0
 
         badStackItemSymbol =
             maybeBottomOfStack
