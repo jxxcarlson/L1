@@ -146,4 +146,9 @@ suite =
                     "[image \"A:B\" \"URL\"]"
                         |> pl_
                         |> Expect.equal [ Element_ (Name "image") (EList_ [ Verbatim_ Quoted "A:B ", Text_ "   ", Verbatim_ Quoted "URL " ]) ]
+            , test "a $b [i c]" <|
+                \_ ->
+                    "a $b [i c]"
+                        |> pl_
+                        |> Expect.equal [ Text_ "a ", Element_ (Name "error") (Text_ " unmatched '$'"), Text_ "b ", Element_ (Name "i") (EList_ [ Text_ "c" ]) ]
             ]

@@ -27,8 +27,11 @@ at k str =
 
 
 debug str x =
-    --Debug.log (Console.yellow str) x
-    str ++ x
+    Debug.log (Console.yellow str) x
+
+
+
+-- str ++ x
 
 
 squeeze : String -> String
