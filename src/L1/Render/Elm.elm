@@ -104,7 +104,8 @@ render renderArgs element =
             E.paragraph [] (List.map (AST.map (\s -> " " ++ s) >> render renderArgs) elements)
 
         Problem _ str ->
-            el [] (text <| "PROBLEM: " ++ str)
+            -- el [] (text <| "PROBLEM: " ++ str)
+            E.paragraph [] [ el [ Background.color lightRedColor ] (text <| "PROBLEM: "), el [ Background.color lightBlueColor ] (text <| str) ]
 
         StackError _ _ message errorText ->
             paragraph [] [ el [ Background.color (rgb255 255 255 0) ] (text errorText), el [ Font.bold, Font.color (rgb255 0 0 200) ] (text <| " " ++ message) ]
