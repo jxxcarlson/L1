@@ -27,6 +27,7 @@ main =
 
 type alias Model =
     { sourceText : String
+    , docIdentifier : String
     , count : Int
     , windowHeight : Int
     , windowWidth : Int
@@ -37,7 +38,7 @@ type Msg
     = NoOp
     | InputText String
     | ClearText
-    | LoadDocumentText String
+    | LoadDocumentText String String
     | ExportMarkdown
     | IncrementCounter
 
@@ -53,6 +54,7 @@ initialText =
 init : Flags -> ( Model, Cmd Msg )
 init flags =
     ( { sourceText = initialText
+      , docIdentifier = "examples"
       , count = 0
       , windowHeight = flags.height
       , windowWidth = flags.width
@@ -94,8 +96,8 @@ update msg model =
             , Cmd.none
             )
 
-        LoadDocumentText text ->
-            ( { model | sourceText = text, count = model.count + 1 }, Cmd.none )
+        LoadDocumentText docIdentifier text ->
+            ( { model | sourceText = text, docIdentifier = docIdentifier, count = model.count + 1 }, Cmd.none )
 
         ExportMarkdown ->
             ( model, exportMarkdown model "article" )
@@ -157,7 +159,7 @@ mainColumn model =
 
 editor model =
     column [ spacing 8, moveUp 9 ]
-        [ row [ spacing 12 ] [ exampleDocButton, articleButton, exportToMarkdownButton ]
+        [ row [ spacing 12 ] [ exampleDocButton model.docIdentifier, articleButton model.docIdentifier, exportToMarkdownButton ]
         , inputText model
         ]
 
@@ -258,18 +260,18 @@ exportToMarkdownButton =
         }
 
 
-exampleDocButton : Element Msg
-exampleDocButton =
-    Input.button buttonStyle2
-        { onPress = Just (LoadDocumentText Data.Example.text)
+exampleDocButton : String -> Element Msg
+exampleDocButton docIdentifier =
+    Input.button (activeButtonStyle (docIdentifier == "examples"))
+        { onPress = Just (LoadDocumentText "examples" Data.Example.text)
         , label = el [ centerX, centerY, Font.size 14 ] (text "Examples")
         }
 
 
-articleButton : Element Msg
-articleButton =
-    Input.button buttonStyle2
-        { onPress = Just (LoadDocumentText Data.Article2.text)
+articleButton : String -> Element Msg
+articleButton docIdentifier =
+    Input.button (activeButtonStyle (docIdentifier == "article"))
+        { onPress = Just (LoadDocumentText "article" Data.Article2.text)
         , label = el [ centerX, centerY, Font.size 14 ] (text "Article")
         }
 
@@ -336,10 +338,26 @@ buttonStyle =
 
 buttonStyle2 =
     [ Font.color (rgb255 255 255 255)
-    , Background.color (rgb255 0 0 180)
+    , Background.color (rgb255 0 0 160)
     , paddingXY 15 8
     , mouseDown [ Background.color (rgb255 180 180 255) ]
     ]
+
+
+activeButtonStyle isSelected =
+    if isSelected then
+        [ Font.color (rgb255 255 255 255)
+        , Background.color (rgb255 140 0 0)
+        , paddingXY 15 8
+        , mouseDown [ Background.color (rgb255 255 180 180) ]
+        ]
+
+    else
+        [ Font.color (rgb255 255 255 255)
+        , Background.color (rgb255 0 0 160)
+        , paddingXY 15 8
+        , mouseDown [ Background.color (rgb255 180 180 255) ]
+        ]
 
 
 grayColor g =
