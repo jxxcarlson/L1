@@ -27,7 +27,6 @@ type alias TextCursor =
     { count : Int
     , generation : Int
     , scanPoint : Int
-    , length : Int
 
     ---
     , source : String
@@ -63,12 +62,11 @@ init generation source =
 
     --
     , scanPoint = 0
-    , length = String.length source
+    , sourceLength = String.length source
     , scannerType = NormalScan
 
     --
     , source = source
-    , sourceLength = String.length source
     , text = ""
     , verbatimPrefix = Nothing
     , parsed = []

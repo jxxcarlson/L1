@@ -15,7 +15,7 @@ In L1, we say `[b bold text]` to make bold text, and for italic, we say `[i ital
 
 :[i italic text is very [b bold]]
 
-The idea is a that the first part `f` of the expression ` [f a b c ...]` is a function,  `a`, `b`, `c`, ... are its arguments and the expression itself is a function application.  An element like `italic` in `[i italic text]` auto-evaluates to `italic`, that is, it is self-quoted.
+The idea is a that the first part `f` of the expression ` [f a b c ...]` is a function,  `a`, `b`, `c`, ... are its arguments, and the expression itself is a function application.  An element like `italic` in `[i italic text]` auto-evaluates to `italic`, that is, it is self-quoted.
 
 | heading2 Conveniences
 
