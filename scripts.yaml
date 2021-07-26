@@ -16,6 +16,7 @@ scripts:
   debug: elm make app/Main.elm --output=app/public/Main.js
 
   publish:
+    - elm make  --optimize app/Main.elm --output=app/public/Main.js
     - cp ./app/public/assets/elm-katex.js /Users/carlson/dev/jxxcarlson.github.io/app/L1/assets
     - cp ./app/public/index.html /Users/carlson/dev/jxxcarlson.github.io/app/L1/
     - cp ./app/public/Main.js /Users/carlson/dev/jxxcarlson.github.io/app/L1/
