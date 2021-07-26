@@ -4,7 +4,7 @@ scripts:
     GH: /Users/carlson/dev/jxxcarlson.github.io/app
 
   cloc: cloc --by-file src
-  cloc-parser: cloc --by-file src/L1
+  cloc-parser: cloc --by-file src/L1/Parser
   scc: scc --by-file src
 
   complexity: npx elm-review --template jfmengels/elm-review-cognitive-complexity/example --rules CognitiveComplexity

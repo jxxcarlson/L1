@@ -26,16 +26,18 @@ import Parser.Advanced
 type alias TextCursor =
     { count : Int
     , generation : Int
+
+    ---
+    , verbatimPrefix : Maybe String
+    , scannerType : ScannerType
     , scanPoint : Int
+    , sourceLength : Int
 
     ---
     , source : String
-    , sourceLength : Int
-    , verbatimPrefix : Maybe String
     , parsed : List Element -- might be incorporated later
     , complete : List Element -- no changes will be made
     , stack : List StackItem -- a stack of unclosed elements
-    , scannerType : ScannerType
 
     ---
     , message : String
@@ -63,16 +65,16 @@ init generation source =
     , scanPoint = 0
     , sourceLength = String.length source
     , scannerType = NormalScan
+    , verbatimPrefix = Nothing
 
     --
     , source = source
-    , verbatimPrefix = Nothing
     , parsed = []
     , complete = []
     , stack = []
 
     --
-    , message = "STAR"
+    , message = "START"
     }
 
 
