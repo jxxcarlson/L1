@@ -12,7 +12,6 @@ print cursor =
     printMessage cursor
         ++ printScanPoint cursor
         ++ printComplete cursor
-        ++ printCursorText cursor
         ++ printParsed cursor
         ++ printCaret
         ++ printRemaining cursor
@@ -44,10 +43,6 @@ printCaret =
 
 printRemaining cursor =
     String.dropLeft cursor.scanPoint cursor.source ++ " " |> Console.black |> Console.bgGreen
-
-
-printCursorText cursor =
-    cursor.text ++ " " |> Console.black |> Console.bgYellow
 
 
 printParsed cursor =

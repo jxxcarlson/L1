@@ -31,7 +31,6 @@ type alias TextCursor =
     ---
     , source : String
     , sourceLength : Int
-    , text : String
     , verbatimPrefix : Maybe String
     , parsed : List Element -- might be incorporated later
     , complete : List Element -- no changes will be made
@@ -67,7 +66,6 @@ init generation source =
 
     --
     , source = source
-    , text = ""
     , verbatimPrefix = Nothing
     , parsed = []
     , complete = []
@@ -265,18 +263,7 @@ commit parse tc =
 
 finishUp : TextCursor -> TextCursor
 finishUp tc =
-    let
-        parsed =
-            if tc.text == "" then
-                tc.parsed
-
-            else
-                AST.Text tc.text MetaData.dummy :: tc.parsed
-
-        complete =
-            parsed ++ tc.complete
-    in
-    { tc | parsed = [], complete = complete }
+    { tc | parsed = [] }
 
 
 finishUpWithReducibleStack parse tc =
@@ -326,7 +313,6 @@ resolveError tc =
     in
     { tc
         | count = 1 + tc.count
-        , text = ""
         , stack = []
         , parsed = []
         , scanPoint = errorPosition + String.length badStackItemSymbol
