@@ -50,8 +50,8 @@ when the scanPoint comes to the end of the source.
 -}
 nextCursor : (String -> Element) -> TextCursor -> ParserTools.Step TextCursor TextCursor
 nextCursor parser cursor =
-    if cursor.count > 200 then
-        exit parser cursor "EMERGENCY STOP AT COUNT 200"
+    if cursor.count > 300 then
+        exit parser cursor "EMERGENCY STOP AT COUNT 300"
 
     else
         let
@@ -99,7 +99,7 @@ nextCursor parser cursor =
                         shortcircuit prefixx cursor
 
                     COMMIT ->
-                        exit parser cursor "COMM4"
+                        ParserTools.Loop (TextCursor.commit parser { cursor | message = "COMMIT" })
 
 
 exit parser cursor message =

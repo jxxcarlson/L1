@@ -1,8 +1,9 @@
 module L1.Library.Utility exposing
-    ( at
+    ( characterAt
     , clipEnds
     , commaSeparatedToList
     , debug
+    , debug2
     , dropWords
     , entities
     , ifApply
@@ -21,13 +22,17 @@ import Maybe.Extra
 import Regex
 
 
-at : Int -> String -> String
-at k str =
+characterAt : Int -> String -> String
+characterAt k str =
     String.slice k (k + 1) str
 
 
 debug str x =
     Debug.log (Console.yellow str) x
+
+
+debug2 str x =
+    Debug.log (Console.cyan str) x
 
 
 

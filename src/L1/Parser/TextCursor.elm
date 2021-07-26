@@ -11,7 +11,7 @@ module L1.Parser.TextCursor exposing
 
 import L1.Library.Console as Console
 import L1.Library.ParserTools as ParserTools
-import L1.Library.Utility exposing (debug)
+import L1.Library.Utility as Utility exposing (debug, debug2)
 import L1.Parser.AST as AST exposing (Element(..), Name(..))
 import L1.Parser.Config as Config exposing (Configuration, EType(..), Expectation)
 import L1.Parser.Configuration as Configuration
@@ -31,6 +31,7 @@ type alias TextCursor =
 
     ---
     , source : String
+    , sourceLength : Int
     , text : String
     , verbatimPrefix : Maybe String
     , parsed : List Element -- might be incorporated later
@@ -67,6 +68,7 @@ init generation source =
 
     --
     , source = source
+    , sourceLength = String.length source
     , text = ""
     , verbatimPrefix = Nothing
     , parsed = []
@@ -252,23 +254,23 @@ pop parse prefix cursor =
 
 commit : (String -> Element) -> TextCursor -> TextCursor
 commit parse tc =
-    case tc.stack of
-        [] ->
-            finishUp tc
+    if tc.stack == [] && tc.scanPoint >= tc.sourceLength then
+        finishUp tc
 
-        _ ->
-            -- if Stack.isReducible tc.stack then
-            if Stack.isStrictlyReducible tc.stack then
-                finishUpWithReducibleStack parse tc
+    else if Stack.isStrictlyReducible tc.stack && tc.scanPoint >= tc.sourceLength then
+        finishUpWithReducibleStack parse tc
 
-            else
-                -- CAN NOW ASSUME THAT THE STACK IS NOT REDUCIBLE
-                resolveError tc
+    else
+        -- CAN NOW ASSUME THAT THE STACK IS NOT REDUCIBLE
+        resolveError tc
 
 
 finishUp : TextCursor -> TextCursor
 finishUp tc =
     let
+        _ =
+            Debug.log "finish up, character scanpoint" tc.scanPoint
+
         parsed =
             if tc.text == "" then
                 tc.parsed
@@ -284,8 +286,11 @@ finishUp tc =
 
 finishUpWithReducibleStack parse tc =
     let
+        _ =
+            debug "finishUpWithReducibleStack, scanpoint" tc.scanPoint
+
         stackData =
-            tc.stack |> List.reverse |> List.map Stack.show |> String.join ""
+            tc.stack |> List.reverse |> List.map Stack.show |> String.join "" |> debug "stackData"
     in
     { tc | complete = parse stackData :: tc.complete }
 
@@ -297,21 +302,31 @@ finishUpWithReducibleStack parse tc =
 resolveError : TextCursor -> TextCursor
 resolveError tc =
     let
-        maybeBottomOfStack =
-            List.Extra.unconsLast tc.stack
-                |> Maybe.map Tuple.first
+        scanPointString =
+            Utility.characterAt tc.scanPoint tc.source
 
-        errorPosition : Int
-        errorPosition =
-            maybeBottomOfStack
-                |> Maybe.map Stack.startPosition
-                -- TODO: DANGER! THE BELOW IS A REALLY BAD IDEA
-                |> Maybe.withDefault 0
+        ( errorPosition, badStackItemSymbol ) =
+            if scanPointString == "]" then
+                ( tc.scanPoint, scanPointString )
 
-        badStackItemSymbol =
-            maybeBottomOfStack
-                |> Maybe.map Stack.beginSymbol
-                |> Maybe.withDefault "??"
+            else
+                let
+                    maybeBottomOfStack =
+                        List.Extra.unconsLast tc.stack
+                            |> Maybe.map Tuple.first
+
+                    errorPosition_ =
+                        maybeBottomOfStack
+                            |> Maybe.map Stack.startPosition
+                            -- TODO: DANGER! THE BELOW IS A REALLY BAD IDEA
+                            |> Maybe.withDefault 0
+
+                    badStackItemSymbol_ =
+                        maybeBottomOfStack
+                            |> Maybe.map Stack.beginSymbol
+                            |> Maybe.withDefault "??"
+                in
+                ( errorPosition_, badStackItemSymbol_ )
 
         -- TODO: the above is hacky and DANGEROUS
         errorElement =

@@ -151,4 +151,9 @@ suite =
                     "a $b [i c]"
                         |> pl_
                         |> Expect.equal [ Text_ "a ", Element_ (Name "error") (Text_ " unmatched '$'"), Text_ "b ", Element_ (Name "i") (EList_ [ Text_ "c" ]) ]
+            , test "AA] BB [link \"CC\" DD] EE" <|
+                \_ ->
+                    "AA] BB [link \"CC\" DD] EE"
+                        |> pl_
+                        |> Expect.equal [ Text_ "AA", Element_ (Name "error") (Text_ " unmatched ']'"), Text_ " BB ", Element_ (Name "link") (EList_ [ Verbatim_ Quoted "CC ", Text_ "  DD" ]), Text_ " EE" ]
             ]
