@@ -268,9 +268,6 @@ commit parse tc =
 finishUp : TextCursor -> TextCursor
 finishUp tc =
     let
-        _ =
-            Debug.log "finish up, character scanpoint" tc.scanPoint
-
         parsed =
             if tc.text == "" then
                 tc.parsed
@@ -286,11 +283,8 @@ finishUp tc =
 
 finishUpWithReducibleStack parse tc =
     let
-        _ =
-            debug "finishUpWithReducibleStack, scanpoint" tc.scanPoint
-
         stackData =
-            tc.stack |> List.reverse |> List.map Stack.show |> String.join "" |> debug "stackData"
+            tc.stack |> List.reverse |> List.map Stack.show |> String.join ""
     in
     { tc | complete = parse stackData :: tc.complete }
 

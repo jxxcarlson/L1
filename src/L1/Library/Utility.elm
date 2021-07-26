@@ -28,11 +28,13 @@ characterAt k str =
 
 
 debug str x =
-    Debug.log (Console.yellow str) x
+    -- Debug.log (Console.yellow str) x
+    x
 
 
 debug2 str x =
-    Debug.log (Console.cyan str) x
+    -- Debug.log (Console.cyan str) x
+    x
 
 
 
