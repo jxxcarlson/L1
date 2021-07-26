@@ -71,7 +71,7 @@ canPopPrecondition configuration_ tc prefix =
 
 canPush : Configuration -> TextCursor -> String -> { value : Bool, prefix : String, isMatch : Bool }
 canPush configuration_ tc prefix =
-    if Config.isVerbatimSymbol prefix && Just prefix == (List.head tc.stack |> Maybe.map Stack.beginSymbol) then
+    if Config.isVerbatimSymbol prefix && prefixMatchesTopOfStack prefix tc.stack then
         -- If the symbol is a verbatim symbol following one that is
         -- on top of the stack the return True
         { value = True, prefix = prefix, isMatch = True }
@@ -79,6 +79,10 @@ canPush configuration_ tc prefix =
     else
         -- Otherwise, the symbol is non-verbatim.  Check to see if it can be pushed
         canPushNonVerbatim configuration_ tc prefix
+
+
+prefixMatchesTopOfStack prefix stack =
+    Just prefix == (List.head stack |> Maybe.map Stack.beginSymbol)
 
 
 canPushNonVerbatim : Configuration -> TextCursor -> String -> { value : Bool, prefix : String, isMatch : Bool }
