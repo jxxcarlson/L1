@@ -71,14 +71,20 @@ canPopPrecondition configuration_ tc prefix =
 
 canPush : Configuration -> TextCursor -> String -> { value : Bool, prefix : String, isMatch : Bool }
 canPush configuration_ tc prefix =
-    if Config.isVerbatimSymbol prefix && prefixMatchesTopOfStack prefix tc.stack then
+    (let
+        _ =
+            debug "canPush, prefix" prefix
+     in
+     if Config.isVerbatimSymbol prefix && prefixMatchesTopOfStack prefix tc.stack then
         -- If the symbol is a verbatim symbol following one that is
         -- on top of the stack the return True
         { value = True, prefix = prefix, isMatch = True }
 
-    else
+     else
         -- Otherwise, the symbol is non-verbatim.  Check to see if it can be pushed
         canPushNonVerbatim configuration_ tc prefix
+    )
+        |> debug "canPush"
 
 
 prefixMatchesTopOfStack prefix stack =
@@ -87,23 +93,27 @@ prefixMatchesTopOfStack prefix stack =
 
 canPushNonVerbatim : Configuration -> TextCursor -> String -> { value : Bool, prefix : String, isMatch : Bool }
 canPushNonVerbatim configuration_ tc prefix =
-    if prefix == "" then
+    (if prefix == "" then
         -- No prefix: terminate
         { value = False, prefix = "", isMatch = False }
 
-    else if
+     else if
         -- the prefix is a begin symbol OR it is an end symbol
         -- and the stack is not reducible with this prefix
         Config.isBeginSymbol configuration_ tc.scanPoint prefix
             || (Config.isEndSymbol configuration_ tc.scanPoint prefix
                     && Stack.isNotReducibleWith prefix tc.stack
+                    && tc.stack
+                    /= []
                )
-    then
+     then
         { value = True, prefix = prefix, isMatch = False }
 
-    else
+     else
         -- Try a substring.  A prefix might be "|" or "||", for example,
         -- So we try "||" and if that fails, we try "|"
         -- Since we are truncating the prefix, we need a termination condition;
         -- Hence 'if prefix == "' clause above.
         canPush configuration_ tc (String.dropLeft 1 prefix)
+    )
+        |> debug "canPushNonVerbatim"

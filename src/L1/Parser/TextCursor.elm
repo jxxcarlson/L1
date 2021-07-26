@@ -251,16 +251,7 @@ pop parse prefix cursor =
 
 
 commit : (String -> Element) -> TextCursor -> TextCursor
-commit parse cursor =
-    commit_ parse cursor
-
-
-
--- TODO: do we need this above ?? ^^ ---|> (\tc -> { tc | complete = List.reverse tc.complete })
-
-
-commit_ : (String -> Element) -> TextCursor -> TextCursor
-commit_ parse tc =
+commit parse tc =
     case tc.stack of
         [] ->
             finishUp tc
