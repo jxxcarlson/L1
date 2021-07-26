@@ -343,7 +343,8 @@ type Operation
     | COMMIT
 
 The details of the `branch`, `add`, `push`, `pop`, and `commit` functions depend on the language in question.
-However, the overall scheme — a text cursor whose evolution is driven by a loop of the kind described above —
+However, the overall scheme — a text cursor whose evolution is driven by a loop and decision process
+of the kind described above —
 is a fairly general pattern which can be applied to the construction of fault-tolerant parsers.
 
 ((This section requires further editing, e.g., talk about error recovery via commit.))
