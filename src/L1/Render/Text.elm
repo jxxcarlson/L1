@@ -37,9 +37,6 @@ print element =
         StackError _ _ message errorText ->
             message ++ ":  " ++ errorText
 
-        Empty ->
-            "EMPTY"
-
 
 print_ : Element_ -> String
 print_ element =

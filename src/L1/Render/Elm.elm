@@ -110,9 +110,6 @@ render renderArgs element =
         StackError _ _ message errorText ->
             paragraph [] [ el [ Background.color (rgb255 255 255 0) ] (text errorText), el [ Font.bold, Font.color (rgb255 0 0 200) ] (text <| " " ++ message) ]
 
-        Empty ->
-            el [] (text <| "EMPTY")
-
 
 renderVerbatim : RenderArgs -> VerbatimType -> String -> E.Element msg
 renderVerbatim renderArgs verbatimType content =

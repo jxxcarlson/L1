@@ -114,9 +114,6 @@ transform renderArgs element =
         StackError _ _ message errorText ->
             errorText ++ " " ++ message
 
-        Empty ->
-            "EMPTY"
-
 
 renderVerbatim verbatimType content =
     case verbatimType of

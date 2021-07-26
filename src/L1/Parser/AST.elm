@@ -80,19 +80,7 @@ getTitle str =
 
 
 
---getTitle : List Element -> String
---getTitle elements =
---    case str |> String.trim |> parse 0 0 of
---        Err _ ->
---            "Untitled"
---
---        Ok elt ->
---            case elt of
---                Element "title" [] (LX [ Text str_ _ ] _) _ ->
---                    str_
---
---                _ ->
---                    "Untitled"
+--getTitl                   "Untitled"
 
 
 type Element
@@ -102,7 +90,6 @@ type Element
     | EList (List Element) MetaData
     | Problem (List ParseError) String
     | StackError Int Int String String --- errorTextStart errorTextEnd message errorText
-    | Empty
 
 
 type VerbatimType
@@ -132,9 +119,6 @@ toStringList element =
         StackError _ _ a b ->
             [ a, b ]
 
-        Empty ->
-            [ "empty" ]
-
 
 stringContent : Element -> String
 stringContent element =
@@ -160,9 +144,6 @@ toList element =
             [ element ]
 
         StackError _ _ a b ->
-            [ element ]
-
-        Empty ->
             [ element ]
 
 
@@ -263,9 +244,6 @@ position element =
         StackError _ _ _ _ ->
             Loc.dummy
 
-        Empty ->
-            Loc.dummy
-
 
 simplify : Element -> Element_
 simplify element =
@@ -287,9 +265,6 @@ simplify element =
 
         StackError startError endError message errorText ->
             StackError_ startError endError message errorText
-
-        Empty ->
-            Incomplete_
 
 
 
