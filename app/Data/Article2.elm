@@ -258,6 +258,99 @@ The point is to recover in such a way that the author can examine a complete, pr
 
 
 
+## Text Cursor
+
+There is more to be said about the text cursor, which is defined as follows.
+
+|| codeblock
+type alias TextCursor =
+    { generation : Int
+    , verbatimPrefix : Maybe String
+    , scannerType : ScannerType
+    , scanPoint : Int
+    , sourceLength : Int
+    ---
+    , source : String
+    , parsed : List Element
+    , complete : List Element
+    , stack : List StackItem
+    ---
+    , message : String
+    }
+
+The permissible operations on a `TextCursor` are just four in number:
+
+|| codeblock
+add  : (String -> Element) -> String -> TextCursor -> TextCursor
+"""
+        ++ String.fromChar '\u{00A0}'
+        ++ """
+push  : { prefix : String, isMatch : Bool } -> ProtoStackItem
+       -> TextCursor -> TextCursor
+"""
+        ++ String.fromChar '\u{00A0}'
+        ++ """
+pop   : (String -> Element) -> String -> TextCursor -> TextCursor
+"""
+        ++ String.fromChar '\u{00A0}'
+        ++ """
+commit : (String -> Element) -> TextCursor -> TextCursor
+
+When partially applied to suitable data, all of the above functions are of
+type `TextCursor -> TextCursor`.
+
+The basic idea is to initialize a text cursor with some source text and with
+`scanpoint =  0` references the first character of the source.  A suitable function
+
+|| codeblock
+nextCursor : (String -> Element) -> TextCursor
+             -> Step TextCursor TextCursor
+
+
+repeatedly applied along the lines described informally above, advancing `scanpoint` each time,
+cutting out and processing successive pieces of the source text until the source text is exhausted.
+By [i repeated application], we mean [i run a loop] using the construct below, with `nextCursor`
+in place of `nextState`
+
+|| codeblock
+type Step state a
+    = Loop state
+    | Done a
+"""
+        ++ String.fromChar '\u{00A0}'
+        ++ """
+loop : state -> (state -> Step state a) -> a
+loop s nextState =
+    case nextState s of
+        Loop s_ ->
+            loop s_ nextState
+
+        Done b ->
+            b
+
+
+
+The `nextCursor` function runs
+
+|| codeblock
+branch Configuration.configuration cursor firstChar prefix
+
+in order to decide which operation to perform.  Its output is a variant of
+
+|| codeblock
+type Operation
+    = ADD
+    | PUSH { prefix : String, isMatch : Bool }
+    | POP
+    | SHORTCIRCUIT
+    | COMMIT
+
+The details of the `branch`, `add`, `push`, `pop`, and `commit` functions depend on the language in question.
+However, the overall scheme — a text cursor whose evolution is driven by a loop of the kind described above —
+is a fairly general pattern.
+
+((This section requires further editing, e.g., talk about error recovery via commit.))
+
 ### References
 
 : 1. [link "Matt Griffith, elm-markup" https://package.elm-lang.org/packages/mdgriffith/elm-markup/latest/]
