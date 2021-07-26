@@ -324,7 +324,6 @@ loop s nextState =
     case nextState s of
         Loop s_ ->
             loop s_ nextState
-
         Done b ->
             b
 
