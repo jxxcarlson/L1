@@ -210,7 +210,7 @@ renderedText model =
         , moveUp 9
         , Font.size 12
         ]
-        (List.map (\para -> paragraph [] para) (L1.API.renderDocument renderArgs model.count model.sourceText))
+        (L1.API.renderDocument renderArgs model.count model.sourceText)
 
 
 
