@@ -34,9 +34,6 @@ print element =
         Problem _ str ->
             "PROBLEM: " ++ str
 
-        StackError _ _ message errorText ->
-            message ++ ":  " ++ errorText
-
 
 print_ : Element_ -> String
 print_ element =
@@ -58,9 +55,6 @@ print_ element =
 
         Problem_ _ str ->
             "PROBLEM: " ++ str
-
-        StackError_ _ _ message errorText ->
-            "((" ++ message ++ ":  " ++ errorText ++ "))"
 
         Incomplete_ ->
             "EMPTY"

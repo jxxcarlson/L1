@@ -111,9 +111,6 @@ transform renderArgs element =
         Problem _ str ->
             "PROBLEM: " ++ str
 
-        StackError _ _ message errorText ->
-            errorText ++ " " ++ message
-
 
 renderVerbatim verbatimType content =
     case verbatimType of

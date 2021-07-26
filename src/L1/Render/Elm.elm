@@ -107,9 +107,6 @@ render renderArgs element =
             -- el [] (text <| "PROBLEM: " ++ str)
             E.paragraph [] [ el [ Background.color lightRedColor ] (text <| "PROBLEM: "), el [ Background.color lightBlueColor ] (text <| str) ]
 
-        StackError _ _ message errorText ->
-            paragraph [] [ el [ Background.color (rgb255 255 255 0) ] (text errorText), el [ Font.bold, Font.color (rgb255 0 0 200) ] (text <| " " ++ message) ]
-
 
 renderVerbatim : RenderArgs -> VerbatimType -> String -> E.Element msg
 renderVerbatim renderArgs verbatimType content =

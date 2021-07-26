@@ -30,66 +30,12 @@ import L1.Parser.MetaData as MetaData exposing (MetaData)
 import Parser.Advanced as Parser
 
 
-getName : Element -> Maybe String
-getName e =
-    case e of
-        Element (Name str) _ _ ->
-            Just str
-
-        _ ->
-            Nothing
-
-
-{-|
-
-    pl "[i foo][b bar]" |> filter\_ "i" |> List.map L1.Parser.AST.simplify
-    [ Element_ (Name "i") (EList_ [ Text_ "foo" ]) ]
-
--}
-filter_ : String -> List Element -> List Element
-filter_ name elements =
-    List.filter (\e -> getName e == Just name) elements
-
-
-firstLine : List String -> Maybe String
-firstLine lines =
-    case List.head lines of
-        Just line ->
-            if String.length (String.trim line) > 0 then
-                Just line
-
-            else
-                firstLine (List.drop 1 lines)
-
-        Nothing ->
-            Nothing
-
-
-getTitle : String -> String
-getTitle str =
-    case firstLine (String.lines str) of
-        Nothing ->
-            "Untitled"
-
-        Just line ->
-            if L1.Library.Utility.characterAt 0 line == "#" then
-                String.dropLeft 2 line
-
-            else
-                "Untitled"
-
-
-
---getTitl                   "Untitled"
-
-
 type Element
     = Text String MetaData
     | Element Name Element MetaData
     | Verbatim VerbatimType String MetaData
     | EList (List Element) MetaData
     | Problem (List ParseError) String
-    | StackError Int Int String String --- errorTextStart errorTextEnd message errorText
 
 
 type VerbatimType
@@ -116,9 +62,6 @@ toStringList element =
         Problem _ _ ->
             [ "problems" ]
 
-        StackError _ _ a b ->
-            [ a, b ]
-
 
 stringContent : Element -> String
 stringContent element =
@@ -141,9 +84,6 @@ toList element =
             elements
 
         Problem _ _ ->
-            [ element ]
-
-        StackError _ _ a b ->
             [ element ]
 
 
@@ -210,7 +150,6 @@ type Element_
     | Verbatim_ VerbatimType String
     | EList_ (List Element_)
     | Problem_ Problem String
-    | StackError_ Int Int String String -- errorTextStart errorTextEnd message errorText
     | Incomplete_
 
 
@@ -241,9 +180,6 @@ position element =
         Problem _ _ ->
             Loc.dummy
 
-        StackError _ _ _ _ ->
-            Loc.dummy
-
 
 simplify : Element -> Element_
 simplify element =
@@ -262,9 +198,6 @@ simplify element =
 
         Problem p s ->
             Problem_ (List.head p |> Maybe.map .problem |> Maybe.withDefault NoError) s
-
-        StackError startError endError message errorText ->
-            StackError_ startError endError message errorText
 
 
 
@@ -382,3 +315,56 @@ argsAndBody n element =
 
         _ ->
             ( [], [] )
+
+
+
+--- HELPERS
+
+
+getName : Element -> Maybe String
+getName e =
+    case e of
+        Element (Name str) _ _ ->
+            Just str
+
+        _ ->
+            Nothing
+
+
+{-|
+
+    pl "[i foo][b bar]" |> filter\_ "i" |> List.map L1.Parser.AST.simplify
+    [ Element_ (Name "i") (EList_ [ Text_ "foo" ]) ]
+
+-}
+filter_ : String -> List Element -> List Element
+filter_ name elements =
+    List.filter (\e -> getName e == Just name) elements
+
+
+firstLine : List String -> Maybe String
+firstLine lines =
+    case List.head lines of
+        Just line ->
+            if String.length (String.trim line) > 0 then
+                Just line
+
+            else
+                firstLine (List.drop 1 lines)
+
+        Nothing ->
+            Nothing
+
+
+getTitle : String -> String
+getTitle str =
+    case firstLine (String.lines str) of
+        Nothing ->
+            "Untitled"
+
+        Just line ->
+            if L1.Library.Utility.characterAt 0 line == "#" then
+                String.dropLeft 2 line
+
+            else
+                "Untitled"
