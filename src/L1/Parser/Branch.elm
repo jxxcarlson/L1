@@ -71,41 +71,35 @@ canPopPrecondition configuration_ tc prefix =
 
 canPush : Configuration -> TextCursor -> String -> { value : Bool, prefix : String, isMatch : Bool }
 canPush configuration_ tc prefix =
-    if Config.isVerbatimSymbol prefix then
-        if Just prefix == (List.head tc.stack |> Maybe.map Stack.beginSymbol) then
-            if Config.isVerbatimSymbol prefix then
-                { value = True, prefix = prefix, isMatch = True }
-
-            else
-                -- TODO: think about the above
-                { value = False, prefix = prefix, isMatch = False }
-
-        else
-            { value = True, prefix = prefix, isMatch = False }
+    if Config.isVerbatimSymbol prefix && Just prefix == (List.head tc.stack |> Maybe.map Stack.beginSymbol) then
+        -- If the symbol is a verbatim symbol following one that is
+        -- on top of the stack the return True
+        { value = True, prefix = prefix, isMatch = True }
 
     else
+        -- Otherwise, the symbol is non-verbatim.  Check to see if it can be pushed
         canPushNonVerbatim configuration_ tc prefix
 
 
 canPushNonVerbatim : Configuration -> TextCursor -> String -> { value : Bool, prefix : String, isMatch : Bool }
 canPushNonVerbatim configuration_ tc prefix =
     if prefix == "" then
+        -- No prefix: terminate
         { value = False, prefix = "", isMatch = False }
 
-    else if canPush2 configuration_ tc prefix then
+    else if
+        -- the prefix is a begin symbol OR it is an end symbol
+        -- and the stack is not reducible with this prefix
+        Config.isBeginSymbol configuration_ tc.scanPoint prefix
+            || (Config.isEndSymbol configuration_ tc.scanPoint prefix
+                    && Stack.isNotReducibleWith prefix tc.stack
+               )
+    then
         { value = True, prefix = prefix, isMatch = False }
 
     else
         -- Try a substring.  A prefix might be "|" or "||", for example,
         -- So we try "||" and if that fails, we try "|"
+        -- Since we are truncating the prefix, we need a termination condition;
+        -- Hence 'if prefix == "' clause above.
         canPush configuration_ tc (String.dropLeft 1 prefix)
-
-
-canPush2 : Configuration -> { a | scanPoint : Int, stack : List Stack.StackItem } -> String -> Bool
-canPush2 configuration_ tc prefix =
-    Config.isBeginSymbol configuration_ tc.scanPoint prefix
-        -- The clause below is needed because we need to be able to push
-        -- end symbols onto the stack ... TODO: amplify this .. why the && part?
-        || (Config.isEndSymbol configuration_ tc.scanPoint prefix
-                && Stack.isNotReducibleWith prefix tc.stack
-           )

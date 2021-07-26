@@ -333,5 +333,5 @@ resolveError tc =
         , parsed = []
         , scanPoint = errorPosition + String.length badStackItemSymbol
         , scannerType = NormalScan
-        , complete = errorElement :: tc.complete
+        , complete = tc.parsed ++ errorElement :: tc.complete
     }
