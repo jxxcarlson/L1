@@ -6,9 +6,11 @@ module L1.Parser.AST exposing
     , argsAndBody
     , body
     , body_
+    , filter_
     , getArgs
     , getText
     , getTextList
+    , getTitle
     , indexedMap
     , join
     , joinText
@@ -21,10 +23,76 @@ module L1.Parser.AST exposing
     , toStringList
     )
 
+import L1.Library.Utility
 import L1.Parser.Error exposing (..)
 import L1.Parser.Loc as Loc
 import L1.Parser.MetaData as MetaData exposing (MetaData)
 import Parser.Advanced as Parser
+
+
+getName : Element -> Maybe String
+getName e =
+    case e of
+        Element (Name str) _ _ ->
+            Just str
+
+        _ ->
+            Nothing
+
+
+{-|
+
+    pl "[i foo][b bar]" |> filter\_ "i" |> List.map L1.Parser.AST.simplify
+    [ Element_ (Name "i") (EList_ [ Text_ "foo" ]) ]
+
+-}
+filter_ : String -> List Element -> List Element
+filter_ name elements =
+    List.filter (\e -> getName e == Just name) elements
+
+
+firstLine : List String -> Maybe String
+firstLine lines =
+    case List.head lines of
+        Just line ->
+            if String.length (String.trim line) > 0 then
+                Just line
+
+            else
+                firstLine (List.drop 1 lines)
+
+        Nothing ->
+            Nothing
+
+
+getTitle : String -> String
+getTitle str =
+    case firstLine (String.lines str) of
+        Nothing ->
+            "Untitled"
+
+        Just line ->
+            if L1.Library.Utility.characterAt 0 line == "#" then
+                String.dropLeft 2 line
+
+            else
+                "Untitled"
+
+
+
+--getTitle : List Element -> String
+--getTitle elements =
+--    case str |> String.trim |> parse 0 0 of
+--        Err _ ->
+--            "Untitled"
+--
+--        Ok elt ->
+--            case elt of
+--                Element "title" [] (LX [ Text str_ _ ] _) _ ->
+--                    str_
+--
+--                _ ->
+--                    "Untitled"
 
 
 type Element
