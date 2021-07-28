@@ -88,13 +88,13 @@ reduce op parser cursor =
             ParserTools.Loop (TextCursor.commit parser { cursor | message = "COMMIT 3", count = cursor.count + 1 })
 
         RAdd strData ->
-            ParserTools.Done
+            ParserTools.Loop
                 { cursor
                     | count = cursor.count + 1
-                    , stack = TextItem { content = strData.content, position = { start = 0, end = String.length strData.content } } :: cursor.stack
                     , scanPoint = cursor.scanPoint + String.length strData.content
+                    , complete = parser strData.content :: cursor.parsed ++ cursor.complete
                     , parsed = []
-                    , message = "R ADD"
+                    , message = "R ADD" -- main
                 }
 
         RPop prefix ->
@@ -174,68 +174,6 @@ type ReduceOperation
 type ShiftOperation
     = PushText StringData
     | PushData { prefix : String, isMatch : Bool }
-
-
-nextCursor1 : (String -> Element) -> TextCursor -> ParserTools.Step TextCursor TextCursor
-nextCursor1 parser cursor =
-    if cursor.count > 300 then
-        exit parser cursor "EMERGENCY STOP AT COUNT 300"
-
-    else
-        let
-            _ =
-                Debug.log (L1.Parser.Print.print cursor) ""
-
-            textToProcess =
-                String.dropLeft cursor.scanPoint cursor.source
-
-            chompedText =
-                TextCursor.advance cursor textToProcess
-
-            maybeFirstChar =
-                String.uncons textToProcess |> Maybe.map Tuple.first
-
-            maybePrefix =
-                Maybe.map ((\c -> ParserTools.prefixWith c textToProcess) >> .content) maybeFirstChar
-        in
-        case ( maybeFirstChar, maybePrefix, cursor.stack ) of
-            ( Nothing, _, [] ) ->
-                -- NORMAL LOOP TERMINATION: at end of input (Nothing), stack is empty
-                ParserTools.Done { cursor | complete = cursor.parsed ++ cursor.complete, message = "COMM0" }
-
-            ( Nothing, _, _ ) ->
-                -- NEED TO RESOLVE ERROR: at end of input (Nothing), stack is NOT empty
-                ParserTools.Loop (TextCursor.commit parser { cursor | message = "COMM2", count = cursor.count + 1 })
-
-            ( _, Nothing, _ ) ->
-                -- WHAT THE HECK?  MAYBE WE SHOULD JUST BAIL OUT
-                ParserTools.Loop (TextCursor.commit parser { cursor | message = "COMM3", count = cursor.count + 1 })
-
-            ( Just firstChar, Just prefixx, _ ) ->
-                -- CONTINUE NORMAL PROCESSING
-                case branch Configuration.configuration cursor firstChar prefixx of
-                    ADD ->
-                        add parser cursor chompedText
-
-                    PUSH data ->
-                        push cursor data
-
-                    POP ->
-                        pop parser prefixx cursor
-
-                    SHORTCIRCUIT ->
-                        shortcircuit prefixx cursor
-
-                    COMMIT ->
-                        ParserTools.Loop (TextCursor.commit parser { cursor | message = "COMMIT" })
-
-
-exit parser cursor message =
-    ParserTools.Done { cursor | message = message }
-
-
-add parser cursor chompedText =
-    ParserTools.Loop <| TextCursor.add parser chompedText.content { cursor | message = "ADD" }
 
 
 pop parser prefix cursor =
