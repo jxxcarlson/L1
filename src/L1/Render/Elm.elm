@@ -337,7 +337,8 @@ headerPadding level =
 
 item : FRender msg
 item renderArgs name body =
-    column [ paddingEach { left = 24, right = 0, top = 0, bottom = 0 } ] (renderList renderArgs body)
+    column [ paddingEach { left = 24, right = 0, top = 0, bottom = 0 } ]
+        [ paragraph [] (renderList renderArgs body) ]
 
 
 image : FRender msg
