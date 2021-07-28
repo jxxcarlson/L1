@@ -1,4 +1,4 @@
-module L1.Parser.Loop exposing (nextCursor, parseLoop)
+module L1.Parser.Loop exposing (nextCursor, operation, parseLoop)
 
 import L1.Library.Console as Console
 import L1.Library.ParserTools as ParserTools exposing (StringData)
@@ -79,13 +79,13 @@ reduce : ReduceOperation -> (String -> Element) -> TextCursor -> ParserTools.Ste
 reduce op parser cursor =
     case op of
         REnd ->
-            ParserTools.Done { cursor | complete = cursor.parsed ++ cursor.complete, message = "COMM0" }
+            ParserTools.Done { cursor | complete = cursor.parsed ++ cursor.complete, message = "COMMIT 1" }
 
         RCommit ->
-            ParserTools.Loop (TextCursor.commit parser { cursor | message = "COMM2", count = cursor.count + 1 })
+            ParserTools.Loop (TextCursor.commit parser { cursor | message = "COMMIT 2", count = cursor.count + 1 })
 
         RHandleError ->
-            ParserTools.Loop (TextCursor.commit parser { cursor | message = "COMM2", count = cursor.count + 1 })
+            ParserTools.Loop (TextCursor.commit parser { cursor | message = "COMMIT 3", count = cursor.count + 1 })
 
         RAdd strData ->
             ParserTools.Done
@@ -94,6 +94,7 @@ reduce op parser cursor =
                     , stack = TextItem { content = strData.content, position = { start = 0, end = String.length strData.content } } :: cursor.stack
                     , scanPoint = cursor.scanPoint + String.length strData.content
                     , parsed = []
+                    , message = "R ADD"
                 }
 
         RPop prefix ->

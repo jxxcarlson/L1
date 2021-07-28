@@ -21,7 +21,7 @@ print cursor =
 
 printMessage cursor =
     (String.fromInt cursor.count |> String.padLeft 2 '.')
-        ++ (cursor.message |> String.padLeft 7 '.')
+        ++ (cursor.message |> String.padLeft 9 '.')
         --++ " "
         --++ Debug.toString cursor.scannerType
         ++ " :: "
