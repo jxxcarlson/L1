@@ -143,6 +143,7 @@ add parse_ str tc =
             , scanPoint = tc.scanPoint + String.length str
             , complete = parse_ str :: tc.parsed ++ tc.complete
             , parsed = []
+            , message = "R ADD"
         }
 
     else
@@ -151,6 +152,7 @@ add parse_ str tc =
             , stack = TextItem { content = str, position = { start = 0, end = String.length str } } :: tc.stack
             , scanPoint = tc.scanPoint + String.length str
             , parsed = []
+            , message = "S PUSH"
         }
 
 
