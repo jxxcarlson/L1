@@ -30,8 +30,8 @@ parseLoop parser generation str =
             ParserTools.loop (TextCursor.init generation str) (nextCursor parser)
                 |> (\tc_ -> { tc_ | complete = List.reverse tc_.complete })
 
-        _ =
-            Debug.log (L1.Parser.Print.print result) "-"
+        --_ =
+        --    Debug.log (L1.Parser.Print.print result) "-"
     in
     result
 
@@ -107,9 +107,8 @@ reduce op parser cursor =
 operation : TextCursor -> Operation
 operation cursor =
     let
-        _ =
-            Debug.log (L1.Parser.Print.print cursor) ""
-
+        --_ =
+        --    Debug.log (L1.Parser.Print.print cursor) ""
         textToProcess =
             String.dropLeft cursor.scanPoint cursor.source
 
