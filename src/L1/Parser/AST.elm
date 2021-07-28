@@ -32,7 +32,7 @@ import Parser.Advanced as Parser
 
 type Element
     = Text String MetaData
-    | Element Name Element MetaData
+    | Element Name (List Element) MetaData
     | Verbatim VerbatimType String MetaData
     | EList (List Element) MetaData
     | Problem (List ParseError) String
@@ -50,8 +50,8 @@ toStringList element =
         Text str _ ->
             [ str ]
 
-        Element _ body__ _ ->
-            toStringList body__
+        Element _ elements _ ->
+            List.map getText elements
 
         Verbatim _ s _ ->
             [ s ]
@@ -75,7 +75,7 @@ toList element =
             [ element ]
 
         Element _ body__ _ ->
-            toList body__
+            body__
 
         Verbatim _ str _ ->
             [ element ]
@@ -94,7 +94,7 @@ getText element =
             s
 
         Element _ body__ _ ->
-            getText body__
+            List.map getText body__ |> String.join " "
 
         Verbatim _ str _ ->
             str
@@ -112,8 +112,8 @@ getArgs element =
         Text s _ ->
             [ s ]
 
-        Element _ body__ _ ->
-            getArgs body__
+        Element _ elements _ ->
+            List.map getArgs elements |> List.concat
 
         Verbatim _ str _ ->
             [ str ]
@@ -146,7 +146,7 @@ type Name
 -}
 type Element_
     = Text_ String
-    | Element_ Name Element_
+    | Element_ Name (List Element_)
     | Verbatim_ VerbatimType String
     | EList_ (List Element_)
     | Problem_ Problem String
@@ -187,8 +187,8 @@ simplify element =
         Text str _ ->
             Text_ str
 
-        Element name el _ ->
-            Element_ name (simplify el)
+        Element name body__ _ ->
+            Element_ name (List.map simplify body__)
 
         Verbatim name content _ ->
             Verbatim_ name content
@@ -207,8 +207,8 @@ simplify element =
 join : Element -> List Element -> Element
 join el list =
     case el of
-        Element name (EList list1 _) meta ->
-            Element name (EList (list1 ++ list) MetaData.dummy) meta
+        Element name list_ meta ->
+            Element name (list_ ++ list) meta
 
         _ ->
             el
@@ -217,8 +217,8 @@ join el list =
 join2 : Element -> List Element -> Element
 join2 el list =
     case el of
-        Element name (EList list1 _) meta ->
-            Element name (EList (list1 ++ list) MetaData.dummy) meta
+        Element name list_ meta ->
+            Element name (list_ ++ list) meta
 
         _ ->
             el
@@ -227,7 +227,7 @@ join2 el list =
 body : Element -> List Element
 body element =
     case element of
-        Element _ (EList list _) _ ->
+        Element _ list _ ->
             list
 
         _ ->
@@ -237,7 +237,7 @@ body element =
 body_ : Element_ -> List Element_
 body_ element =
     case element of
-        Element_ _ (EList_ list) ->
+        Element_ _ list ->
             list
 
         _ ->
@@ -251,7 +251,7 @@ map f element =
             Text (f s) meta
 
         Element name body__ meta ->
-            Element name (map f body__) meta
+            Element name (List.map (map f) body__) meta
 
         EList items meta ->
             EList (List.map (map f) items) meta
@@ -275,10 +275,10 @@ argsAndBody n element =
     case element of
         Element name body__ meta ->
             case body__ of
-                EList [] _ ->
+                [] ->
                     ( [], [] )
 
-                EList (first :: rest) _ ->
+                first :: rest ->
                     let
                         args =
                             getText first |> String.words
@@ -293,9 +293,6 @@ argsAndBody n element =
                             Text lastWords MetaData.dummy
                     in
                     ( realArgs, elt :: rest )
-
-                _ ->
-                    ( [], [] )
 
         EList (first :: rest) _ ->
             let
