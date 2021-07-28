@@ -160,9 +160,9 @@ Below are some Markdown-like examples.   Compare the source and rendered text to
 Use the model below for links:
 
 || codeblock
-[link NYT https://nytimes.com]
+[link "NYT" "https://nytimes.com"]
 
-:[link NYT https://nytimes.com]
+:[link "NYT" "https://nytimes.com"]
 
 ### Colors:
 
