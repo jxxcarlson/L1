@@ -100,9 +100,6 @@ render renderArgs element =
         Element Undefined body _ ->
             E.el [] (text <| "Undefined element")
 
-        EList elements _ ->
-            E.paragraph [] (List.map (AST.map (\s -> " " ++ s) >> render renderArgs) elements)
-
         Problem _ str ->
             -- el [] (text <| "PROBLEM: " ++ str)
             E.paragraph [] [ el [ Background.color lightRedColor ] (text <| "PROBLEM: "), el [ Background.color lightBlueColor ] (text <| str) ]
@@ -497,9 +494,6 @@ getText2 element =
         Text s _ ->
             s
 
-        EList list _ ->
-            List.map getText2 list |> String.join " "
-
         _ ->
             ""
 
@@ -507,7 +501,7 @@ getText2 element =
 getText : Element -> Maybe String
 getText element =
     case element of
-        EList [ Text content _ ] _ ->
+        Text content _ ->
             Just content
 
         _ ->

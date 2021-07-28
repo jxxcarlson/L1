@@ -15,20 +15,18 @@ heading2 tc =
         parsed_ =
             case Parser.parseHeading tc.generation tc.source of
                 Ok goodstuff ->
-                    goodstuff
+                    [ goodstuff ]
 
                 Err _ ->
                     errorElement tc.source
     in
-    { tc | complete = parsed_ :: tc.complete }
+    { tc | complete = parsed_ ++ tc.complete }
 
 
 errorElement message =
-    EList
-        [ Element (Name "redlight") [ Text "Error " MetaData.dummy ] MetaData.dummy
-        , Element (Name "bluelight") [ Text message MetaData.dummy ] MetaData.dummy
-        ]
-        MetaData.dummy
+    [ Element (Name "redlight") [ Text "Error " MetaData.dummy ] MetaData.dummy
+    , Element (Name "bluelight") [ Text message MetaData.dummy ] MetaData.dummy
+    ]
 
 
 item tc =
@@ -36,12 +34,12 @@ item tc =
         parsed_ =
             case Parser.parseItem tc.generation tc.source of
                 Ok goodstuff ->
-                    goodstuff
+                    [ goodstuff ]
 
                 Err _ ->
                     errorElement tc.source
     in
-    { tc | complete = parsed_ :: tc.complete }
+    { tc | complete = parsed_ ++ tc.complete }
 
 
 pipe tc =

@@ -34,7 +34,6 @@ type Element
     = Text String MetaData
     | Element Name (List Element) MetaData
     | Verbatim VerbatimType String MetaData
-    | EList (List Element) MetaData
     | Problem (List ParseError) String
 
 
@@ -55,9 +54,6 @@ toStringList element =
 
         Verbatim _ s _ ->
             [ s ]
-
-        EList elements _ ->
-            List.map getText elements
 
         Problem _ _ ->
             [ "problems" ]
@@ -80,9 +76,6 @@ toList element =
         Verbatim _ str _ ->
             [ element ]
 
-        EList elements _ ->
-            elements
-
         Problem _ _ ->
             [ element ]
 
@@ -99,9 +92,6 @@ getText element =
         Verbatim _ str _ ->
             str
 
-        EList list _ ->
-            List.map getText list |> String.join " "
-
         _ ->
             ""
 
@@ -117,9 +107,6 @@ getArgs element =
 
         Verbatim _ str _ ->
             [ str ]
-
-        EList list _ ->
-            List.map getText list
 
         _ ->
             []
@@ -148,9 +135,7 @@ type Element_
     = Text_ String
     | Element_ Name (List Element_)
     | Verbatim_ VerbatimType String
-    | EList_ (List Element_)
     | Problem_ Problem String
-    | Incomplete_
 
 
 length : Element -> Int
@@ -174,9 +159,6 @@ position element =
         Verbatim _ _ meta ->
             meta.position
 
-        EList _ meta ->
-            meta.position
-
         Problem _ _ ->
             Loc.dummy
 
@@ -192,9 +174,6 @@ simplify element =
 
         Verbatim name content _ ->
             Verbatim_ name content
-
-        EList elementList _ ->
-            EList_ (List.map simplify elementList)
 
         Problem p s ->
             Problem_ (List.head p |> Maybe.map .problem |> Maybe.withDefault NoError) s
@@ -252,9 +231,6 @@ map f element =
 
         Element name body__ meta ->
             Element name (List.map (map f) body__) meta
-
-        EList items meta ->
-            EList (List.map (map f) items) meta
 
         _ ->
             element

@@ -105,9 +105,6 @@ transform renderArgs element =
         Element Undefined body _ ->
             "Undefined element"
 
-        EList elements _ ->
-            renderList renderArgs elements
-
         Problem _ str ->
             "PROBLEM: " ++ str
 
@@ -289,9 +286,6 @@ getText2 element =
         Text s _ ->
             s
 
-        EList list _ ->
-            List.map getText2 list |> String.join ""
-
         _ ->
             ""
 
@@ -304,7 +298,7 @@ getTextList elements =
 getText : Element -> Maybe String
 getText element =
     case element of
-        EList [ Text content _ ] _ ->
+        Text content _ ->
             Just content
 
         _ ->

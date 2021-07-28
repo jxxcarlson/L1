@@ -28,9 +28,6 @@ print element =
         Element Undefined body _ ->
             "[" ++ "undefined" ++ String.join " " (List.map print body) ++ "]"
 
-        EList elements _ ->
-            String.join " " (List.map print elements)
-
         Problem _ str ->
             "PROBLEM: " ++ str
 
@@ -50,14 +47,8 @@ print_ element =
         Verbatim_ _ content ->
             content
 
-        EList_ elements ->
-            String.join " " (List.map print_ elements)
-
         Problem_ _ str ->
             "PROBLEM: " ++ str
-
-        Incomplete_ ->
-            "EMPTY"
 
 
 printList_ : List Element_ -> String
