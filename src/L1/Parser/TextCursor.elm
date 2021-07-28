@@ -143,7 +143,7 @@ add parse_ str tc =
             , scanPoint = tc.scanPoint + String.length str
             , complete = parse_ str :: tc.parsed ++ tc.complete
             , parsed = []
-            , message = "R ADD"
+            , message = "R ADD" -- main
         }
 
     else
