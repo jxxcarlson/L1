@@ -29,8 +29,8 @@ parseLoop parser generation str =
             ParserTools.loop (TextCursor.init generation str) (nextCursor parser)
                 |> (\tc_ -> { tc_ | complete = List.reverse tc_.complete })
 
-        --_ =
-        --    Debug.log (L1.Parser.Print.print result) "-"
+        _ =
+            Debug.log (L1.Parser.Print.print result) "-"
     in
     result
 
@@ -55,8 +55,9 @@ nextCursor parser cursor =
 
     else
         let
-            --_ =
-            --    Debug.log (L1.Parser.Print.print cursor) ""
+            _ =
+                Debug.log (L1.Parser.Print.print cursor) ""
+
             textToProcess =
                 String.dropLeft cursor.scanPoint cursor.source
 
@@ -72,15 +73,15 @@ nextCursor parser cursor =
         case ( maybeFirstChar, maybePrefix, cursor.stack ) of
             ( Nothing, _, [] ) ->
                 -- NORMAL LOOP TERMINATION: at end of input (Nothing), stack is empty
-                ParserTools.Done { cursor | complete = cursor.parsed ++ cursor.complete, message = "COMM0" }
+                ParserTools.Done { cursor | complete = cursor.parsed ++ cursor.complete, message = "COMMIT 0" }
 
             ( Nothing, _, _ ) ->
                 -- NEED TO RESOLVE ERROR: at end of input (Nothing), stack is NOT empty
-                ParserTools.Loop (TextCursor.commit parser { cursor | message = "COMM2", count = cursor.count + 1 })
+                ParserTools.Loop (TextCursor.commit parser { cursor | message = "COMMIT 2", count = cursor.count + 1 })
 
             ( _, Nothing, _ ) ->
                 -- WHAT THE HECK?  MAYBE WE SHOULD JUST BAIL OUT
-                ParserTools.Loop (TextCursor.commit parser { cursor | message = "COMM3", count = cursor.count + 1 })
+                ParserTools.Loop (TextCursor.commit parser { cursor | message = "COMMIT 3", count = cursor.count + 1 })
 
             ( Just firstChar, Just prefixx, _ ) ->
                 -- CONTINUE NORMAL PROCESSING
