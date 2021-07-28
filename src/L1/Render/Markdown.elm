@@ -102,7 +102,7 @@ transform renderArgs element =
         Verbatim verbatimType content _ ->
             renderVerbatim verbatimType content
 
-        Element Undefined body _ ->
+        Element UndefinedName body _ ->
             "Undefined element"
 
         Problem _ str ->

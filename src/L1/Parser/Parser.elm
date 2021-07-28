@@ -1,10 +1,21 @@
-module L1.Parser.Parser exposing (hashMarks, parse, parseHeading, parseItem, parseList, parseSimple, parser)
+module L1.Parser.Parser exposing
+    ( elementName
+    , hashMarks
+    , identifier
+    , parse
+    , parseHeading
+    , parseItem
+    , parseList
+    , parseSimple
+    , parser
+    )
 
 import L1.Library.ParserTools as T
 import L1.Library.StringParser as XString
 import L1.Parser.AST as AST exposing (Element(..), Name(..), VerbatimType(..))
 import L1.Parser.Error exposing (Context(..), Problem(..))
 import L1.Parser.Loc as Loc exposing (Position)
+import List
 import Parser.Advanced as Parser exposing ((|.), (|=))
 
 
@@ -79,7 +90,7 @@ primitiveElement generation =
         Parser.succeed (\start name body_ end source -> Element name body_ (meta generation start end))
             |= Parser.getOffset
             |. leftBracket
-            |= Parser.oneOf [ elementName |> Parser.map Name, Parser.succeed Undefined ]
+            |= Parser.oneOf [ elementName |> Parser.map Name, Parser.succeed UndefinedName ]
             |= argsAndBody generation
             |. Parser.spaces
             |. rightBracket
@@ -181,7 +192,12 @@ hashMarks =
 
 
 elementName =
-    T.first (string_ [ '[', ']', ' ', '\n' ]) Parser.spaces
+    T.first identifier Parser.spaces
+
+
+identifier =
+    T.text Char.isAlpha (\c -> not <| List.member c [ '[', ']', ' ', '\n' ])
+        |> Parser.map .content
 
 
 argsAndBody : Int -> Parser.Parser Context Problem (List Element)

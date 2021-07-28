@@ -25,7 +25,7 @@ print element =
         Verbatim _ content _ ->
             content
 
-        Element Undefined body _ ->
+        Element UndefinedName body _ ->
             "[" ++ "undefined" ++ String.join " " (List.map print body) ++ "]"
 
         Problem _ str ->
@@ -41,7 +41,7 @@ print_ element =
         Element_ (Name name) body ->
             "[" ++ name ++ " " ++ String.join " " (List.map print_ body) ++ "]"
 
-        Element_ Undefined body ->
+        Element_ UndefinedName body ->
             "[" ++ "undefined" ++ String.join " " (List.map print_ body) ++ "]"
 
         Verbatim_ _ content ->

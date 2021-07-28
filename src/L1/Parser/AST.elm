@@ -126,7 +126,7 @@ type alias ParseError =
 
 type Name
     = Name String
-    | Undefined
+    | UndefinedName
 
 
 {-| A simplified version of the AST for humans

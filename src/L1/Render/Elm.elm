@@ -95,8 +95,8 @@ render renderArgs element =
         Verbatim verbatimType str _ ->
             renderVerbatim renderArgs verbatimType str
 
-        Element Undefined body _ ->
-            E.el [] (text <| "Undefined element")
+        Element UndefinedName body _ ->
+            E.el [ Background.color lightRedColor ] (text <| "Element with undefined name.  Did you use '[ ]'?  Try '[foo]' or '[foo bar]' instead. The element name must begin with an alphabetic character, so '[1]' is illegal, but '[a1]' is grammatically OK.")
 
         Problem _ str ->
             -- el [] (text <| "PROBLEM: " ++ str)
