@@ -17,16 +17,16 @@ print element =
 
         Element (Name name) body _ ->
             if name == "math" then
-                "$" ++ print body ++ "$"
+                "$" ++ String.join " " (List.map print body) ++ "$"
 
             else
-                "[" ++ name ++ " " ++ print body ++ "]"
+                "[" ++ name ++ " " ++ String.join " " (List.map print body) ++ "]"
 
         Verbatim _ content _ ->
             content
 
         Element Undefined body _ ->
-            "[" ++ "undefined" ++ print body ++ "]"
+            "[" ++ "undefined" ++ String.join " " (List.map print body) ++ "]"
 
         EList elements _ ->
             String.join " " (List.map print elements)
@@ -42,10 +42,10 @@ print_ element =
             str
 
         Element_ (Name name) body ->
-            "[" ++ name ++ " " ++ print_ body ++ "]"
+            "[" ++ name ++ " " ++ String.join " " (List.map print_ body) ++ "]"
 
         Element_ Undefined body ->
-            "[" ++ "undefined" ++ print_ body ++ "]"
+            "[" ++ "undefined" ++ String.join " " (List.map print_ body) ++ "]"
 
         Verbatim_ _ content ->
             content

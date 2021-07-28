@@ -63,9 +63,9 @@ toStringList element =
             [ "problems" ]
 
 
-stringContent : Element -> String
-stringContent element =
-    element |> toStringList |> String.join " "
+stringContent : List Element -> String
+stringContent elements =
+    elements |> List.map toStringList |> List.concat |> String.join " "
 
 
 toList : Element -> List Element
@@ -270,31 +270,13 @@ joinText elements =
     List.map getText elements |> String.join " "
 
 
-argsAndBody : Int -> Element -> ( List String, List Element )
-argsAndBody n element =
-    case element of
-        Element name body__ meta ->
-            case body__ of
-                [] ->
-                    ( [], [] )
+argsAndBody : Int -> List Element -> ( List String, List Element )
+argsAndBody n elements =
+    case elements of
+        [] ->
+            ( [], [] )
 
-                first :: rest ->
-                    let
-                        args =
-                            getText first |> String.words
-
-                        realArgs =
-                            List.take n args
-
-                        lastWords =
-                            List.drop n args |> String.join " "
-
-                        elt =
-                            Text lastWords MetaData.dummy
-                    in
-                    ( realArgs, elt :: rest )
-
-        EList (first :: rest) _ ->
+        first :: rest ->
             let
                 args =
                     getText first |> String.words
@@ -309,9 +291,6 @@ argsAndBody n element =
                     Text lastWords MetaData.dummy
             in
             ( realArgs, elt :: rest )
-
-        _ ->
-            ( [], [] )
 
 
 

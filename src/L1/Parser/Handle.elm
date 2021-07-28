@@ -25,8 +25,8 @@ heading2 tc =
 
 errorElement message =
     EList
-        [ Element (Name "redlight") (Text "Error " MetaData.dummy) MetaData.dummy
-        , Element (Name "bluelight") (Text message MetaData.dummy) MetaData.dummy
+        [ Element (Name "redlight") [ Text "Error " MetaData.dummy ] MetaData.dummy
+        , Element (Name "bluelight") [ Text message MetaData.dummy ] MetaData.dummy
         ]
         MetaData.dummy
 
@@ -67,7 +67,7 @@ doublePipe tc =
                     List.drop 1 lines |> String.join "\n"
 
                 element =
-                    Element (Name (String.trimLeft (String.dropLeft 2 name))) (Text body MetaData.dummy) MetaData.dummy
+                    Element (Name (String.trimLeft (String.dropLeft 2 name))) [ Text body MetaData.dummy ] MetaData.dummy
             in
             { tc | complete = element :: tc.complete }
 
@@ -83,10 +83,10 @@ headings tc top_ parsed_ =
 
         Stack.Expect top ->
             if List.member top.expect.beginSymbol [ "#", "##", "###" ] then
-                List.reverse tc.complete ++ [ Element (AST.Name "heading") (EList (List.reverse parsed_) MetaData.dummy) MetaData.dummy ]
+                List.reverse tc.complete ++ [ Element (AST.Name "heading") (List.reverse parsed_) MetaData.dummy ]
 
             else
-                List.reverse tc.complete ++ [ Element (AST.Name "heading") (EList (List.reverse parsed_) MetaData.dummy) MetaData.dummy ]
+                List.reverse tc.complete ++ [ Element (AST.Name "heading") (List.reverse parsed_) MetaData.dummy ]
 
 
 lineCommand tc parsed_ =
@@ -97,13 +97,13 @@ lineCommand tc parsed_ =
         Just ( first, [] ) ->
             case String.words (AST.getText first) of
                 [] ->
-                    List.reverse tc.complete ++ [ Element (AST.Name "empty") (EList [] MetaData.dummy) MetaData.dummy ]
+                    List.reverse tc.complete ++ [ Element (AST.Name "empty") [] MetaData.dummy ]
 
                 name :: [] ->
-                    List.reverse tc.complete ++ [ Element (AST.Name (String.trim name)) (EList [] MetaData.dummy) MetaData.dummy ]
+                    List.reverse tc.complete ++ [ Element (AST.Name (String.trim name)) [] MetaData.dummy ]
 
                 name :: rest ->
-                    List.reverse tc.complete ++ [ Element (AST.Name (String.trim name)) (Text (String.join " " rest) MetaData.dummy) MetaData.dummy ]
+                    List.reverse tc.complete ++ [ Element (AST.Name (String.trim name)) [ Text (String.join " " rest) MetaData.dummy ] MetaData.dummy ]
 
         Just ( first, rest ) ->
-            List.reverse tc.complete ++ [ Element (AST.Name (String.trim (AST.getText first))) (EList rest MetaData.dummy) MetaData.dummy ]
+            List.reverse tc.complete ++ [ Element (AST.Name (String.trim (AST.getText first))) rest MetaData.dummy ]

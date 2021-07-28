@@ -37,7 +37,7 @@ type alias RenderArgs =
 
 
 type alias FRender =
-    RenderArgs -> String -> List String -> Element -> String
+    RenderArgs -> String -> List Element -> String
 
 
 type alias RenderElementDict =
@@ -97,7 +97,7 @@ transform renderArgs element =
             str
 
         Element (Name name) body _ ->
-            renderWithDictionary renderArgs name [] body
+            renderWithDictionary renderArgs name (renderList renderArgs body)
 
         Verbatim verbatimType content _ ->
             renderVerbatim verbatimType content
@@ -106,10 +106,14 @@ transform renderArgs element =
             "Undefined element"
 
         EList elements _ ->
-            List.map (AST.map (\s -> " " ++ s) >> transform renderArgs) elements |> String.join ""
+            renderList renderArgs elements
 
         Problem _ str ->
             "PROBLEM: " ++ str
+
+
+renderList renderArgs elements =
+    List.map (AST.map (\s -> " " ++ s) >> transform renderArgs) elements |> String.join ""
 
 
 renderVerbatim verbatimType content =
@@ -124,13 +128,13 @@ renderVerbatim verbatimType content =
             content
 
 
-renderWithDictionary renderArgs name args body =
+renderWithDictionary renderArgs name body =
     case Dict.get name renderElementDict of
         Just f ->
-            f renderArgs name args body
+            f renderArgs name body
 
         Nothing ->
-            "[" ++ name ++ " " ++ transform renderArgs body ++ "]"
+            "[" ++ name ++ " " ++ transformList renderArgs body ++ "]"
 
 
 
@@ -138,42 +142,36 @@ renderWithDictionary renderArgs name args body =
 
 
 italic : FRender
-italic renderArgs _ _ body =
-    italicMark ++ String.trim (transform renderArgs body) ++ italicMark
+italic renderArgs _ body =
+    italicMark ++ String.trim (transformList renderArgs body) ++ italicMark
 
 
 bold : FRender
-bold renderArgs _ _ body =
-    boldMark ++ String.trim (transform renderArgs body) ++ boldMark
+bold renderArgs _ body =
+    boldMark ++ String.trim (transformList renderArgs body) ++ boldMark
 
 
 strike : FRender
-strike renderArgs _ _ body =
-    strikeMark ++ String.trim (transform renderArgs body) ++ strikeMark
+strike renderArgs _ body =
+    strikeMark ++ String.trim (transformList renderArgs body) ++ strikeMark
 
 
 quoted : FRender
-quoted renderArgs _ _ body =
-    transform renderArgs body
+quoted renderArgs _ body =
+    transformList renderArgs body
 
 
 code : FRender
-code renderArgs _ _ body =
-    codeMark ++ String.trim (transform renderArgs body) ++ codeMark
+code renderArgs _ body =
+    codeMark ++ String.trim (transformList renderArgs body) ++ codeMark
 
 
 link : FRender
-link renderArgs name args body =
+link renderArgs name body =
     let
         bodyStrings : List String
         bodyStrings =
-            -- getText body |> Maybe.withDefault "missing url"
-            case body of
-                EList elements _ ->
-                    List.map AST.getText elements
-
-                _ ->
-                    [ "missing", "stuff" ]
+            List.map AST.getText body
 
         ( label, url ) =
             case bodyStrings of
@@ -190,11 +188,12 @@ link renderArgs name args body =
 
 
 heading : FRender
-heading renderArgs name args body =
+heading renderArgs name body =
     let
         text =
-            getText body |> Maybe.withDefault "TITLE"
+            getTextList body |> String.join " "
 
+        -- |> Maybe.withDefault "TITLE"
         level =
             text
                 |> String.words
@@ -213,32 +212,32 @@ heading renderArgs name args body =
 
 
 item : FRender
-item renderArgs name args body =
-    "-  " ++ transform renderArgs body
+item renderArgs name body =
+    "-  " ++ transformList renderArgs body
 
 
 heading1 : FRender
-heading1 renderArgs name args body =
-    "# " ++ transform renderArgs body
+heading1 renderArgs name body =
+    "# " ++ transformList renderArgs body
 
 
 heading2 : FRender
-heading2 renderArgs name args body =
-    "## " ++ transform renderArgs body
+heading2 renderArgs name body =
+    "## " ++ transformList renderArgs body
 
 
 heading3 : FRender
-heading3 renderArgs name args body =
-    "### " ++ transform renderArgs body
+heading3 renderArgs name body =
+    "### " ++ transformList renderArgs body
 
 
 heading4 : FRender
-heading4 renderArgs name args body =
-    "#### " ++ transform renderArgs body
+heading4 renderArgs name body =
+    "#### " ++ transformList renderArgs body
 
 
 image : FRender
-image renderArgs name _ body =
+image renderArgs name body =
     let
         url =
             getTextList body |> List.reverse |> List.head |> Maybe.withDefault "no-image"
@@ -256,18 +255,18 @@ type DisplayMode
 
 
 math : FRender
-math renderArgs name args body =
-    "$" ++ getText2 body ++ "$"
+math renderArgs name body =
+    "$" ++ (getTextList body |> String.join " ") ++ "$"
 
 
 mathblock : FRender
-mathblock rendArgs name args body =
-    "$$" ++ getText2 body ++ "$$"
+mathblock rendArgs name body =
+    "$$" ++ (getTextList body |> String.join " ") ++ "$$"
 
 
 codeblock : FRender
-codeblock rendArgs name args body =
-    "```\n" ++ getText2 body ++ "\n```"
+codeblock rendArgs name body =
+    "```\n" ++ (getTextList body |> String.join " ") ++ "\n```"
 
 
 
@@ -297,17 +296,9 @@ getText2 element =
             ""
 
 
-getTextList : Element -> List String
-getTextList element =
-    case element of
-        Text s _ ->
-            s :: []
-
-        EList list _ ->
-            List.map getText2 list
-
-        _ ->
-            []
+getTextList : List Element -> List String
+getTextList elements =
+    List.map getText2 elements
 
 
 getText : Element -> Maybe String

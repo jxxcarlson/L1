@@ -311,7 +311,7 @@ resolveError tc =
 
         -- TODO: the above is hacky and DANGEROUS
         errorElement =
-            Element (Name "error") (Text (" unmatched '" ++ badStackItemSymbol ++ "'") MetaData.dummy) MetaData.dummy
+            Element (Name "error") [ Text (" unmatched '" ++ badStackItemSymbol ++ "'") MetaData.dummy ] MetaData.dummy
     in
     { tc
         | count = 1 + tc.count
