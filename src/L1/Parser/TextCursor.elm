@@ -78,6 +78,8 @@ init generation source =
     }
 
 
+{-| SHIFT
+-}
 advance : TextCursor -> String -> ParserTools.StringData
 advance cursor textToProcess =
     case cursor.scannerType of
@@ -131,6 +133,8 @@ advanceVerbatim verbatimChar str =
             { content = "", finish = 0, start = 0 }
 
 
+{-| First branch: REDUCE, second branch SHIFT
+-}
 add : (String -> Element) -> String -> TextCursor -> TextCursor
 add parse_ str tc =
     if tc.stack == [] then
@@ -150,7 +154,7 @@ add parse_ str tc =
         }
 
 
-{-| A
+{-| SHIFT
 -}
 push : { prefix : String, isMatch : Bool } -> ProtoStackItem -> TextCursor -> TextCursor
 push ({ prefix, isMatch } as prefixData) proto tc =
@@ -226,6 +230,8 @@ push ({ prefix, isMatch } as prefixData) proto tc =
     }
 
 
+{-| REDUCE
+-}
 pop : (String -> Element) -> String -> TextCursor -> TextCursor
 pop parse prefix cursor =
     -- The cursors' scanPoint is pointing at a character that
@@ -250,6 +256,8 @@ pop parse prefix cursor =
             }
 
 
+{-| REDUCE
+-}
 commit : (String -> Element) -> TextCursor -> TextCursor
 commit parse tc =
     if tc.stack == [] && tc.scanPoint >= tc.sourceLength then
@@ -280,6 +288,9 @@ finishUpWithReducibleStack parse tc =
 -- LANGUAGE HANDLERS
 
 
+{-| REDUCE, called from commit. Note that the stack is cleared (reduce),
+material is added to 'complete', and the scan point is advanced.
+-}
 resolveError : TextCursor -> TextCursor
 resolveError tc =
     let

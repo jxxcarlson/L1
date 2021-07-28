@@ -13,8 +13,6 @@ import Json.Encode
 import L1.Library.Utility as Utility
 import L1.Parser.AST as AST exposing (Element(..), Element_(..), Name(..), VerbatimType(..))
 import L1.Parser.Error exposing (Context(..), Problem(..))
-import L1.Parser.MetaData as MetaData
-import L1.Parser.Utility
 import Parser.Advanced
 
 
