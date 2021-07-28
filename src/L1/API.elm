@@ -8,7 +8,7 @@ import L1.Render.Elm exposing (RenderArgs)
 renderDocument_ : RenderArgs -> Int -> String -> List (List (E.Element msg))
 renderDocument_ renderArgs generation document =
     document
-        |> L1.Parser.Document.parse generation
+        |> L1.Parser.Document.parseWithTOC generation
         |> List.map (\para -> L1.Render.Elm.renderList { renderArgs | generation = generation } para)
 
 

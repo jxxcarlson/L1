@@ -4,6 +4,7 @@ module Data.Example exposing (text)
 text =
     """
 
+
 # The L1 Markup Language
 
 [i by James Carlson, jxxcarlson@gmail.com ]
@@ -87,9 +88,7 @@ Verbatim blocks are also used for code:
 || codeblock
 || codeblock
 import sys
-"""
-        ++ String.fromChar '\u{00A0}'
-        ++ """
+
 capital = float(sys.argv[1])
 ...
 
@@ -97,15 +96,11 @@ which is rendered as
 
 || codeblock
 import sys
-"""
-        ++ String.fromChar '\u{00A0}'
-        ++ """
+
 capital = float(sys.argv[1])
 rate = float(sys.argv[2])/100.0
 years = int(sys.argv[3])
-"""
-        ++ String.fromChar '\u{00A0}'
-        ++ """
+
 for i in range(0, years):
   capital = (1 + rate)*capital
   print "%3d %8.0f" % (i, capital)
@@ -170,11 +165,6 @@ Use the model below for links:
  This is [red red meat].  [gray (We shouldn't eat so much)]
 
 :This is [red red meat].  [gray (We shouldn't eat so much.)]
-
-
-
-
-
 
 
 """

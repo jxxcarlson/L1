@@ -1,6 +1,6 @@
 module L1.Parser.TextCursor exposing
     ( TextCursor, init
-    , ProtoStackItem(..), ScannerType(..), add, advance, advanceNormal, commit, pop, push
+    , ProtoStackItem(..), ScannerType(..), advance, advanceNormal, commit, pop, push
     )
 
 {-| TextCursor is the data structure used by L1.Parser.parseLoop.
@@ -131,29 +131,6 @@ advanceVerbatim verbatimChar str =
 
         Err _ ->
             { content = "", finish = 0, start = 0 }
-
-
-{-| First branch: REDUCE, second branch SHIFT
--}
-add : (String -> Element) -> String -> TextCursor -> TextCursor
-add parse_ str tc =
-    if tc.stack == [] then
-        { tc
-            | count = tc.count + 1
-            , scanPoint = tc.scanPoint + String.length str
-            , complete = parse_ str :: tc.parsed ++ tc.complete
-            , parsed = []
-            , message = "R ADD" -- main
-        }
-
-    else
-        { tc
-            | count = tc.count + 1
-            , stack = TextItem { content = str, position = { start = 0, end = String.length str } } :: tc.stack
-            , scanPoint = tc.scanPoint + String.length str
-            , parsed = []
-            , message = "S PUSH"
-        }
 
 
 {-| SHIFT

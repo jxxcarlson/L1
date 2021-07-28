@@ -1,12 +1,27 @@
-module L1.Parser.Document exposing (groupLines, parse, split)
+module L1.Parser.Document exposing (groupLines, parse, parseWithTOC, split)
 
-import L1.Parser.AST exposing (Element)
+import L1.Parser.AST as AST exposing (Element)
 import L1.Parser.Chunk
 import L1.Parser.Parser
 
 
 type alias Document =
     String
+
+
+parseWithTOC : Int -> Document -> List (List Element)
+parseWithTOC generation doc =
+    let
+        ast =
+            parse generation doc
+
+        title =
+            List.take 1 ast
+
+        toc =
+            AST.makeTOC ast
+    in
+    List.take 3 ast ++ [ toc ] :: List.drop 3 ast
 
 
 parse : Int -> Document -> List (List Element)

@@ -62,6 +62,8 @@ renderElementDict =
         , ( "gray", gray )
         , ( "code", code )
         , ( "quoted", quoted )
+        , ( "quote", quote )
+        , ( "toc", toc )
         , ( "math2", math2 )
         , ( "m", renderMath )
         , ( "mathblock", mathblock )
@@ -202,6 +204,35 @@ gray renderArgs _ body =
 quoted : FRender msg
 quoted renderArgs _ body =
     paragraph [] (renderList renderArgs body)
+
+
+quote : FRender msg
+quote renderArgs _ body =
+    let
+        content =
+            "\"" ++ (List.map AST.getText body |> String.join " ") ++ "\""
+    in
+    paragraph [] [ text content ]
+
+
+toc : FRender msg
+toc rendArgs _ body =
+    column [ E.paddingXY 18 18, spacing 8, Background.color (E.rgb255 234 228 247) ] (el [ Font.bold ] (text <| "Table of contents") :: List.map tocItem (List.drop 1 body))
+
+
+tocItem : Element -> E.Element msg
+tocItem e =
+    case AST.getTextList2 e of
+        n :: content :: rest ->
+            el [ paddingEach { left = tocPadding n, right = 0, top = 0, bottom = 0 } ] (text content)
+
+        _ ->
+            E.none
+
+
+tocPadding : String -> Int
+tocPadding str =
+    str |> String.toInt |> Maybe.withDefault 4 |> (\x -> (x - 2) * 12)
 
 
 indent : FRender msg

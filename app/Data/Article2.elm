@@ -6,6 +6,7 @@ text =
 
 
 
+
 # Fault-tolerant Parsing
 
 [i by James Carlson, jxxcarlson@gmail.com ]
@@ -79,9 +80,7 @@ type Element
     | Element Name Element
     | Verbatim VerbatimType String
     | EList (List Element)
-"""
-        ++ String.fromChar '\u{00A0}'
-        ++ """
+
 type Name = Name String
 
 Module `L1.Parser.Parser` exposes a function
@@ -278,26 +277,6 @@ type alias TextCursor =
     , message : String
     }
 
-The permissible operations on a `TextCursor` are just four in number:
-
-|| codeblock
-add  : (String -> Element) -> String -> TextCursor -> TextCursor
-"""
-        ++ String.fromChar '\u{00A0}'
-        ++ """
-push  : { prefix : String, isMatch : Bool } -> ProtoStackItem
-       -> TextCursor -> TextCursor
-"""
-        ++ String.fromChar '\u{00A0}'
-        ++ """
-pop   : (String -> Element) -> String -> TextCursor -> TextCursor
-"""
-        ++ String.fromChar '\u{00A0}'
-        ++ """
-commit : (String -> Element) -> TextCursor -> TextCursor
-
-When partially applied to suitable data, all of the above functions are of
-type `TextCursor -> TextCursor`.
 
 The basic idea is to initialize a text cursor with some source text and with
 `scanpoint =  0` references the first character of the source.  A suitable function
@@ -307,18 +286,13 @@ nextCursor : (String -> Element) -> TextCursor
              -> Step TextCursor TextCursor
 
 
-repeatedly applied along the lines described informally above, advancing `scanpoint` each time,
-cutting out and processing successive pieces of the source text until the source text is exhausted.
-By [i repeated application], we mean [i run a loop] using the construct below, with `nextCursor`
-in place of `nextState`
+is repeatedly applied along the lines described informally above, advancing `scanpoint` each time, cutting out and processing successive pieces of the source text until the source text is exhausted.
+
+## The nextCursor function
+
+Repeated application of a function to some kind of state can be carried with pure functions using `loop` function below,
 
 || codeblock
-type Step state a
-    = Loop state
-    | Done a
-"""
-        ++ String.fromChar '\u{00A0}'
-        ++ """
 loop : state -> (state -> Step state a) -> a
 loop s nextState =
     case nextState s of
@@ -327,27 +301,51 @@ loop s nextState =
         Done b ->
             b
 
-The `nextCursor` function runs
+where
 
 || codeblock
-branch Configuration.configuration cursor firstChar prefix
+type Step state a
+    = Loop state
+    | Done a
 
-in order to decide which operation to perform.  Its output is a variant of
+
+In our case, we use
 
 || codeblock
-type Operation
-    = ADD
-    | PUSH { prefix : String, isMatch : Bool }
-    | POP
-    | SHORTCIRCUIT
-    | COMMIT
+nextCursor :  TextCursor -> Step TextCursor TextCursor
 
-The details of the `branch`, `add`, `push`, `pop`, and `commit` functions depend on the language in question.
-However, the overall scheme — a text cursor whose evolution is driven by a loop and decision process
-of the kind described above —
-is a fairly general pattern which can be applied to the construction of fault-tolerant parsers.
 
-((This section requires further editing, e.g., talk about error recovery via commit.))
+where `nextCursor` runs the function
+
+|| codeblock
+operation : TextCursor -> Operation
+
+in order to decide which operation to perform.  The output type is
+
+|| codeblock
+type Operation  =   Shift ShiftOperation
+                  | Reduce ReduceOperation
+
+
+where
+
+|| codeblock
+type ShiftOperation
+    = PushText StringData
+    | PushData { prefix : String, isMatch : Bool }
+
+and
+
+|| codeblock
+type ReduceOperation
+    = End
+    | Commit
+    | HandleError
+    | Add StringData
+    | Pop String
+    | ShortCircuit String
+
+The operations on the cursor are divided into two categories, `Shift` and `Reduce`.  The former advance the `scanpoint`, that is, they [quote eat] more text, pushing it onto the text.  The latter take text off the stack, parse it, and put in on `parsed` and/or `complete`.  Consequently our parser is a member of the shift-reduce family.
 
 ### References
 
@@ -356,13 +354,6 @@ is a fairly general pattern which can be applied to the construction of fault-to
 : 2. [link "Discussion on Elm discourse" https://discourse.elm-lang.org/t/parsers-with-error-recovery/6262]
 
 : 3. [link "Error recovery with parser combinators" https://eyalkalderon.com/blog/nom-error-recovery/]
-
-
-
-
-
-
-
 
 
 

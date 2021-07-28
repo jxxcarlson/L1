@@ -6,15 +6,16 @@ module L1.Parser.AST exposing
     , argsAndBody
     , body
     , body_
-    , filter_
     , getArgs
     , getText
     , getTextList
+    , getTextList2
     , getTitle
     , indexedMap
     , join
     , joinText
     , length
+    , makeTOC
     , map
     , position
     , simplify
@@ -27,6 +28,7 @@ import L1.Library.Utility
 import L1.Parser.Error exposing (..)
 import L1.Parser.Loc as Loc
 import L1.Parser.MetaData as MetaData exposing (MetaData)
+import Maybe.Extra
 import Parser.Advanced as Parser
 
 
@@ -94,6 +96,22 @@ getText element =
 
         _ ->
             ""
+
+
+getTextList2 : Element -> List String
+getTextList2 e =
+    case e of
+        Text s _ ->
+            [ s ]
+
+        Element _ body__ _ ->
+            List.map getText body__
+
+        Verbatim _ str _ ->
+            [ str ]
+
+        _ ->
+            []
 
 
 getArgs : Element -> List String
@@ -289,9 +307,52 @@ getName e =
     [ Element_ (Name "i") (EList_ [ Text_ "foo" ]) ]
 
 -}
-filter_ : String -> List Element -> List Element
-filter_ name elements =
-    List.filter (\e -> getName e == Just name) elements
+filterOnNames : List String -> List Element -> List ( String, Element )
+filterOnNames names elements =
+    List.filter (\( n, _ ) -> List.member n names)
+        (List.map (\e -> ( getName e |> Maybe.withDefault "@#@", e )) elements)
+
+
+getHeadings : List (List Element) -> List ( String, String )
+getHeadings list =
+    list
+        |> List.concat
+        |> filterOnNames [ "heading1", "heading2", "heading3" ]
+        |> List.map (\( s, e ) -> ( s, getText e ))
+
+
+{-| Make table of contents from the AST
+-}
+makeTOC : List (List Element) -> Element
+makeTOC ast =
+    ast
+        |> getHeadings
+        |> List.map makeTocItem
+        |> enclose "toc"
+
+
+enclose : String -> List Element -> Element
+enclose name elements =
+    Element (Name name) elements MetaData.dummy
+
+
+makeTocItem : ( String, String ) -> Element
+makeTocItem ( headingType, name ) =
+    case headingType of
+        "heading1" ->
+            Element (Name "tocItem") [ Text "1" MetaData.dummy, Text name MetaData.dummy ] MetaData.dummy
+
+        "heading2" ->
+            Element (Name "tocItem") [ Text "2" MetaData.dummy, Text name MetaData.dummy ] MetaData.dummy
+
+        "heading3" ->
+            Element (Name "tocItem") [ Text "3" MetaData.dummy, Text name MetaData.dummy ] MetaData.dummy
+
+        "heading4" ->
+            Element (Name "tocItem") [ Text "4" MetaData.dummy, Text name MetaData.dummy ] MetaData.dummy
+
+        _ ->
+            Element (Name "tocItem") [ Text "5" MetaData.dummy, Text name MetaData.dummy ] MetaData.dummy
 
 
 firstLine : List String -> Maybe String

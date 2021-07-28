@@ -1,7 +1,7 @@
-module L1.Parser.Loop exposing (nextCursor, parseLoop)
+module L1.Parser.Loop exposing (nextCursor, operation, parseLoop)
 
 import L1.Library.Console as Console
-import L1.Library.ParserTools as ParserTools
+import L1.Library.ParserTools as ParserTools exposing (StringData)
 import L1.Parser.AST as AST exposing (Element(..), Name(..))
 import L1.Parser.Branch as Branch exposing (Operation(..), branch)
 import L1.Parser.Config as Config exposing (Configuration, EType(..))
@@ -9,6 +9,7 @@ import L1.Parser.Configuration as Configuration
 import L1.Parser.Error exposing (Context, Problem)
 import L1.Parser.Handle as Handle
 import L1.Parser.Print
+import L1.Parser.Stack as Stack exposing (StackItem(..))
 import L1.Parser.TextCursor as TextCursor exposing (ScannerType(..), TextCursor)
 import Parser.Advanced as Parser exposing ((|.), (|=))
 
@@ -29,8 +30,8 @@ parseLoop parser generation str =
             ParserTools.loop (TextCursor.init generation str) (nextCursor parser)
                 |> (\tc_ -> { tc_ | complete = List.reverse tc_.complete })
 
-        _ =
-            Debug.log (L1.Parser.Print.print result) "-"
+        --_ =
+        --    Debug.log (L1.Parser.Print.print result) "-"
     in
     result
 
@@ -40,7 +41,7 @@ parseLoop parser generation str =
 with one of four TextCursor functions: `add`, `push`, `pop`, 'push'.
 
 The scanPoint field of the text cursor points the character in source
-field that is currently being scanned. As a convenience, tc.remaining
+field that is currently being scanned. As a convenience, cursor.remaining
 holds the source text from the scanPoint onwards.
 
 The scanPoint must be incremented by at least one unit on each pass so
@@ -50,64 +51,138 @@ when the scanPoint comes to the end of the source.
 -}
 nextCursor : (String -> Element) -> TextCursor -> ParserTools.Step TextCursor TextCursor
 nextCursor parser cursor =
-    if cursor.count > 300 then
-        exit parser cursor "EMERGENCY STOP AT COUNT 300"
+    case operation cursor of
+        Shift op ->
+            shift op parser cursor
 
-    else
-        let
-            _ =
-                Debug.log (L1.Parser.Print.print cursor) ""
-
-            textToProcess =
-                String.dropLeft cursor.scanPoint cursor.source
-
-            chompedText =
-                TextCursor.advance cursor textToProcess
-
-            maybeFirstChar =
-                String.uncons textToProcess |> Maybe.map Tuple.first
-
-            maybePrefix =
-                Maybe.map ((\c -> ParserTools.prefixWith c textToProcess) >> .content) maybeFirstChar
-        in
-        case ( maybeFirstChar, maybePrefix, cursor.stack ) of
-            ( Nothing, _, [] ) ->
-                -- NORMAL LOOP TERMINATION: at end of input (Nothing), stack is empty
-                ParserTools.Done { cursor | complete = cursor.parsed ++ cursor.complete, message = "COMMIT 0" }
-
-            ( Nothing, _, _ ) ->
-                -- NEED TO RESOLVE ERROR: at end of input (Nothing), stack is NOT empty
-                ParserTools.Loop (TextCursor.commit parser { cursor | message = "COMMIT 2", count = cursor.count + 1 })
-
-            ( _, Nothing, _ ) ->
-                -- WHAT THE HECK?  MAYBE WE SHOULD JUST BAIL OUT
-                ParserTools.Loop (TextCursor.commit parser { cursor | message = "COMMIT 3", count = cursor.count + 1 })
-
-            ( Just firstChar, Just prefixx, _ ) ->
-                -- CONTINUE NORMAL PROCESSING
-                case branch Configuration.configuration cursor firstChar prefixx of
-                    ADD ->
-                        add parser cursor chompedText
-
-                    PUSH data ->
-                        push cursor data
-
-                    POP ->
-                        pop parser prefixx cursor
-
-                    SHORTCIRCUIT ->
-                        shortcircuit prefixx cursor
-
-                    COMMIT ->
-                        ParserTools.Loop (TextCursor.commit parser { cursor | message = "COMMIT" })
+        --
+        --<<<<<<< HEAD
+        --    else
+        --        let
+        --            _ =
+        --                Debug.log (L1.Parser.Print.print cursor) ""
+        --
+        --            textToProcess =
+        --                String.dropLeft cursor.scanPoint cursor.source
+        --=======
+        Reduce op ->
+            reduce op parser cursor
 
 
-exit parser cursor message =
-    ParserTools.Done { cursor | message = message }
+shift : ShiftOperation -> (String -> Element) -> TextCursor -> ParserTools.Step TextCursor TextCursor
+shift op parse cursor =
+    case op of
+        PushText str ->
+            ParserTools.Loop
+                { cursor
+                    | count = cursor.count + 1
+                    , stack = Stack.TextItem { content = str.content, position = { start = 0, end = String.length str.content } } :: cursor.stack
+                    , scanPoint = cursor.scanPoint + String.length str.content
+                    , parsed = []
+                }
+
+        PushData data ->
+            push cursor data
 
 
-add parser cursor chompedText =
-    ParserTools.Loop <| TextCursor.add parser chompedText.content { cursor | message = "ADD" }
+reduce : ReduceOperation -> (String -> Element) -> TextCursor -> ParserTools.Step TextCursor TextCursor
+reduce op parser cursor =
+    case op of
+        REnd ->
+            ParserTools.Done { cursor | complete = cursor.parsed ++ cursor.complete, message = "COMMIT 1" }
+
+        RCommit ->
+            ParserTools.Loop (TextCursor.commit parser { cursor | message = "COMMIT 2", count = cursor.count + 1 })
+
+        RHandleError ->
+            ParserTools.Loop (TextCursor.commit parser { cursor | message = "COMMIT 3", count = cursor.count + 1 })
+
+        RAdd strData ->
+            ParserTools.Loop
+                { cursor
+                    | count = cursor.count + 1
+                    , scanPoint = cursor.scanPoint + String.length strData.content
+                    , complete = parser strData.content :: cursor.parsed ++ cursor.complete
+                    , parsed = []
+                    , message = "R ADD" -- main
+                }
+
+        RPop prefix ->
+            pop parser prefix cursor
+
+        RShortCircuit str ->
+            shortcircuit str cursor
+
+
+operation : TextCursor -> Operation
+operation cursor =
+    let
+        --_ =
+        --    Debug.log (L1.Parser.Print.print cursor) ""
+        textToProcess =
+            String.dropLeft cursor.scanPoint cursor.source
+
+        chompedText =
+            TextCursor.advance cursor textToProcess
+
+        maybeFirstChar =
+            String.uncons textToProcess |> Maybe.map Tuple.first
+
+        maybePrefix =
+            Maybe.map ((\c -> ParserTools.prefixWith c textToProcess) >> .content) maybeFirstChar
+    in
+    case ( maybeFirstChar, maybePrefix, cursor.stack ) of
+        ( Nothing, _, [] ) ->
+            Reduce REnd
+
+        ( Nothing, _, _ ) ->
+            -- NEED TO RESOLVE ERROR: at end of input (Nothing), stack is NOT empty
+            Reduce RHandleError
+
+        ( _, Nothing, _ ) ->
+            -- WHAT THE HECK?  MAYBE WE SHOULD JUST BAIL OUT
+            Reduce RCommit
+
+        ( Just firstChar, Just prefixx, _ ) ->
+            -- CONTINUE NORMAL PROCESSING
+            case branch Configuration.configuration cursor firstChar prefixx of
+                ADD ->
+                    if cursor.stack == [] then
+                        Reduce (RAdd chompedText)
+
+                    else
+                        Shift (PushText chompedText)
+
+                PUSH data ->
+                    Shift (PushData data)
+
+                POP ->
+                    Reduce (RPop prefixx)
+
+                SHORTCIRCUIT ->
+                    Reduce (RShortCircuit prefixx)
+
+                COMMIT ->
+                    Reduce RCommit
+
+
+type Operation
+    = Reduce ReduceOperation
+    | Shift ShiftOperation
+
+
+type ReduceOperation
+    = REnd
+    | RCommit
+    | RHandleError
+    | RAdd StringData
+    | RPop String
+    | RShortCircuit String
+
+
+type ShiftOperation
+    = PushText StringData
+    | PushData { prefix : String, isMatch : Bool }
 
 
 pop parser prefix cursor =
