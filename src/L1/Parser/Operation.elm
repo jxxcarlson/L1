@@ -20,8 +20,7 @@ type Operation
 
 
 type ReduceOperation
-    =
-    | Add StringData
+    = Add StringData
     | Pop String
     | Commit
     | HandleError
@@ -38,9 +37,13 @@ operation : TextCursor -> Operation
 operation cursor =
     if cursor.scanPoint >= cursor.sourceLength then
         if cursor.stack == [] then
+            -- We have reached the end of input with an empty stack
+            -- Therefore the input has been correctly parsed
             Reduce End
 
         else
+            -- We have reached the end of input but the stack is not empty
+            -- Something has gone wrong, so we need to handle the error
             Reduce HandleError
 
     else
@@ -50,36 +53,28 @@ operation cursor =
         in
         case maybeFirstChar of
             Nothing ->
+                -- This case doesn't really occur: there must be a first character of the
+                -- remaining input if the scanpoint is before the end of the source text.
                 Reduce End
 
             Just firstChar ->
-                branch Configuration.configuration cursor firstChar (getPrefix firstChar textToProcess)
+                -- Let's handle the remaining cases
+                remainingOperations Configuration.configuration cursor firstChar (getPrefix firstChar textToProcess)
 
 
-getPrefix : Char -> String -> String
-getPrefix firstChar textToProcess =
-    ParserTools.prefixWith firstChar textToProcess |> .content
-
-
-getScanPointData : { a | scanPoint : Int, source : String } -> ( String, Maybe Char )
-getScanPointData cursor =
-    let
-        textToProcess =
-            String.dropLeft cursor.scanPoint cursor.source
-    in
-    ( textToProcess, textToProcess |> String.uncons |> Maybe.map Tuple.first )
-
-
-branch : Config.Configuration -> TextCursor -> Char -> String -> Operation
-branch configuration_ cursor firstChar prefix_ =
+remainingOperations : Config.Configuration -> TextCursor -> Char -> String -> Operation
+remainingOperations configuration_ cursor firstChar prefix_ =
     let
         { value, prefix, isMatch } =
             canPush configuration_ cursor prefix_
     in
     if List.member prefix [ "|", "||", ":", "#", "##", "###", "####", "```" ] then
+        -- Text beginning with one of these prefixes will be handled by an
+        -- exceptional 'short circuit' mechanism.  This is not really a very good idea.
         Reduce (ShortCircuit prefix)
 
     else if
+        -- the stack is reducible and there is a verbatim symbol on top.  Let's reduce
         Stack.isReducible cursor.stack
             && Maybe.map (Stack.beginSymbol >> Config.isVerbatimSymbol) (List.head cursor.stack)
             == Just True
@@ -88,23 +83,36 @@ branch configuration_ cursor firstChar prefix_ =
 
     else if Config.notDelimiter Configuration.configuration Config.AllDelimiters firstChar then
         let
+            -- the scanPoint is looking at a non-delimiter.  We have to "eat" all the
+            -- text from the scan point to the next language symbol & leave the scan point there.
+            -- The intervening text is chomped.
             chompedText =
                 TextCursor.advance cursor (String.dropLeft cursor.scanPoint cursor.source)
         in
         if cursor.stack == [] then
+            -- If the stack is empty, we leave it alone (hence a shift operation.
+            -- The text will be parsed and stored in 'parsed'
             Reduce (Add chompedText)
 
         else
+            -- The stack is not empty; we push this text on it.
             Shift (PushText chompedText)
 
     else if value then
+        -- value == True means that we can push a prefix/symbol onto the stack
         Shift (PushSymbol { prefix = prefix, isMatch = isMatch })
 
     else if canPop configuration_ cursor prefix_ then
+        -- if we can pop, let's do wo. The stack is reduced.
         Reduce (Pop prefix_)
 
     else
+        -- The last possible alternative: commit (and possibly fix errors)
         Reduce Commit
+
+
+
+-- PREDICATES
 
 
 {-| The parser has paused at character c. If the prefix of the
@@ -171,3 +179,21 @@ canPushNonVerbatim configuration_ tc prefix =
         -- Since we are truncating the prefix, we need a termination condition;
         -- Hence 'if prefix == "' clause above.
         canPush configuration_ tc (String.dropLeft 1 prefix)
+
+
+
+-- HELPERS
+
+
+getPrefix : Char -> String -> String
+getPrefix firstChar textToProcess =
+    ParserTools.prefixWith firstChar textToProcess |> .content
+
+
+getScanPointData : { a | scanPoint : Int, source : String } -> ( String, Maybe Char )
+getScanPointData cursor =
+    let
+        textToProcess =
+            String.dropLeft cursor.scanPoint cursor.source
+    in
+    ( textToProcess, textToProcess |> String.uncons |> Maybe.map Tuple.first )
