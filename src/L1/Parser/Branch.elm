@@ -8,57 +8,51 @@ import L1.Parser.Stack as Stack
 import L1.Parser.TextCursor as TextCursor exposing (TextCursor)
 import L1.Library.ParserTools as ParserTools exposing (StringData)
 
+       --_ =
+                    --    Debug.log (L1.Parser.Print.print cursor) ""
 
 operation : TextCursor -> Operation
 operation cursor =
-    let
-        --_ =
-        --    Debug.log (L1.Parser.Print.print cursor) ""
-        textToProcess =
-            String.dropLeft cursor.scanPoint cursor.source
+    if cursor.scanPoint >= cursor.sourceLength then
+        if cursor.stack == [] then Reduce End
+        else Reduce HandleError
+    else
+      let
+          textToProcess =
+               String.dropLeft cursor.scanPoint cursor.source
+      in
+         case String.uncons textToProcess |> Maybe.map Tuple.first of
+             Nothing -> Reduce End
+             Just firstChar ->
+                    let
 
-        chompedText =
-            TextCursor.advance cursor textToProcess
+                        chompedText =
+                            TextCursor.advance cursor textToProcess
 
-        maybeFirstChar =
-            String.uncons textToProcess |> Maybe.map Tuple.first
 
-        maybePrefix =
-            Maybe.map ((\c -> ParserTools.prefixWith c textToProcess) >> .content) maybeFirstChar
-    in
-    case ( maybeFirstChar, maybePrefix, cursor.stack ) of
-        ( Nothing, _, [] ) ->
-            Reduce End
 
-        ( Nothing, _, _ ) ->
-            -- NEED TO RESOLVE ERROR: at end of input (Nothing), stack is NOT empty
-            Reduce HandleError
+                        prefix =
+                            ParserTools.prefixWith firstChar textToProcess |> .content
+                    in
+                    case branch Configuration.configuration cursor firstChar prefix of
+                        ADD ->
+                            if cursor.stack == [] then
+                                Reduce (Add chompedText)
 
-        ( _, Nothing, _ ) ->
-            -- WHAT THE HECK?  MAYBE WE SHOULD JUST BAIL OUT
-            Reduce Commit
+                            else
+                                Shift (PushText chompedText)
 
-        ( Just firstChar, Just prefixx, _ ) ->
-            -- CONTINUE NORMAL PROCESSING
-            case branch Configuration.configuration cursor firstChar prefixx of
-                ADD ->
-                    if cursor.stack == [] then
-                        Reduce (Add chompedText)
+                        PUSH data ->
+                            Shift (PushSymbol data)
 
-                    else
-                        Shift (PushText chompedText)
+                        POP ->
+                            Reduce (Pop prefix)
 
-                PUSH data ->
-                    Shift (PushSymbol data)
+                        SHORTCIRCUIT ->
+                            Reduce (ShortCircuit prefix)
 
-                POP ->
-                    Reduce (Pop prefixx)
-
-                SHORTCIRCUIT ->
-                    Reduce (ShortCircuit prefixx)
-
-                COMMIT ->
-                    Reduce Commit
+                        COMMIT ->
+                            Reduce Commit
 
 
 type Operation
