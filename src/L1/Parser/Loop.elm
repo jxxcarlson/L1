@@ -79,16 +79,16 @@ shift op parse cursor =
 reduce : ReduceOperation -> (String -> Element) -> TextCursor -> ParserTools.Step TextCursor TextCursor
 reduce op parser cursor =
     case op of
-        REnd ->
+        End ->
             ParserTools.Done { cursor | complete = cursor.parsed ++ cursor.complete, message = "COMMIT 1" }
 
-        RCommit ->
+        Commit ->
             ParserTools.Loop (TextCursor.commit parser { cursor | message = "COMMIT 2", count = cursor.count + 1 })
 
-        RHandleError ->
+        HandleError ->
             ParserTools.Loop (TextCursor.commit parser { cursor | message = "COMMIT 3", count = cursor.count + 1 })
 
-        RAdd strData ->
+        Add strData ->
             ParserTools.Loop
                 { cursor
                     | count = cursor.count + 1
@@ -98,10 +98,10 @@ reduce op parser cursor =
                     , message = "ADD" -- main
                 }
 
-        RPop prefix ->
+        Pop prefix ->
             pop parser prefix cursor
 
-        RShortCircuit str ->
+        ShortCircuit str ->
             shortcircuit str cursor
 
 
@@ -124,22 +124,22 @@ operation cursor =
     in
     case ( maybeFirstChar, maybePrefix, cursor.stack ) of
         ( Nothing, _, [] ) ->
-            Reduce REnd
+            Reduce End
 
         ( Nothing, _, _ ) ->
             -- NEED TO RESOLVE ERROR: at end of input (Nothing), stack is NOT empty
-            Reduce RHandleError
+            Reduce HandleError
 
         ( _, Nothing, _ ) ->
             -- WHAT THE HECK?  MAYBE WE SHOULD JUST BAIL OUT
-            Reduce RCommit
+            Reduce Commit
 
         ( Just firstChar, Just prefixx, _ ) ->
             -- CONTINUE NORMAL PROCESSING
             case branch Configuration.configuration cursor firstChar prefixx of
                 ADD ->
                     if cursor.stack == [] then
-                        Reduce (RAdd chompedText)
+                        Reduce (Add chompedText)
 
                     else
                         Shift (PushText chompedText)
@@ -148,13 +148,13 @@ operation cursor =
                     Shift (PushSymbol data)
 
                 POP ->
-                    Reduce (RPop prefixx)
+                    Reduce (Pop prefixx)
 
                 SHORTCIRCUIT ->
-                    Reduce (RShortCircuit prefixx)
+                    Reduce (ShortCircuit prefixx)
 
                 COMMIT ->
-                    Reduce RCommit
+                    Reduce Commit
 
 
 type Operation
@@ -163,12 +163,12 @@ type Operation
 
 
 type ReduceOperation
-    = REnd
-    | RCommit
-    | RHandleError
-    | RAdd StringData
-    | RPop String
-    | RShortCircuit String
+    = End
+    | Commit
+    | HandleError
+    | Add StringData
+    | Pop String
+    | ShortCircuit String
 
 
 type ShiftOperation
