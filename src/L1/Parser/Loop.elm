@@ -1,9 +1,9 @@
-module L1.Parser.Loop exposing (nextCursor, operation, parseLoop)
+module L1.Parser.Loop exposing (nextCursor, parseLoop)
 
 import L1.Library.Console as Console
 import L1.Library.ParserTools as ParserTools exposing (StringData)
 import L1.Parser.AST as AST exposing (Element(..), Name(..))
-import L1.Parser.Branch as Branch exposing (Operation(..), branch)
+import L1.Parser.Branch as Branch exposing (Operation(..), ShiftOperation(..), ReduceOperation(..), operation)
 import L1.Parser.Config as Config exposing (Configuration, EType(..))
 import L1.Parser.Configuration as Configuration
 import L1.Parser.Error exposing (Context, Problem)
@@ -103,78 +103,6 @@ reduce op parser cursor =
 
         ShortCircuit str ->
             shortcircuit str cursor
-
-
-operation : TextCursor -> Operation
-operation cursor =
-    let
-        --_ =
-        --    Debug.log (L1.Parser.Print.print cursor) ""
-        textToProcess =
-            String.dropLeft cursor.scanPoint cursor.source
-
-        chompedText =
-            TextCursor.advance cursor textToProcess
-
-        maybeFirstChar =
-            String.uncons textToProcess |> Maybe.map Tuple.first
-
-        maybePrefix =
-            Maybe.map ((\c -> ParserTools.prefixWith c textToProcess) >> .content) maybeFirstChar
-    in
-    case ( maybeFirstChar, maybePrefix, cursor.stack ) of
-        ( Nothing, _, [] ) ->
-            Reduce End
-
-        ( Nothing, _, _ ) ->
-            -- NEED TO RESOLVE ERROR: at end of input (Nothing), stack is NOT empty
-            Reduce HandleError
-
-        ( _, Nothing, _ ) ->
-            -- WHAT THE HECK?  MAYBE WE SHOULD JUST BAIL OUT
-            Reduce Commit
-
-        ( Just firstChar, Just prefixx, _ ) ->
-            -- CONTINUE NORMAL PROCESSING
-            case branch Configuration.configuration cursor firstChar prefixx of
-                ADD ->
-                    if cursor.stack == [] then
-                        Reduce (Add chompedText)
-
-                    else
-                        Shift (PushText chompedText)
-
-                PUSH data ->
-                    Shift (PushSymbol data)
-
-                POP ->
-                    Reduce (Pop prefixx)
-
-                SHORTCIRCUIT ->
-                    Reduce (ShortCircuit prefixx)
-
-                COMMIT ->
-                    Reduce Commit
-
-
-type Operation
-    = Reduce ReduceOperation
-    | Shift ShiftOperation
-
-
-type ReduceOperation
-    = End
-    | Commit
-    | HandleError
-    | Add StringData
-    | Pop String
-    | ShortCircuit String
-
-
-type ShiftOperation
-    = PushText StringData
-    | PushSymbol { prefix : String, isMatch : Bool }
-
 
 pop parser prefix cursor =
     ParserTools.Loop <| TextCursor.pop parser prefix { cursor | message = "POP", scannerType = NormalScan }

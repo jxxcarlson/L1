@@ -1,14 +1,87 @@
-module L1.Parser.Branch exposing (Operation(..), branch)
+module L1.Parser.Branch exposing (Operation(..), ShiftOperation(..), ReduceOperation(..), operation, branch)
 
 import L1.Library.Console as Console
 import L1.Library.Utility exposing (debug)
 import L1.Parser.Config as Config exposing (Configuration)
 import L1.Parser.Configuration as Configuration
 import L1.Parser.Stack as Stack
-import L1.Parser.TextCursor exposing (TextCursor)
+import L1.Parser.TextCursor as TextCursor exposing (TextCursor)
+import L1.Library.ParserTools as ParserTools exposing (StringData)
+
+
+operation : TextCursor -> Operation
+operation cursor =
+    let
+        --_ =
+        --    Debug.log (L1.Parser.Print.print cursor) ""
+        textToProcess =
+            String.dropLeft cursor.scanPoint cursor.source
+
+        chompedText =
+            TextCursor.advance cursor textToProcess
+
+        maybeFirstChar =
+            String.uncons textToProcess |> Maybe.map Tuple.first
+
+        maybePrefix =
+            Maybe.map ((\c -> ParserTools.prefixWith c textToProcess) >> .content) maybeFirstChar
+    in
+    case ( maybeFirstChar, maybePrefix, cursor.stack ) of
+        ( Nothing, _, [] ) ->
+            Reduce End
+
+        ( Nothing, _, _ ) ->
+            -- NEED TO RESOLVE ERROR: at end of input (Nothing), stack is NOT empty
+            Reduce HandleError
+
+        ( _, Nothing, _ ) ->
+            -- WHAT THE HECK?  MAYBE WE SHOULD JUST BAIL OUT
+            Reduce Commit
+
+        ( Just firstChar, Just prefixx, _ ) ->
+            -- CONTINUE NORMAL PROCESSING
+            case branch Configuration.configuration cursor firstChar prefixx of
+                ADD ->
+                    if cursor.stack == [] then
+                        Reduce (Add chompedText)
+
+                    else
+                        Shift (PushText chompedText)
+
+                PUSH data ->
+                    Shift (PushSymbol data)
+
+                POP ->
+                    Reduce (Pop prefixx)
+
+                SHORTCIRCUIT ->
+                    Reduce (ShortCircuit prefixx)
+
+                COMMIT ->
+                    Reduce Commit
 
 
 type Operation
+    = Reduce ReduceOperation
+    | Shift ShiftOperation
+
+
+type ReduceOperation
+    = End
+    | Commit
+    | HandleError
+    | Add StringData
+    | Pop String
+    | ShortCircuit String
+
+
+type ShiftOperation
+    = PushText StringData
+    | PushSymbol { prefix : String, isMatch : Bool }
+
+
+
+type Operation1
     = ADD
     | PUSH { prefix : String, isMatch : Bool }
     | POP
@@ -16,7 +89,7 @@ type Operation
     | COMMIT
 
 
-branch : Config.Configuration -> TextCursor -> Char -> String -> Operation
+branch : Config.Configuration -> TextCursor -> Char -> String -> Operation1
 branch configuration_ tc firstChar prefix_ =
     let
         { value, prefix, isMatch } =
