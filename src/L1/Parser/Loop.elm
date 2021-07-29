@@ -55,16 +55,6 @@ nextCursor parser cursor =
         Shift op ->
             shift op parser cursor
 
-        --
-        --<<<<<<< HEAD
-        --    else
-        --        let
-        --            _ =
-        --                Debug.log (L1.Parser.Print.print cursor) ""
-        --
-        --            textToProcess =
-        --                String.dropLeft cursor.scanPoint cursor.source
-        --=======
         Reduce op ->
             reduce op parser cursor
 
@@ -79,9 +69,10 @@ shift op parse cursor =
                     , stack = Stack.TextItem { content = str.content, position = { start = 0, end = String.length str.content } } :: cursor.stack
                     , scanPoint = cursor.scanPoint + String.length str.content
                     , parsed = []
+                    , message = "PUSH(t)"
                 }
 
-        PushData data ->
+        PushSymbol data ->
             push cursor data
 
 
@@ -104,7 +95,7 @@ reduce op parser cursor =
                     , scanPoint = cursor.scanPoint + String.length strData.content
                     , complete = parser strData.content :: cursor.parsed ++ cursor.complete
                     , parsed = []
-                    , message = "R ADD" -- main
+                    , message = "ADD" -- main
                 }
 
         RPop prefix ->
@@ -154,7 +145,7 @@ operation cursor =
                         Shift (PushText chompedText)
 
                 PUSH data ->
-                    Shift (PushData data)
+                    Shift (PushSymbol data)
 
                 POP ->
                     Reduce (RPop prefixx)
@@ -182,7 +173,7 @@ type ReduceOperation
 
 type ShiftOperation
     = PushText StringData
-    | PushData { prefix : String, isMatch : Bool }
+    | PushSymbol { prefix : String, isMatch : Bool }
 
 
 pop parser prefix cursor =
@@ -196,7 +187,7 @@ push cursor ({ prefix, isMatch } as prefixData) =
             ParserTools.Loop <|
                 TextCursor.push prefixData
                     (TextCursor.EndMark_ prefix)
-                    { cursor | message = "PUSH E" }
+                    { cursor | message = "PUSH(e)" }
 
         Just expectation ->
             let
@@ -210,25 +201,25 @@ push cursor ({ prefix, isMatch } as prefixData) =
                         NormalScan
             in
             ParserTools.Loop <|
-                TextCursor.push prefixData (TextCursor.Expect_ expectation) { cursor | message = "PUSH", scannerType = scannerType }
+                TextCursor.push prefixData (TextCursor.Expect_ expectation) { cursor | message = "PUSH(s)", scannerType = scannerType }
 
 
 shortcircuit prefix cursor =
     if List.member prefix [ "#", "##", "###", "####" ] then
-        ParserTools.Done <| Handle.heading2 cursor
+        ParserTools.Done <| Handle.heading2 {cursor | message = "SHORT(h)"}
 
     else if prefix == ":" then
-        ParserTools.Done <| Handle.item cursor
+        ParserTools.Done <| Handle.item {cursor | message = "SHORT(:)"}
 
     else if prefix == "|" then
-        ParserTools.Done <| Handle.pipe cursor
+        ParserTools.Done <| Handle.pipe {cursor | message = "SHORT(|)"}
 
     else if prefix == "||" then
-        ParserTools.Done <| Handle.doublePipe cursor
+        ParserTools.Done <| Handle.doublePipe {cursor | message = "SHORT(||)" }
 
     else
-        ParserTools.Done cursor
+        ParserTools.Done {cursor | message = "SHORT(?)" }
 
 
 error cursor =
-    ParserTools.Done { cursor | message = "Unexpected error: no corresponding expectation" }
+    ParserTools.Done { cursor | message = "ERROR" }
