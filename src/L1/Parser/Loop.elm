@@ -3,11 +3,11 @@ module L1.Parser.Loop exposing (nextCursor, parseLoop)
 import L1.Library.Console as Console
 import L1.Library.ParserTools as ParserTools exposing (StringData)
 import L1.Parser.AST as AST exposing (Element(..), Name(..))
-import L1.Parser.Branch as Branch exposing (Operation(..), ShiftOperation(..), ReduceOperation(..), operation)
 import L1.Parser.Config as Config exposing (Configuration, EType(..))
 import L1.Parser.Configuration as Configuration
 import L1.Parser.Error exposing (Context, Problem)
 import L1.Parser.Handle as Handle
+import L1.Parser.Operation as Branch exposing (Operation(..), ReduceOperation(..), ShiftOperation(..), operation)
 import L1.Parser.Print
 import L1.Parser.Stack as Stack exposing (StackItem(..))
 import L1.Parser.TextCursor as TextCursor exposing (ScannerType(..), TextCursor)
@@ -104,6 +104,7 @@ reduce op parser cursor =
         ShortCircuit str ->
             shortcircuit str cursor
 
+
 pop parser prefix cursor =
     ParserTools.Loop <| TextCursor.pop parser prefix { cursor | message = "POP", scannerType = NormalScan }
 
@@ -134,19 +135,19 @@ push cursor ({ prefix, isMatch } as prefixData) =
 
 shortcircuit prefix cursor =
     if List.member prefix [ "#", "##", "###", "####" ] then
-        ParserTools.Done <| Handle.heading2 {cursor | message = "SHORT(h)"}
+        ParserTools.Done <| Handle.heading2 { cursor | message = "SHORT(h)" }
 
     else if prefix == ":" then
-        ParserTools.Done <| Handle.item {cursor | message = "SHORT(:)"}
+        ParserTools.Done <| Handle.item { cursor | message = "SHORT(:)" }
 
     else if prefix == "|" then
-        ParserTools.Done <| Handle.pipe {cursor | message = "SHORT(|)"}
+        ParserTools.Done <| Handle.pipe { cursor | message = "SHORT(|)" }
 
     else if prefix == "||" then
-        ParserTools.Done <| Handle.doublePipe {cursor | message = "SHORT(||)" }
+        ParserTools.Done <| Handle.doublePipe { cursor | message = "SHORT(||)" }
 
     else
-        ParserTools.Done {cursor | message = "SHORT(?)" }
+        ParserTools.Done { cursor | message = "SHORT(?)" }
 
 
 error cursor =

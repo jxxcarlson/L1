@@ -1,4 +1,4 @@
-module L1.Parser.Branch exposing (Operation(..), ReduceOperation(..), ShiftOperation(..), operation)
+module L1.Parser.Operation exposing (Operation(..), ReduceOperation(..), ShiftOperation(..), operation)
 
 import L1.Library.Console as Console
 import L1.Library.ParserTools as ParserTools exposing (StringData)
@@ -20,11 +20,12 @@ type Operation
 
 
 type ReduceOperation
-    = End
-    | Commit
-    | HandleError
+    =
     | Add StringData
     | Pop String
+    | Commit
+    | HandleError
+    | End
     | ShortCircuit String
 
 
