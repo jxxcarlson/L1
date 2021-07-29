@@ -56,6 +56,7 @@ userReplace userRegex replacer string =
             Regex.replace regex replacer string
 
 
+
 normalize : String -> String
 normalize string =
     userReplace " +" (\_ -> " ") string
