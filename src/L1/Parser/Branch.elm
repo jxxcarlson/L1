@@ -1,36 +1,17 @@
-module L1.Parser.Branch exposing (Operation(..), ShiftOperation(..), ReduceOperation(..), operation, branch)
+module L1.Parser.Branch exposing (Operation(..), ReduceOperation(..), ShiftOperation(..), operation)
 
 import L1.Library.Console as Console
-import L1.Library.Utility exposing (debug)
+import L1.Library.ParserTools as ParserTools exposing (StringData)
+import L1.Library.Utility as Utility exposing (debug)
 import L1.Parser.Config as Config exposing (Configuration)
 import L1.Parser.Configuration as Configuration
 import L1.Parser.Stack as Stack
 import L1.Parser.TextCursor as TextCursor exposing (TextCursor)
-import L1.Library.ParserTools as ParserTools exposing (StringData)
-
-       --_ =
-                    --    Debug.log (L1.Parser.Print.print cursor) ""
-
-operation : TextCursor -> Operation
-operation cursor =
-    if cursor.scanPoint >= cursor.sourceLength then
-        if cursor.stack == [] then Reduce End
-        else Reduce HandleError
-    else
-      let
-          textToProcess =
-               String.dropLeft cursor.scanPoint cursor.source
-      in
-         case String.uncons textToProcess |> Maybe.map Tuple.first of
-             Nothing -> Reduce End
-             Just firstChar ->
-                    let
 
 
-                        prefix =
-                            ParserTools.prefixWith firstChar textToProcess |> .content
-                    in
-                    branch Configuration.configuration cursor firstChar prefix
+
+--_ =
+--    Debug.log (L1.Parser.Print.print cursor) ""
 
 
 type Operation
@@ -52,6 +33,40 @@ type ShiftOperation
     | PushSymbol { prefix : String, isMatch : Bool }
 
 
+operation : TextCursor -> Operation
+operation cursor =
+    if cursor.scanPoint >= cursor.sourceLength then
+        if cursor.stack == [] then
+            Reduce End
+
+        else
+            Reduce HandleError
+
+    else
+        let
+            ( textToProcess, maybeFirstChar ) =
+                getScanPointData cursor
+        in
+        case maybeFirstChar of
+            Nothing ->
+                Reduce End
+
+            Just firstChar ->
+                branch Configuration.configuration cursor firstChar (getPrefix firstChar textToProcess)
+
+
+getPrefix : Char -> String -> String
+getPrefix firstChar textToProcess =
+    ParserTools.prefixWith firstChar textToProcess |> .content
+
+
+getScanPointData : { a | scanPoint : Int, source : String } -> ( String, Maybe Char )
+getScanPointData cursor =
+    let
+        textToProcess =
+            String.dropLeft cursor.scanPoint cursor.source
+    in
+    ( textToProcess, textToProcess |> String.uncons |> Maybe.map Tuple.first )
 
 
 branch : Config.Configuration -> TextCursor -> Char -> String -> Operation
@@ -68,22 +83,21 @@ branch configuration_ cursor firstChar prefix_ =
             && Maybe.map (Stack.beginSymbol >> Config.isVerbatimSymbol) (List.head cursor.stack)
             == Just True
     then
-       Reduce (Pop prefix_)
+        Reduce (Pop prefix_)
 
     else if Config.notDelimiter Configuration.configuration Config.AllDelimiters firstChar then
         let
             chompedText =
                 TextCursor.advance cursor (String.dropLeft cursor.scanPoint cursor.source)
-
         in
         if cursor.stack == [] then
-              Reduce (Add chompedText)
+            Reduce (Add chompedText)
 
         else
-             Shift (PushText chompedText)
+            Shift (PushText chompedText)
 
     else if value then
-         Shift (PushSymbol { prefix = prefix, isMatch = isMatch })
+        Shift (PushSymbol { prefix = prefix, isMatch = isMatch })
 
     else if canPop configuration_ cursor prefix_ then
         Reduce (Pop prefix_)
