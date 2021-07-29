@@ -26,33 +26,11 @@ operation cursor =
              Just firstChar ->
                     let
 
-                        chompedText =
-                            TextCursor.advance cursor textToProcess
-
-
 
                         prefix =
                             ParserTools.prefixWith firstChar textToProcess |> .content
                     in
-                    case branch Configuration.configuration cursor firstChar prefix of
-                        ADD ->
-                            if cursor.stack == [] then
-                                Reduce (Add chompedText)
-
-                            else
-                                Shift (PushText chompedText)
-
-                        PUSH data ->
-                            Shift (PushSymbol data)
-
-                        POP ->
-                            Reduce (Pop prefix)
-
-                        SHORTCIRCUIT ->
-                            Reduce (ShortCircuit prefix)
-
-                        COMMIT ->
-                            Reduce Commit
+                    branch Configuration.configuration cursor firstChar prefix
 
 
 type Operation
@@ -75,41 +53,43 @@ type ShiftOperation
 
 
 
-type Operation1
-    = ADD
-    | PUSH { prefix : String, isMatch : Bool }
-    | POP
-    | SHORTCIRCUIT
-    | COMMIT
 
-
-branch : Config.Configuration -> TextCursor -> Char -> String -> Operation1
-branch configuration_ tc firstChar prefix_ =
+branch : Config.Configuration -> TextCursor -> Char -> String -> Operation
+branch configuration_ cursor firstChar prefix_ =
     let
         { value, prefix, isMatch } =
-            canPush configuration_ tc prefix_
+            canPush configuration_ cursor prefix_
     in
     if List.member prefix [ "|", "||", ":", "#", "##", "###", "####", "```" ] then
-        SHORTCIRCUIT
+        Reduce (ShortCircuit prefix)
 
     else if
-        Stack.isReducible tc.stack
-            && Maybe.map (Stack.beginSymbol >> Config.isVerbatimSymbol) (List.head tc.stack)
+        Stack.isReducible cursor.stack
+            && Maybe.map (Stack.beginSymbol >> Config.isVerbatimSymbol) (List.head cursor.stack)
             == Just True
     then
-        POP
+       Reduce (Pop prefix_)
 
     else if Config.notDelimiter Configuration.configuration Config.AllDelimiters firstChar then
-        ADD
+        let
+            chompedText =
+                TextCursor.advance cursor (String.dropLeft cursor.scanPoint cursor.source)
+
+        in
+        if cursor.stack == [] then
+              Reduce (Add chompedText)
+
+        else
+             Shift (PushText chompedText)
 
     else if value then
-        PUSH { prefix = prefix, isMatch = isMatch }
+         Shift (PushSymbol { prefix = prefix, isMatch = isMatch })
 
-    else if canPop configuration_ tc prefix_ then
-        POP
+    else if canPop configuration_ cursor prefix_ then
+        Reduce (Pop prefix_)
 
     else
-        COMMIT
+        Reduce Commit
 
 
 {-| The parser has paused at character c. If the prefix of the
