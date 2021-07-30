@@ -1,4 +1,4 @@
-module L1.Parser.Check exposing (make, reduceList, reduceList2, reduces)
+module L1.Parser.Check exposing (make, reduceList, reduceList2, reduceString, reduces)
 
 import Dict exposing (Dict)
 import L1.Library.Console as Console
@@ -57,6 +57,24 @@ reduces symbolList =
             False
 
 
+{-|
+
+    > reduceString "[]"
+    ""
+
+    > reduceString "[[]]"
+    ""
+
+    > reduceString "[][]"
+    "]["
+
+-}
+reduceString : String -> String
+reduceString str =
+    str |> String.split "" |> reduceList |> String.join ""
+
+
+{-| -}
 reduceList : List String -> List String
 reduceList list =
     case list of

@@ -7,8 +7,8 @@ import L1.Parser.Config as Config exposing (Configuration, EType(..))
 import L1.Parser.Configuration as Configuration
 import L1.Parser.Error exposing (Context, Problem)
 import L1.Parser.Handle as Handle
-import L1.Parser.Operation as Branch exposing (Operation(..), ReduceOperation(..), ShiftOperation(..), operation)
 import L1.Parser.Print
+import L1.Parser.ShiftReduce as Branch exposing (Operation(..), ReduceOperation(..), ShiftOperation(..), operation)
 import L1.Parser.Stack as Stack exposing (StackItem(..))
 import L1.Parser.TextCursor as TextCursor exposing (ScannerType(..), TextCursor)
 import Parser.Advanced as Parser exposing ((|.), (|=))

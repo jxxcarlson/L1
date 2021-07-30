@@ -1,4 +1,4 @@
-module L1.Parser.Operation exposing (Operation(..), ReduceOperation(..), ShiftOperation(..), operation)
+module L1.Parser.ShiftReduce exposing (Operation(..), ReduceOperation(..), ShiftOperation(..), operation)
 
 import L1.Library.Console as Console
 import L1.Library.ParserTools as ParserTools exposing (StringData)
@@ -47,25 +47,29 @@ operation cursor =
             Reduce HandleError
 
     else
-        let
-            ( textToProcess, maybeFirstChar ) =
-                getScanPointData cursor
-        in
-        case maybeFirstChar of
-            Nothing ->
-                -- This case doesn't really occur: there must be a first character of the
-                -- remaining input if the scanpoint is before the end of the source text.
-                Reduce End
-
-            Just firstChar ->
-                -- Let's handle the remaining cases
-                remainingOperations Configuration.configuration cursor firstChar (getPrefix firstChar textToProcess)
+        shiftReduce cursor
 
 
-remainingOperations : Config.Configuration -> TextCursor -> Char -> String -> Operation
-remainingOperations configuration_ cursor firstChar prefix_ =
+shiftReduce cursor =
     let
-        { value, prefix, isMatch } =
+        ( textToProcess, maybeFirstChar ) =
+            getScanPointData cursor
+    in
+    case maybeFirstChar of
+        Nothing ->
+            -- This case doesn't really occur: there must be a first character of the
+            -- remaining input if the scanpoint is before the end of the source text.
+            Reduce End
+
+        Just firstChar ->
+            -- Let's handle the remaining cases
+            shiftReduce_ Configuration.configuration cursor firstChar (getPrefix firstChar textToProcess)
+
+
+shiftReduce_ : Config.Configuration -> TextCursor -> Char -> String -> Operation
+shiftReduce_ configuration_ cursor firstChar prefix_ =
+    let
+        { okToPush, prefix, isMatch } =
             canPush configuration_ cursor prefix_
     in
     if List.member prefix [ "|", "||", ":", "#", "##", "###", "####", "```" ] then
@@ -87,6 +91,7 @@ remainingOperations configuration_ cursor firstChar prefix_ =
             -- text from the scan point to the next language symbol & leave the scan point there.
             -- The intervening text is chomped.
             chompedText =
+                -- TODO: NOTE ADVANCE
                 TextCursor.advance cursor (String.dropLeft cursor.scanPoint cursor.source)
         in
         if cursor.stack == [] then
@@ -98,7 +103,7 @@ remainingOperations configuration_ cursor firstChar prefix_ =
             -- The stack is not empty; we push this text on it.
             Shift (PushText chompedText)
 
-    else if value then
+    else if okToPush then
         -- value == True means that we can push a prefix/symbol onto the stack
         Shift (PushSymbol { prefix = prefix, isMatch = isMatch })
 
@@ -123,28 +128,12 @@ canPop configuration_ tc prefix =
     Stack.isReducibleWith prefix tc.stack
 
 
-canPopPrecondition : Configuration -> TextCursor -> String -> Bool
-canPopPrecondition configuration_ tc prefix =
-    let
-        isEndSymbol =
-            Config.isEndSymbol configuration_ tc.scanPoint prefix
-    in
-    if isEndSymbol then
-        True
-
-    else if String.length prefix > 1 then
-        canPopPrecondition configuration_ tc (String.dropLeft 1 prefix)
-
-    else
-        False
-
-
-canPush : Configuration -> TextCursor -> String -> { value : Bool, prefix : String, isMatch : Bool }
+canPush : Configuration -> TextCursor -> String -> { okToPush : Bool, prefix : String, isMatch : Bool }
 canPush configuration_ tc prefix =
     if Config.isVerbatimSymbol prefix && prefixMatchesTopOfStack prefix tc.stack then
         -- If the symbol is a verbatim symbol following one that is
         -- on top of the stack the return True
-        { value = True, prefix = prefix, isMatch = True }
+        { okToPush = True, prefix = prefix, isMatch = True }
 
     else
         -- Otherwise, the symbol is non-verbatim.  Check to see if it can be pushed
@@ -155,11 +144,11 @@ prefixMatchesTopOfStack prefix stack =
     Just prefix == (List.head stack |> Maybe.map Stack.beginSymbol)
 
 
-canPushNonVerbatim : Configuration -> TextCursor -> String -> { value : Bool, prefix : String, isMatch : Bool }
+canPushNonVerbatim : Configuration -> TextCursor -> String -> { okToPush : Bool, prefix : String, isMatch : Bool }
 canPushNonVerbatim configuration_ tc prefix =
     if prefix == "" then
         -- No prefix: terminate
-        { value = False, prefix = "", isMatch = False }
+        { okToPush = False, prefix = "", isMatch = False }
 
     else if
         -- the prefix is a begin symbol OR it is an end symbol
@@ -171,7 +160,7 @@ canPushNonVerbatim configuration_ tc prefix =
                     /= []
                )
     then
-        { value = True, prefix = prefix, isMatch = False }
+        { okToPush = True, prefix = prefix, isMatch = False }
 
     else
         -- Try a substring.  A prefix might be "|" or "||", for example,
@@ -190,7 +179,7 @@ getPrefix firstChar textToProcess =
     ParserTools.prefixWith firstChar textToProcess |> .content
 
 
-getScanPointData : { a | scanPoint : Int, source : String } -> ( String, Maybe Char )
+getScanPointData : TextCursor -> ( String, Maybe Char )
 getScanPointData cursor =
     let
         textToProcess =

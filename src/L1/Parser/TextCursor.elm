@@ -1,6 +1,6 @@
 module L1.Parser.TextCursor exposing
     ( TextCursor, init
-    , ProtoStackItem(..), ScannerType(..), advance, advanceNormal, commit, pop, push
+    , ProtoStackItem(..), ScannerType(..), advance, commit, pop, push
     )
 
 {-| TextCursor is the data structure used by L1.Parser.parseLoop.
