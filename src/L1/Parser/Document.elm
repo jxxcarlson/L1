@@ -9,20 +9,6 @@ type alias Document =
     String
 
 
-d1 =
-    """
-AAA
-BBB
-
-CCC
-DDD
-
-
-FFF
-GGG
-"""
-
-
 parseWithTOC : Int -> Document -> List (List Element)
 parseWithTOC generation doc =
     let
