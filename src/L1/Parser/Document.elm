@@ -1,4 +1,4 @@
-module L1.Parser.Document exposing (d1, groupLines, split)
+module L1.Parser.Document exposing (parse, parseWithTOC)
 
 import L1.Parser.AST as AST exposing (Element)
 import L1.Parser.Chunk
@@ -23,37 +23,36 @@ GGG
 """
 
 
+parseWithTOC : Int -> Document -> List (List Element)
+parseWithTOC generation doc =
+    let
+        ast =
+            parse generation doc
 
---
---parseWithTOC : Int -> Document -> List (List Element)
---parseWithTOC generation doc =
---    let
---        ast =
---            parse generation doc
---
---        title =
---            List.take 1 ast
---
---        toc =
---            AST.makeTOC ast
---    in
---    List.take 3 ast ++ [ toc ] :: List.drop 3 ast
---parse : Int -> Document -> List (List Element)
---parse generation doc =
---    let
---        p : String -> List Element
---        p =
---            L1.Parser.Chunk.parse (L1.Parser.Parser.parse generation) generation
---    in
---    doc
---        |> split generation
---        |> List.map .content
---        -- ^^^ Temporary
---        |> List.map p
--- split : Int -> Document -> List { content : String, generation : Int, index : Int, firstLine : Int }
+        title =
+            List.take 1 ast
+
+        toc =
+            AST.makeTOC ast
+    in
+    List.take 3 ast ++ [ toc ] :: List.drop 3 ast
 
 
-split : Int -> String -> List { generation : Int, index : Int, firstLine : Int, content : String }
+parse : Int -> Document -> List (List Element)
+parse generation doc =
+    let
+        p : String -> List Element
+        p =
+            L1.Parser.Chunk.parse (L1.Parser.Parser.parse generation) generation
+    in
+    doc
+        |> split generation
+        |> List.map .content
+        -- ^^^ Temporary
+        |> List.map p
+
+
+split : Int -> Document -> List { generation : Int, index : Int, firstLine : Int, content : String }
 split generation doc =
     doc
         |> String.lines
