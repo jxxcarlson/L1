@@ -1,4 +1,4 @@
-module L1.Parser.Document exposing (d1, groupLines, parse, parseWithTOC, split)
+module L1.Parser.Document exposing (parse, parseWithTOC)
 
 import L1.Parser.AST as AST exposing (Element)
 import L1.Parser.Chunk
@@ -51,32 +51,19 @@ parse generation count doc =
             L1.Parser.Chunk.parse (L1.Parser.Parser.parse generation count) generation
     in
     doc
-        |> split
+        |> split generation
+        |> List.map .content
+        -- ^^^ Temporary
         |> List.map p
 
 
-split : Document -> List String
-split doc =
+split : Int -> Document -> List { generation : Int, index : Int, firstLine : Int, content : String }
+split generation doc =
     doc
         |> String.lines
         |> groupLines
-        |> List.map (String.join "\n")
-
-
-splitOLD : Document -> List String
-splitOLD doc =
-    String.split "\n\n" doc
-        |> List.filter (\s -> s /= "")
-        |> List.map String.trim
-
-
-
---
---split2 :Document -> List String
---split2 doc =
---    doc
---      |> String.lines
---      |> groupLines
+        |> List.filter (\group -> group.content /= [])
+        |> List.indexedMap (\index group -> { generation = generation, index = index, firstLine = group.lineNumber, content = String.join "\n" group.content })
 
 
 type Status
@@ -85,34 +72,65 @@ type Status
 
 
 type alias State =
-    { status : Status, buffer : List String, output : List (List String), input : List String }
+    { status : Status
+    , buffer : List String
+    , output : List { content : List String, lineNumber : Int }
+    , input : List String
+    , lineNumber : Int
+    , firstLineOfChunk : Int
+    }
 
 
-groupLines : List String -> List (List String)
+groupLines : List String -> List { content : List String, lineNumber : Int }
 groupLines lines =
-    groupLinesAux { status = InParagraph, buffer = [], output = [], input = lines } |> .output |> List.reverse
+    groupLinesAux { status = InParagraph, buffer = [], output = [], input = lines, lineNumber = 0, firstLineOfChunk = 0 } |> .output |> List.reverse
 
 
 groupLinesAux : State -> State
 groupLinesAux state =
     case List.head state.input of
         Nothing ->
-            { state | output = List.reverse state.buffer :: state.output }
+            { state | output = { content = List.reverse state.buffer, lineNumber = state.lineNumber } :: state.output }
 
         Just line ->
             case ( line == "", state.status ) of
                 ( True, BlankLines n ) ->
                     -- ADD the current blank lines to the ones already found
-                    groupLinesAux { state | buffer = line :: state.buffer, status = BlankLines (n + 1), input = List.drop 1 state.input }
+                    groupLinesAux
+                        { state
+                            | buffer = line :: state.buffer
+                            , status = BlankLines (n + 1)
+                            , input = List.drop 1 state.input
+                            , lineNumber = state.lineNumber + 1
+                        }
 
                 ( True, InParagraph ) ->
                     -- A blank line has been found following a non-blank line; the paragraph has ended
-                    groupLinesAux { state | output = List.reverse state.buffer :: state.output, buffer = [], status = BlankLines 1, input = List.drop 1 state.input }
+                    groupLinesAux
+                        { state
+                            | output = { content = List.reverse state.buffer, lineNumber = state.firstLineOfChunk } :: state.output
+                            , buffer = []
+                            , status = BlankLines 1
+                            , input = List.drop 1 state.input
+                            , lineNumber = state.lineNumber + 1
+                        }
 
                 ( False, BlankLines _ ) ->
-                    -- A non-blank line has been found following one ore more blank linse; start a paragraph
-                    groupLinesAux { state | buffer = [ line ], status = InParagraph, input = List.drop 1 state.input }
+                    -- A non-blank line has been found following one ore more blank lines; start a paragraph
+                    groupLinesAux
+                        { state
+                            | buffer = [ line ]
+                            , status = InParagraph
+                            , input = List.drop 1 state.input
+                            , lineNumber = state.lineNumber + 1
+                            , firstLineOfChunk = state.lineNumber
+                        }
 
                 ( False, InParagraph ) ->
                     -- A non-blank line has been found following one or more blank lines; add it to the buffer
-                    groupLinesAux { state | buffer = line :: state.buffer, input = List.drop 1 state.input }
+                    groupLinesAux
+                        { state
+                            | buffer = line :: state.buffer
+                            , input = List.drop 1 state.input
+                            , lineNumber = state.lineNumber + 1
+                        }
