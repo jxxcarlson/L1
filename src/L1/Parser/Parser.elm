@@ -14,7 +14,7 @@ import L1.Library.ParserTools as T
 import L1.Library.StringParser as XString
 import L1.Parser.AST as AST exposing (Element(..), Name(..), VerbatimType(..))
 import L1.Parser.Error exposing (Context(..), Problem(..))
-import L1.Parser.Loc as Loc exposing (Position)
+import L1.Parser.Loc as Loc exposing (StringPosition)
 import L1.Parser.MetaData as MetaData
 import List
 import Parser.Advanced as Parser exposing ((|.), (|=))

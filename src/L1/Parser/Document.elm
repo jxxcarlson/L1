@@ -1,8 +1,13 @@
-module L1.Parser.Document exposing (parse, parseWithTOC)
+module L1.Parser.Document exposing (d1, split)
 
-import L1.Parser.AST as AST exposing (Element)
-import L1.Parser.Chunk
-import L1.Parser.Parser
+-- import L1.Parser.AST as AST exposing (Element)
+-- import L1.Parser.Chunk
+
+import L1.Parser.Loc as Loc
+
+
+
+--  import L1.Parser.Parser
 
 
 d1 =
@@ -28,42 +33,48 @@ type alias Document =
     String
 
 
-parseWithTOC : Int -> Int -> Document -> List (List Element)
-parseWithTOC generation count doc =
-    let
-        ast =
-            parse generation count doc
 
-        title =
-            List.take 1 ast
+--
+--parseWithTOC : Int -> Int -> Document -> List (List Element)
+--parseWithTOC generation count doc =
+--    let
+--        ast =
+--            parse generation count doc
+--
+--        title =
+--            List.take 1 ast
+--
+--        toc =
+--            AST.makeTOC ast
+--    in
+--    List.take 3 ast ++ [ toc ] :: List.drop 3 ast
+--
+--
+--parse : Int -> Int -> Document -> List (List Element)
+--parse generation count doc =
+--    let
+--        p : String -> List Element
+--        p =
+--            L1.Parser.Chunk.parse (L1.Parser.Parser.parse generation count) generation
+--    in
+--    doc
+--        |> split generation
+--        |> List.map p
 
-        toc =
-            AST.makeTOC ast
-    in
-    List.take 3 ast ++ [ toc ] :: List.drop 3 ast
 
+{-|
 
-parse : Int -> Int -> Document -> List (List Element)
-parse generation count doc =
-    let
-        p : String -> List Element
-        p =
-            L1.Parser.Chunk.parse (L1.Parser.Parser.parse generation count) generation
-    in
-    doc
-        |> split generation
-        |> List.map .content
-        -- ^^^ Temporary
-        |> List.map p
+    > split d1
+    [{ content = "AA\nBB", location = { firstLine = 1, index = 0 } },{ content = "CC\nDD", location = { firstLine = 4, index = 1 } },{ content = "EE\nFF", location = { firstLine = 8, index = 2 } },{ content = "GG\nHH", location = { firstLine = 13, index = 3 } }]
 
-
-split : Int -> Document -> List { generation : Int, index : Int, firstLine : Int, content : String }
-split generation doc =
+-}
+split : Document -> List { location : Loc.ChunkLocation, content : String }
+split doc =
     doc
         |> String.lines
         |> groupLines
         |> List.filter (\group -> group.content /= [])
-        |> List.indexedMap (\index group -> { generation = generation, index = index, firstLine = group.lineNumber, content = String.join "\n" group.content })
+        |> List.indexedMap (\index group -> { location = { index = index, firstLine = group.lineNumber }, content = String.join "\n" group.content })
 
 
 type Status

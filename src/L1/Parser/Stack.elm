@@ -18,17 +18,17 @@ module L1.Parser.Stack exposing
 import L1.Library.Console as Console
 import L1.Parser.Check as Check
 import L1.Parser.Config as Config
-import L1.Parser.Loc exposing (Position)
+import L1.Parser.Loc exposing (StringPosition)
 
 
 type StackItem
     = Expect StackItemData
-    | TextItem { content : String, position : Position }
-    | EndMark { content : String, position : Position }
+    | TextItem { content : String, position : StringPosition }
+    | EndMark { content : String, position : StringPosition }
 
 
 type alias StackItemData =
-    { expect : Config.Expectation, content : String, count : Int, scanPoint : Int, position : Position }
+    { expect : Config.Expectation, content : String, count : Int, scanPoint : Int, position : StringPosition }
 
 
 isReducible : List StackItem -> Bool

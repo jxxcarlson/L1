@@ -165,7 +165,7 @@ length element =
     pos.end - pos.start
 
 
-position : Element -> Loc.Position
+position : Element -> Loc.StringPosition
 position element =
     case element of
         Text _ meta ->
@@ -178,7 +178,7 @@ position element =
             meta.position
 
         Problem _ _ ->
-            Loc.dummy
+            Loc.dummyPosition
 
 
 simplify : Element -> Element_

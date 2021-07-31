@@ -1,18 +1,22 @@
-module L1.Parser.Loc exposing (Position, dummy, positionOfList)
+module L1.Parser.Loc exposing (ChunkLocation, StringPosition, dummyPosition, positionOfList)
 
 {-| Used to identify a piece of text in the source
 -}
 
 
-type alias Position =
+type alias StringPosition =
     { start : Int, end : Int }
 
 
-dummy =
+type alias ChunkLocation =
+    { index : Int, firstLine : Int }
+
+
+dummyPosition =
     { start = -1, end = -1 }
 
 
-positionOfList : List Position -> Position
+positionOfList : List StringPosition -> StringPosition
 positionOfList positions =
     let
         sorted =

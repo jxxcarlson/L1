@@ -4,7 +4,7 @@ import L1.Parser.Loc as Loc
 
 
 type alias MetaData =
-    { position : Loc.Position, generation : Int, id : String }
+    { position : Loc.StringPosition, generation : Int, location : Loc.ChunkLocation }
 
 
 makeId : Int -> Int -> String
