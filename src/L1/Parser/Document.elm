@@ -1,19 +1,38 @@
-module L1.Parser.Document exposing (groupLines, parse, parseWithTOC, split)
+module L1.Parser.Document exposing (d1, groupLines, parse, parseWithTOC, split)
 
 import L1.Parser.AST as AST exposing (Element)
 import L1.Parser.Chunk
 import L1.Parser.Parser
 
 
+d1 =
+    """
+AA
+BB
+
+CC
+DD
+
+
+EE
+FF
+
+
+
+GG
+HH
+"""
+
+
 type alias Document =
     String
 
 
-parseWithTOC : Int -> Document -> List (List Element)
-parseWithTOC generation doc =
+parseWithTOC : Int -> Int -> Document -> List (List Element)
+parseWithTOC generation count doc =
     let
         ast =
-            parse generation doc
+            parse generation count doc
 
         title =
             List.take 1 ast
@@ -24,12 +43,12 @@ parseWithTOC generation doc =
     List.take 3 ast ++ [ toc ] :: List.drop 3 ast
 
 
-parse : Int -> Document -> List (List Element)
-parse generation doc =
+parse : Int -> Int -> Document -> List (List Element)
+parse generation count doc =
     let
         p : String -> List Element
         p =
-            L1.Parser.Chunk.parse (L1.Parser.Parser.parse generation) generation
+            L1.Parser.Chunk.parse (L1.Parser.Parser.parse generation count) generation
     in
     doc
         |> split

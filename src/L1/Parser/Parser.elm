@@ -15,6 +15,7 @@ import L1.Library.StringParser as XString
 import L1.Parser.AST as AST exposing (Element(..), Name(..), VerbatimType(..))
 import L1.Parser.Error exposing (Context(..), Problem(..))
 import L1.Parser.Loc as Loc exposing (Position)
+import L1.Parser.MetaData as MetaData
 import List
 import Parser.Advanced as Parser exposing ((|.), (|=))
 
@@ -35,9 +36,9 @@ type alias ParseError =
 -- PARSER
 
 
-parse : Int -> String -> Element
-parse generation str =
-    case Parser.run (parser generation) str of
+parse : Int -> Int -> String -> Element
+parse generation count str =
+    case Parser.run (parser generation count) str of
         Ok ast ->
             ast
 
@@ -46,32 +47,38 @@ parse generation str =
 
 
 parseSimple =
-    parse 0 >> AST.simplify
+    parse 0 0 >> AST.simplify
 
 
-parseItem : Int -> String -> Result (List ParseError) Element
-parseItem generation str =
-    Parser.run (itemParser generation) str
+parseItem : Int -> Int -> String -> Result (List ParseError) Element
+parseItem generation count str =
+    Parser.run (itemParser generation count) str
 
 
-parseHeading : Int -> String -> Result (List ParseError) Element
-parseHeading generation str =
-    Parser.run (headingParser generation) str
+parseHeading : Int -> Int -> String -> Result (List ParseError) Element
+parseHeading generation count str =
+    Parser.run (headingParser generation count) str
 
 
-parseList : Int -> Int -> String -> Result (List ParseError) (List Element)
-parseList generation lineNumber str =
-    Parser.run (listParser generation lineNumber) str
+parseList : Int -> Int -> Int -> String -> Result (List ParseError) (List Element)
+parseList generation count lineNumber str =
+    Parser.run (listParser generation count lineNumber) str
 
 
-listParser : Int -> Int -> Parser (List Element)
-listParser generation lineNumber =
-    T.many (parser generation)
+listParser : Int -> Int -> Int -> Parser (List Element)
+listParser generation count lineNumber =
+    T.many (parser generation count)
 
 
-parser : Int -> Parser Element
-parser generation =
-    Parser.oneOf [ primitiveElement generation, mathElement generation, quotedElement generation, codeElement generation, plainText generation ]
+parser : Int -> Int -> Parser Element
+parser generation count =
+    Parser.oneOf
+        [ primitiveElement generation count
+        , mathElement generation count
+        , quotedElement generation count
+        , codeElement generation count
+        , plainText generation count
+        ]
 
 
 {-|
@@ -83,25 +90,26 @@ parser generation =
 > Ok (Element "strong" [] "stuff" (Just { blockOffset = 0, content = "[strong stuff]", generation = 0, length = 14, offset = 0 }))
 
 -}
-primitiveElement : Int -> Parser Element
-primitiveElement generation =
+primitiveElement : Int -> Int -> Parser Element
+primitiveElement generation count =
     Parser.inContext CElement <|
         -- TODO: is this correct?
-        Parser.succeed (\start name body_ end source -> Element name body_ (meta generation start end))
+        Parser.succeed (\start name body_ end source -> Element name body_ (meta generation count start end))
             |= Parser.getOffset
             |. leftBracket
             |= Parser.oneOf [ elementName |> Parser.map Name, Parser.succeed UndefinedName ]
-            |= argsAndBody generation
+            |= argsAndBody generation count
             |. Parser.spaces
             |. rightBracket
             |= Parser.getOffset
             |= Parser.getSource
 
 
-mathElement generation =
+mathElement : Int -> Int -> Parser.Parser Context Problem Element
+mathElement generation count =
     Parser.inContext CElement <|
         -- TODO: is this correct?
-        Parser.succeed (\start content end source -> Verbatim Math content (meta generation start end))
+        Parser.succeed (\start content end source -> Verbatim Math content (meta generation count start end))
             |= Parser.getOffset
             |. dollarSign
             |= string [ '$' ]
@@ -110,10 +118,11 @@ mathElement generation =
             |= Parser.getSource
 
 
-codeElement generation =
+codeElement : Int -> Int -> Parser.Parser Context Problem Element
+codeElement generation count =
     Parser.inContext CElement <|
         -- TODO: is this correct?
-        Parser.succeed (\start content end source -> Verbatim Code content (meta generation start end))
+        Parser.succeed (\start content end source -> Verbatim Code content (meta generation count start end))
             |= Parser.getOffset
             |. backTick
             |= string [ '`' ]
@@ -122,10 +131,11 @@ codeElement generation =
             |= Parser.getSource
 
 
-quotedElement generation =
+quotedElement : Int -> Int -> Parser.Parser Context Problem Element
+quotedElement generation count =
     Parser.inContext CElement <|
         -- TODO: is this correct?
-        Parser.succeed (\start content end source -> Verbatim Quoted content (meta generation start end))
+        Parser.succeed (\start content end source -> Verbatim Quoted content (meta generation count start end))
             |= Parser.getOffset
             |. quoteMark
             |= string [ '"' ]
@@ -134,46 +144,48 @@ quotedElement generation =
             |= Parser.getSource
 
 
-headingParser generation =
+headingParser : Int -> Int -> Parser.Parser Context Problem Element
+headingParser generation count =
     Parser.inContext CElement <|
         -- TODO: is this correct?
-        Parser.succeed (\start n elements end source -> Element (Name ("heading" ++ String.fromInt n)) elements (meta generation start end))
+        Parser.succeed (\start n elements end source -> Element (Name ("heading" ++ String.fromInt n)) elements (meta generation count start end))
             |= Parser.getOffset
             |= hashMarks
             |. Parser.chompIf (\c -> c == ' ') ExpectingSpace
             |. Parser.chompWhile (\c -> c == ' ')
-            |= listParser generation 0
+            |= listParser generation count 0
             |= Parser.getOffset
             |= Parser.getSource
 
 
-itemParser generation =
+itemParser : Int -> Int -> Parser.Parser Context Problem Element
+itemParser generation count =
     Parser.inContext CElement <|
         -- TODO: is this correct?
-        Parser.succeed (\start elements end source -> Element (Name "item") elements (meta generation start end))
+        Parser.succeed (\start elements end source -> Element (Name "item") elements (meta generation count start end))
             |= Parser.getOffset
             |. colonMark
             |. Parser.chompWhile (\c -> c == ' ')
-            |= listParser generation 0
+            |= listParser generation count 0
             |= Parser.getOffset
             |= Parser.getSource
 
 
-parseBlock : Int -> String -> Result (List ParseError) Element
-parseBlock generation str =
-    Parser.run (blockParser generation) str
+parseBlock : Int -> Int -> String -> Result (List ParseError) Element
+parseBlock generation count str =
+    Parser.run (blockParser generation count) str
 
 
-blockParser generation =
+blockParser generation count =
     Parser.inContext CElement <|
         -- TODO: is this correct?
-        Parser.succeed (\start name elements end source -> Element (Name name.content) elements (meta generation start end))
+        Parser.succeed (\start name elements end source -> Element (Name name.content) elements (meta generation count start end))
             |= Parser.getOffset
             |. pipeMark
             --|. Parser.spaces
             |= T.text Char.isAlpha Char.isAlpha
             |. Parser.chompWhile (\c -> c == ' ')
-            |= listParser generation 0
+            |= listParser generation count 0
             |= Parser.getOffset
             |= Parser.getSource
 
@@ -200,19 +212,20 @@ identifier =
         |> Parser.map .content
 
 
-argsAndBody : Int -> Parser.Parser Context Problem (List Element)
-argsAndBody generation =
-    Parser.inContext CArgsAndBody <| elementBody generation
+argsAndBody : Int -> Int -> Parser.Parser Context Problem (List Element)
+argsAndBody generation count =
+    Parser.inContext CArgsAndBody <| elementBody generation count
 
 
 metaOfList generation list =
     { generation = generation, position = list |> List.map (\el -> AST.position el) |> Loc.positionOfList }
 
 
-elementBody generation =
+elementBody : Int -> Int -> Parser.Parser Context Problem (List Element)
+elementBody generation count =
     Parser.inContext CBody <|
         -- Parser.lazy (\_ -> T.many (parser generation) |> Parser.map (\list -> EList list (metaOfList generation list)))
-        Parser.lazy (\_ -> T.many (parser generation))
+        Parser.lazy (\_ -> T.many (parser generation count))
 
 
 
@@ -238,23 +251,23 @@ hasProblem elements =
 -- TEXT AND STRINGS
 
 
-meta generation start finish =
-    { position = { start = start, end = finish }, generation = generation }
+meta generation count start finish =
+    { position = { start = start, end = finish }, generation = generation, id = MetaData.makeId generation count }
 
 
-plainText : Int -> Parser Element
-plainText generation =
+plainText : Int -> Int -> Parser Element
+plainText generation count =
     Parser.inContext TextExpression <|
         (XString.textWithPredicate XString.isNonLanguageChar
-            |> Parser.map (\data -> Text data.content (meta generation data.start data.finish))
+            |> Parser.map (\data -> Text data.content (meta generation count data.start data.finish))
         )
 
 
-textWithPredicate : (Char -> Bool) -> Int -> Parser Element
-textWithPredicate predicate generation =
+textWithPredicate : (Char -> Bool) -> Int -> Int -> Parser Element
+textWithPredicate predicate generation count =
     Parser.inContext TextExpression <|
         (XString.textWithPredicate predicate
-            |> Parser.map (\data -> Text data.content (meta generation data.start data.finish))
+            |> Parser.map (\data -> Text data.content (meta generation count data.start data.finish))
         )
 
 

@@ -24,7 +24,7 @@ pl : String -> List AST.Element
 pl str =
     let
         tc =
-            parseLoop (Parser.parse 0) 0 str
+            parseLoop (Parser.parse 3 0) 1 str
     in
     tc |> .complete
 
@@ -35,7 +35,7 @@ pl_ : String -> List AST.Element_
 pl_ str =
     let
         tc =
-            parseLoop (Parser.parse 0) 0 str
+            parseLoop (Parser.parse 3 0) 1 str
     in
     tc |> .complete |> List.map AST.simplify
 
