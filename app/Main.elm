@@ -1,4 +1,4 @@
-module Main exposing (..)
+module Main exposing (main, toLaTeX)
 
 import Browser
 import Data.Article
@@ -11,6 +11,7 @@ import Element.Input as Input
 import File.Download as Download
 import Html exposing (Html)
 import L1.API
+import L1.Render.LaTeX
 import L1.Render.Markdown
 import Process
 import Task
@@ -40,6 +41,7 @@ type Msg
     | ClearText
     | LoadDocumentText String String
     | ExportMarkdown
+    | ExportLaTeX
     | IncrementCounter
 
 
@@ -102,6 +104,9 @@ update msg model =
         ExportMarkdown ->
             ( model, exportMarkdown model "article" )
 
+        ExportLaTeX ->
+            ( model, exportLaTeX model "article" )
+
         IncrementCounter ->
             ( model, Cmd.none )
 
@@ -115,9 +120,23 @@ exportMarkdown model fileName =
     download (fileName ++ ".md") "text/markdown" exportData
 
 
+exportLaTeX : Model -> String -> Cmd msg
+exportLaTeX model fileName =
+    let
+        exportData =
+            toLaTeX model.sourceText
+    in
+    download (fileName ++ ".tex") "application/x-latex" exportData
+
+
 toMarkdown : String -> String
 toMarkdown content =
     L1.Render.Markdown.transformDocument content
+
+
+toLaTeX : String -> String
+toLaTeX content =
+    L1.Render.LaTeX.transformDocument content
 
 
 download : String -> String -> String -> Cmd msg
@@ -159,7 +178,12 @@ mainColumn model =
 
 editor model =
     column [ spacing 8, moveUp 9 ]
-        [ row [ spacing 12 ] [ exampleDocButton model.docIdentifier, articleButton model.docIdentifier, exportToMarkdownButton ]
+        [ row [ spacing 12 ]
+            [ exampleDocButton model.docIdentifier
+            , articleButton model.docIdentifier
+            , exportToMarkdownButton
+            , exportToLaTeXButton
+            ]
         , inputText model
         ]
 
@@ -257,6 +281,14 @@ exportToMarkdownButton =
     Input.button buttonStyle2
         { onPress = Just ExportMarkdown
         , label = el [ centerX, centerY, Font.size 14 ] (text "Export: Markdown")
+        }
+
+
+exportToLaTeXButton : Element Msg
+exportToLaTeXButton =
+    Input.button buttonStyle2
+        { onPress = Just ExportLaTeX
+        , label = el [ centerX, centerY, Font.size 14 ] (text "Export: LaTeX")
         }
 
 

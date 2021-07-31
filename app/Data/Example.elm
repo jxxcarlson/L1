@@ -58,7 +58,7 @@ It is rendered as below:
 This is a test.
 I repeat: [i a test!]
 
-Note the pipe symbol `|` in first position, that is, at the left margin.  Because the pipe symbol cannot start a block element unless it is first position,  one can still say things like [blue a = (b|c)]. A  block consists of its first line, which names the block, and its body, which consists of non-blank lines followed by a blank line. The first line always has form `|name` with no space between `|` and `name.`
+Note the pipe symbol `|` in first position, that is, at the left margin.  Because the pipe symbol cannot start a block element unless it is first position,  one can still say things like `a = (b|c)`. A  block consists of its first line, which names the block, and its body, which consists of non-blank lines followed by a blank line. The first line always has form `|name` with no space between `|` and `name.`
 
 ### Verbatim blocks
 
@@ -88,7 +88,9 @@ Verbatim blocks are also used for code:
 || codeblock
 || codeblock
 import sys
-
+"""
+        ++ String.fromChar '\u{00A0}'
+        ++ """
 capital = float(sys.argv[1])
 ...
 
@@ -96,11 +98,15 @@ which is rendered as
 
 || codeblock
 import sys
-
+"""
+        ++ String.fromChar '\u{00A0}'
+        ++ """
 capital = float(sys.argv[1])
 rate = float(sys.argv[2])/100.0
 years = int(sys.argv[3])
-
+"""
+        ++ String.fromChar '\u{00A0}'
+        ++ """
 for i in range(0, years):
   capital = (1 + rate)*capital
   print "%3d %8.0f" % (i, capital)
@@ -124,7 +130,6 @@ The rendered form is `a[i] = 1`
 ### Images
 
 [image width:80 placement:left https://ichef.bbci.co.uk/news/976/cpsprodpb/4FB7/production/_116970402_a20-20sahas20barve20-20parrotbill_chavan.jpg]
-
 
 [image width:200 placement:left https://ichef.bbci.co.uk/news/976/cpsprodpb/4FB7/production/_116970402_a20-20sahas20barve20-20parrotbill_chavan.jpg]
 
@@ -165,6 +170,7 @@ Use the model below for links:
  This is [red red meat].  [gray (We shouldn't eat so much)]
 
 :This is [red red meat].  [gray (We shouldn't eat so much.)]
+
 
 
 """

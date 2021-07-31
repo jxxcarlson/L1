@@ -11,6 +11,7 @@ module L1.Library.Utility exposing
     , liftToMaybe
     , mapTriple
     , normalize
+    , quote
     , roundTo
     , squeeze
     , unquote
@@ -56,7 +57,6 @@ userReplace userRegex replacer string =
             Regex.replace regex replacer string
 
 
-
 normalize : String -> String
 normalize string =
     userReplace " +" (\_ -> " ") string
@@ -74,6 +74,11 @@ ifApply condition f g =
 clipEnds : String -> String
 clipEnds str =
     str |> String.dropLeft 1 |> String.dropRight 1
+
+
+quote : String -> String
+quote str =
+    "\"" ++ str ++ "\""
 
 
 unquote : String -> String
