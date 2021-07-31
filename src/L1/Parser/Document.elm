@@ -53,34 +53,13 @@ GGG
 -- split : Int -> Document -> List { content : String, generation : Int, index : Int, firstLine : Int }
 
 
+split : Int -> String -> List { generation : Int, index : Int, firstLine : Int, content : String }
 split generation doc =
     doc
         |> String.lines
         |> groupLines
         |> List.filter (\group -> group.content /= [])
         |> List.indexedMap (\index group -> { generation = generation, index = index, firstLine = group.lineNumber, content = String.join "\n" group.content })
-
-
-
---|> List.map .content
---|> List.map (String.join "\n")
---|> List.indexedMap (\index content -> { content = content, generation = generation, index = index })
-
-
-splitOLD : Document -> List String
-splitOLD doc =
-    String.split "\n\n" doc
-        |> List.filter (\s -> s /= "")
-        |> List.map String.trim
-
-
-
---
---split2 :Document -> List String
---split2 doc =
---    doc
---      |> String.lines
---      |> groupLines
 
 
 type Status
