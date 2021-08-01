@@ -4,7 +4,21 @@ import L1.Parser.Loc as Loc
 
 
 type alias MetaData =
-    { position : Loc.StringPosition, generation : Int, location : Loc.ChunkLocation, id : String }
+    { -- location in source text
+      position : Loc.StringPosition
+    , location : Loc.ChunkLocation
+
+    --
+    , generation : Int
+    , id : String
+
+    --
+    , info : Maybe Info
+    }
+
+
+type alias Info =
+    { label : String }
 
 
 makeId : Int -> Loc.ChunkLocation -> Loc.StringPosition -> String
@@ -21,4 +35,9 @@ makeId generation chunkLocation stringLocation =
 
 
 dummy =
-    { position = { start = 0, end = 0 }, generation = 0, location = { chunkIndex = -1, firstLine = -1 }, id = "dummy" }
+    { position = { start = 0, end = 0 }
+    , generation = 0
+    , location = { chunkIndex = -1, firstLine = -1 }
+    , id = "dummy"
+    , info = Nothing
+    }
