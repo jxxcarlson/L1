@@ -88,30 +88,34 @@ shift op cursor =
 
 
 reduce : ReduceOperation -> (Int -> Loc.ChunkLocation -> Int -> String -> Element) -> TextCursor -> ParserTools.Step TextCursor TextCursor
-reduce op parser cursor =
+reduce op parse cursor =
     case op of
         End ->
             ParserTools.Done { cursor | complete = cursor.parsed ++ cursor.complete, message = "COMMIT 1" }
 
         Commit ->
-            ParserTools.Loop (TextCursor.commit parser { cursor | message = "COMMIT 2", count = cursor.count + 1 })
+            ParserTools.Loop (TextCursor.commit parse { cursor | message = "COMMIT 2", count = cursor.count + 1 })
 
         HandleError ->
-            ParserTools.Loop (TextCursor.commit parser { cursor | message = "COMMIT 3", count = cursor.count + 1 })
+            ParserTools.Loop (TextCursor.commit parse { cursor | message = "COMMIT 3", count = cursor.count + 1 })
 
         Add strData ->
+            let
+                newParsed =
+                    parse cursor.generation cursor.chunkLocation (Debug.log "ADD, PSP" cursor.previousScanPoint) strData.content
+            in
             ParserTools.Loop
                 { cursor
                     | count = cursor.count + 1
                     , previousScanPoint = cursor.scanPoint
                     , scanPoint = cursor.scanPoint + String.length strData.content
-                    , complete = parser cursor.generation cursor.chunkLocation cursor.previousScanPoint strData.content :: cursor.parsed ++ cursor.complete
+                    , complete = newParsed :: cursor.parsed ++ cursor.complete
                     , parsed = []
                     , message = "ADD" -- main
                 }
 
         Pop prefix ->
-            pop parser prefix cursor
+            pop parse prefix cursor
 
         ShortCircuit str ->
             shortcircuit str cursor
