@@ -255,7 +255,7 @@ meta : Int -> Loc.ChunkLocation -> Int -> Int -> MetaData
 meta generation chunkLocation start finish =
     let
         stringLocation =
-            { start = start, end = finish }
+            { start = start, end = finish - 1 }
     in
     { position = stringLocation, generation = generation, location = chunkLocation, id = MetaData.makeId generation chunkLocation stringLocation }
 
