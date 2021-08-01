@@ -8,6 +8,7 @@ module L1.Parser.AST exposing
     , body
     , body_
     , getArgs
+    , getNameAndId
     , getText
     , getTextList
     , getTextList2
@@ -61,6 +62,16 @@ toStringList element =
 
         Problem _ _ ->
             [ "problems" ]
+
+
+getNameAndId : Element -> Maybe { name : String, id : String }
+getNameAndId el =
+    case el of
+        Element (Name name) _ { id } ->
+            Just { name = name, id = id }
+
+        _ ->
+            Nothing
 
 
 stringContent : List Element -> String
