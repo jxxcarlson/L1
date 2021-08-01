@@ -1,4 +1,4 @@
-module L1.Parser.Chunk exposing (parse, parseLoop, pl, pl_)
+module L1.Parser.Chunk exposing (parse, parseLoop, pl, pl_, pl__)
 
 import L1.Parser.AST as AST exposing (Element(..))
 import L1.Parser.Error exposing (Context(..), Problem(..))
@@ -32,8 +32,19 @@ pl str =
 
 {-| Used for testing
 -}
-pl_ : String -> List AST.Element__
+pl_ : String -> List AST.Element_
 pl_ str =
+    let
+        tc =
+            parseLoop Parser.parse 1 { chunkIndex = 0, firstLine = 0 } str
+    in
+    tc |> .complete |> List.map AST.simplify
+
+
+{-| Used for testing
+-}
+pl__ : String -> List AST.Element__
+pl__ str =
     let
         tc =
             parseLoop Parser.parse 3 { chunkIndex = 3, firstLine = 0 } str
