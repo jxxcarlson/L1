@@ -55,20 +55,22 @@ when the scanPoint comes to the end of the source.
 -}
 nextCursor : (Int -> Loc.ChunkLocation -> Int -> String -> Element) -> TextCursor -> ParserTools.Step TextCursor TextCursor
 nextCursor parser cursor =
-    --let
-    --    _ =
-    --        Debug.log (L1.Parser.Print.print cursor) "-"
-    --in
+    let
+        -- _ =
+        -- Debug.log (L1.Parser.Print.print cursor) "-"
+        _ =
+            L1.Library.Utility.debug "STACK" cursor.stack
+    in
     case operation cursor of
         Shift op ->
-            shift op parser cursor
+            shift op cursor
 
         Reduce op ->
             reduce op parser cursor
 
 
-shift : ShiftOperation -> (Int -> Loc.ChunkLocation -> Int -> String -> Element) -> TextCursor -> ParserTools.Step TextCursor TextCursor
-shift op parse cursor =
+shift : ShiftOperation -> TextCursor -> ParserTools.Step TextCursor TextCursor
+shift op cursor =
     case op of
         PushText str ->
             ParserTools.Loop
