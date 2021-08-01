@@ -10,7 +10,7 @@ type alias MetaData =
 makeId : Int -> Loc.ChunkLocation -> Loc.StringPosition -> String
 makeId generation chunkLocation stringLocation =
     String.fromInt generation
-        ++ ":"
+        ++ "."
         ++ String.fromInt chunkLocation.chunkIndex
         ++ "."
         ++ String.fromInt chunkLocation.firstLine
