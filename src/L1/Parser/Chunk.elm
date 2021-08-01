@@ -9,20 +9,20 @@ import L1.Parser.TextCursor exposing (TextCursor)
 import Parser.Advanced as PA
 
 
-parseLoop : (Int -> Loc.ChunkLocation -> String -> Element) -> Int -> Loc.ChunkLocation -> String -> TextCursor
+parseLoop : (Int -> Loc.ChunkLocation -> Int -> String -> Element) -> Int -> Loc.ChunkLocation -> String -> TextCursor
 parseLoop parser generation chunkLocation str =
     Loop.parseLoop parser generation chunkLocation str
 
 
-parse : (Int -> Loc.ChunkLocation -> String -> Element) -> Int -> Loc.ChunkLocation -> String -> List AST.Element
+parse : (Int -> Loc.ChunkLocation -> Int -> String -> Element) -> Int -> Loc.ChunkLocation -> String -> List AST.Element
 parse parser generation chunkLocation str =
     str
         |> parseLoop parser generation chunkLocation
         |> .complete
 
 
-pl : String -> List AST.Element
-pl str =
+pl : Int -> String -> List AST.Element
+pl scanPoint str =
     let
         tc =
             parseLoop Parser.parse 3 { chunkIndex = 3, firstLine = 0 } str
