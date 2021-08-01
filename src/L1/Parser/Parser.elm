@@ -253,12 +253,17 @@ hasProblem elements =
 
 
 meta : Int -> Loc.ChunkLocation -> Int -> Int -> Int -> MetaData
-meta generation chunkLocation scanPosition start finish =
+meta generation chunkLocation scanPoint start finish =
     let
         stringLocation =
-            { start = start, end = finish - 1 }
+            { start = start + Debug.log "SCAN POINT" scanPoint, end = finish - 1 + scanPoint }
     in
-    { position = stringLocation, generation = generation, location = chunkLocation, id = MetaData.makeId generation chunkLocation stringLocation }
+    { position = stringLocation
+    , generation = generation
+    , location = chunkLocation
+    , id = MetaData.makeId generation chunkLocation stringLocation
+    , info = Nothing
+    }
 
 
 plainText : Int -> Loc.ChunkLocation -> Int -> Parser Element
