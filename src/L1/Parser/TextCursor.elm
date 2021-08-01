@@ -232,10 +232,16 @@ pop parse prefix cursor =
             let
                 data =
                     Stack.showStack (List.reverse cursor.stack) ++ prefix
+
+                position =
+                    Utility.debug2 "POSITION" (cursor.stack |> List.reverse |> List.head |> Maybe.map Stack.startPosition |> Maybe.withDefault 0)
+
+                newParsed =
+                    parse cursor.generation cursor.chunkLocation position data
             in
             { cursor
                 | stack = []
-                , parsed = parse cursor.generation cursor.chunkLocation cursor.scanPoint data :: cursor.parsed
+                , parsed = newParsed :: cursor.parsed
                 , count = cursor.count + 1
                 , previousScanPoint = cursor.scanPoint
                 , scanPoint = cursor.scanPoint + 1
@@ -267,8 +273,11 @@ finishUpWithReducibleStack parse tc =
     let
         stackData =
             tc.stack |> List.reverse |> List.map Stack.show |> String.join ""
+
+        newParsed =
+            parse tc.generation tc.chunkLocation (Debug.log "FU, P" tc.previousScanPoint) stackData
     in
-    { tc | complete = parse tc.generation tc.chunkLocation tc.previousScanPoint stackData :: tc.complete }
+    { tc | complete = newParsed :: tc.complete }
 
 
 
