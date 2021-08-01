@@ -7,8 +7,9 @@ import L1.Parser.Config as Config exposing (Configuration, EType(..))
 import L1.Parser.Configuration as Configuration
 import L1.Parser.Error exposing (Context, Problem)
 import L1.Parser.Handle as Handle
+import L1.Parser.Loc as Loc
 import L1.Parser.Print
-import L1.Parser.ShiftReduce as Branch exposing (Operation(..), ReduceOperation(..), ShiftOperation(..), operation)
+import L1.Parser.ShiftReduce exposing (Operation(..), ReduceOperation(..), ShiftOperation(..), operation)
 import L1.Parser.Stack as Stack exposing (StackItem(..))
 import L1.Parser.TextCursor as TextCursor exposing (ScannerType(..), TextCursor)
 import Parser.Advanced as Parser exposing ((|.), (|=))
@@ -23,15 +24,15 @@ on each pass. See module Parser.TextCursor for definitions. The TextCursor
 is initialized with source text. When parseLoop concludes, it also carries
 the AST of the processed source.
 -}
-parseLoop : (String -> Element) -> Int -> String -> TextCursor
-parseLoop parser generation str =
+parseLoop : (Int -> Loc.ChunkLocation -> String -> Element) -> Int -> Loc.ChunkLocation -> String -> TextCursor
+parseLoop parser generation chunkLocation str =
     let
         result =
-            ParserTools.loop (TextCursor.init generation str) (nextCursor parser)
+            ParserTools.loop (TextCursor.init generation chunkLocation str) (nextCursor parser)
                 |> (\tc_ -> { tc_ | complete = List.reverse tc_.complete })
 
-        _ =
-            Debug.log (L1.Parser.Print.print result) "-"
+        --_ =
+        --    Debug.log (L1.Parser.Print.print result) "-"
     in
     result
 
@@ -49,12 +50,12 @@ that parseLoop is guaranteed to terminate. The program terminates
 when the scanPoint comes to the end of the source.
 
 -}
-nextCursor : (String -> Element) -> TextCursor -> ParserTools.Step TextCursor TextCursor
+nextCursor : (Int -> Loc.ChunkLocation -> String -> Element) -> TextCursor -> ParserTools.Step TextCursor TextCursor
 nextCursor parser cursor =
-    let
-        _ =
-            Debug.log (L1.Parser.Print.print cursor) "-"
-    in
+    --let
+    --    _ =
+    --        Debug.log (L1.Parser.Print.print cursor) "-"
+    --in
     case operation cursor of
         Shift op ->
             shift op parser cursor
@@ -63,7 +64,7 @@ nextCursor parser cursor =
             reduce op parser cursor
 
 
-shift : ShiftOperation -> (String -> Element) -> TextCursor -> ParserTools.Step TextCursor TextCursor
+shift : ShiftOperation -> (Int -> Loc.ChunkLocation -> String -> Element) -> TextCursor -> ParserTools.Step TextCursor TextCursor
 shift op parse cursor =
     case op of
         PushText str ->
@@ -80,7 +81,7 @@ shift op parse cursor =
             push cursor data
 
 
-reduce : ReduceOperation -> (String -> Element) -> TextCursor -> ParserTools.Step TextCursor TextCursor
+reduce : ReduceOperation -> (Int -> Loc.ChunkLocation -> String -> Element) -> TextCursor -> ParserTools.Step TextCursor TextCursor
 reduce op parser cursor =
     case op of
         End ->
@@ -97,7 +98,7 @@ reduce op parser cursor =
                 { cursor
                     | count = cursor.count + 1
                     , scanPoint = cursor.scanPoint + String.length strData.content
-                    , complete = parser strData.content :: cursor.parsed ++ cursor.complete
+                    , complete = parser cursor.generation cursor.chunkLocation strData.content :: cursor.parsed ++ cursor.complete
                     , parsed = []
                     , message = "ADD" -- main
                 }
@@ -137,6 +138,7 @@ push cursor ({ prefix, isMatch } as prefixData) =
                 TextCursor.push prefixData (TextCursor.Expect_ expectation) { cursor | message = "PUSH(s)", scannerType = scannerType }
 
 
+shortcircuit : String -> TextCursor -> ParserTools.Step TextCursor TextCursor
 shortcircuit prefix cursor =
     if List.member prefix [ "#", "##", "###", "####" ] then
         ParserTools.Done <| Handle.heading2 { cursor | message = "SHORT(h)" }

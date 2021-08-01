@@ -9,7 +9,7 @@ type alias StringPosition =
 
 
 type alias ChunkLocation =
-    { index : Int, firstLine : Int }
+    { chunkIndex : Int, firstLine : Int }
 
 
 dummyPosition =

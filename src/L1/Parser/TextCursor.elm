@@ -15,6 +15,7 @@ import L1.Library.Utility as Utility exposing (debug, debug2)
 import L1.Parser.AST as AST exposing (Element(..), Name(..))
 import L1.Parser.Config as Config exposing (Configuration, EType(..), Expectation)
 import L1.Parser.Configuration as Configuration
+import L1.Parser.Loc as Loc
 import L1.Parser.MetaData as MetaData exposing (MetaData)
 import L1.Parser.Stack as Stack exposing (StackItem(..))
 import List.Extra
@@ -26,6 +27,7 @@ import Parser.Advanced
 type alias TextCursor =
     { count : Int
     , generation : Int
+    , chunkLocation : Loc.ChunkLocation
 
     ---
     , verbatimPrefix : Maybe String
@@ -56,10 +58,11 @@ type ProtoStackItem
 
 {-| initialize with source text
 -}
-init : Int -> String -> TextCursor
-init generation source =
+init : Int -> Loc.ChunkLocation -> String -> TextCursor
+init generation chunkLocation source =
     { count = 0
     , generation = generation
+    , chunkLocation = chunkLocation
 
     --
     , scanPoint = 0
@@ -211,7 +214,7 @@ push ({ prefix, isMatch } as prefixData) proto tc =
 
 {-| REDUCE
 -}
-pop : (String -> Element) -> String -> TextCursor -> TextCursor
+pop : (Int -> Loc.ChunkLocation -> String -> Element) -> String -> TextCursor -> TextCursor
 pop parse prefix cursor =
     -- The cursors' scanPoint is pointing at a character that
     -- signal the end of an element, e.g., ']' in the
@@ -229,7 +232,7 @@ pop parse prefix cursor =
             in
             { cursor
                 | stack = []
-                , parsed = parse data :: cursor.parsed
+                , parsed = parse cursor.generation cursor.chunkLocation data :: cursor.parsed
                 , count = cursor.count + 1
                 , scanPoint = cursor.scanPoint + 1
             }
@@ -237,7 +240,7 @@ pop parse prefix cursor =
 
 {-| REDUCE
 -}
-commit : (String -> Element) -> TextCursor -> TextCursor
+commit : (Int -> Loc.ChunkLocation -> String -> Element) -> TextCursor -> TextCursor
 commit parse tc =
     if tc.stack == [] && tc.scanPoint >= tc.sourceLength then
         finishUp tc
@@ -255,12 +258,13 @@ finishUp tc =
     { tc | parsed = [] }
 
 
+finishUpWithReducibleStack : (Int -> Loc.ChunkLocation -> String -> Element) -> TextCursor -> TextCursor
 finishUpWithReducibleStack parse tc =
     let
         stackData =
             tc.stack |> List.reverse |> List.map Stack.show |> String.join ""
     in
-    { tc | complete = parse stackData :: tc.complete }
+    { tc | complete = parse tc.generation tc.chunkLocation stackData :: tc.complete }
 
 
 

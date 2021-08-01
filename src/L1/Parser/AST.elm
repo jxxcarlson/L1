@@ -150,9 +150,9 @@ type Name
 {-| A simplified version of the AST for humans
 -}
 type Element_
-    = Text_ String
-    | Element_ Name (List Element_)
-    | Verbatim_ VerbatimType String
+    = Text_ String String
+    | Element_ Name (List Element_) String
+    | Verbatim_ VerbatimType String String
     | Problem_ Problem String
 
 
@@ -184,14 +184,14 @@ position element =
 simplify : Element -> Element_
 simplify element =
     case element of
-        Text str _ ->
-            Text_ str
+        Text str meta ->
+            Text_ str meta.id
 
-        Element name body__ _ ->
-            Element_ name (List.map simplify body__)
+        Element name body__ meta ->
+            Element_ name (List.map simplify body__) meta.id
 
-        Verbatim name content _ ->
-            Verbatim_ name content
+        Verbatim name content meta ->
+            Verbatim_ name content meta.id
 
         Problem p s ->
             Problem_ (List.head p |> Maybe.map .problem |> Maybe.withDefault NoError) s
@@ -234,7 +234,7 @@ body element =
 body_ : Element_ -> List Element_
 body_ element =
     case element of
-        Element_ _ list ->
+        Element_ _ list _ ->
             list
 
         _ ->

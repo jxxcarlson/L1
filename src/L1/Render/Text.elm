@@ -35,16 +35,16 @@ print element =
 print_ : Element_ -> String
 print_ element =
     case element of
-        Text_ str ->
+        Text_ str _ ->
             str
 
-        Element_ (Name name) body ->
+        Element_ (Name name) body _ ->
             "[" ++ name ++ " " ++ String.join " " (List.map print_ body) ++ "]"
 
-        Element_ UndefinedName body ->
+        Element_ UndefinedName body _ ->
             "[" ++ "undefined" ++ String.join " " (List.map print_ body) ++ "]"
 
-        Verbatim_ _ content ->
+        Verbatim_ _ content _ ->
             content
 
         Problem_ _ str ->

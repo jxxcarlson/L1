@@ -1,13 +1,9 @@
-module L1.Parser.Document exposing (d1, split)
+module L1.Parser.Document exposing (d1, d2, parse, parseWithTOC, split)
 
--- import L1.Parser.AST as AST exposing (Element)
--- import L1.Parser.Chunk
-
+import L1.Parser.AST as AST exposing (Element)
+import L1.Parser.Chunk
 import L1.Parser.Loc as Loc
-
-
-
---  import L1.Parser.Parser
+import L1.Parser.Parser
 
 
 d1 =
@@ -29,37 +25,48 @@ HH
 """
 
 
+d2 =
+    """
+foo [b bar]
+
+[i x] [b y]
+"""
+
+
 type alias Document =
     String
 
 
+parseWithTOC : Int -> Document -> List (List Element)
+parseWithTOC generation doc =
+    let
+        ast =
+            parse generation doc
 
---
---parseWithTOC : Int -> Int -> Document -> List (List Element)
---parseWithTOC generation count doc =
---    let
---        ast =
---            parse generation count doc
---
---        title =
---            List.take 1 ast
---
---        toc =
---            AST.makeTOC ast
---    in
---    List.take 3 ast ++ [ toc ] :: List.drop 3 ast
---
---
---parse : Int -> Int -> Document -> List (List Element)
---parse generation count doc =
---    let
---        p : String -> List Element
---        p =
---            L1.Parser.Chunk.parse (L1.Parser.Parser.parse generation count) generation
---    in
---    doc
---        |> split generation
---        |> List.map p
+        title =
+            List.take 1 ast
+
+        toc =
+            AST.makeTOC ast
+    in
+    List.take 3 ast ++ [ toc ] :: List.drop 3 ast
+
+
+
+--parse : Int -> Loc.ChunkLocation -> String -> Element
+--parse generation chunkLocation str
+
+
+parse : Int -> Document -> List (List Element)
+parse generation doc =
+    let
+        p : { location : Loc.ChunkLocation, content : String } -> List Element
+        p { location, content } =
+            L1.Parser.Chunk.parse L1.Parser.Parser.parse generation location content
+    in
+    doc
+        |> split
+        |> List.map p
 
 
 {-|
@@ -74,7 +81,7 @@ split doc =
         |> String.lines
         |> groupLines
         |> List.filter (\group -> group.content /= [])
-        |> List.indexedMap (\index group -> { location = { index = index, firstLine = group.lineNumber }, content = String.join "\n" group.content })
+        |> List.indexedMap (\index group -> { location = { chunkIndex = index, firstLine = group.lineNumber }, content = String.join "\n" group.content })
 
 
 type Status
