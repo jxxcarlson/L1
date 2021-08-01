@@ -13,7 +13,7 @@ import List.Extra
 heading2 tc =
     let
         parsed_ =
-            case Parser.parseHeading tc.generation tc.chunkLocation tc.source of
+            case Parser.parseHeading tc.generation tc.chunkLocation tc.previousScanPoint tc.source of
                 Ok goodstuff ->
                     [ goodstuff ]
 
@@ -32,7 +32,7 @@ errorElement message =
 item tc =
     let
         parsed_ =
-            case Parser.parseItem tc.generation tc.chunkLocation tc.source of
+            case Parser.parseItem tc.generation tc.chunkLocation tc.previousScanPoint tc.source of
                 Ok goodstuff ->
                     [ goodstuff ]
 
@@ -47,7 +47,7 @@ pipe tc =
         source_ =
             "[" ++ String.trimLeft (String.dropLeft 1 tc.source) ++ "]"
     in
-    { tc | complete = Parser.parse tc.generation tc.chunkLocation source_ :: tc.complete }
+    { tc | complete = Parser.parse tc.generation tc.chunkLocation tc.previousScanPoint source_ :: tc.complete }
 
 
 doublePipe tc =
