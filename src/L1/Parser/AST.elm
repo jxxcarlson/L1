@@ -1,6 +1,7 @@
 module L1.Parser.AST exposing
     ( Element(..)
     , Element_(..)
+    , Element__(..)
     , Name(..)
     , VerbatimType(..)
     , argsAndBody
@@ -19,6 +20,7 @@ module L1.Parser.AST exposing
     , map
     , position
     , simplify
+    , simplify_
     , stringContent
     , toList
     , toStringList
@@ -156,6 +158,13 @@ type Element_
     | Problem_ Problem String
 
 
+type Element__
+    = Text__ String
+    | Element__ Name (List Element__)
+    | Verbatim__ VerbatimType String
+    | Problem__ Problem String
+
+
 length : Element -> Int
 length element =
     let
@@ -195,6 +204,22 @@ simplify element =
 
         Problem p s ->
             Problem_ (List.head p |> Maybe.map .problem |> Maybe.withDefault NoError) s
+
+
+simplify_ : Element -> Element__
+simplify_ element =
+    case element of
+        Text str _ ->
+            Text__ str
+
+        Element name body__ _ ->
+            Element__ name (List.map simplify_ body__)
+
+        Verbatim name content _ ->
+            Verbatim__ name content
+
+        Problem p s ->
+            Problem__ (List.head p |> Maybe.map .problem |> Maybe.withDefault NoError) s
 
 
 

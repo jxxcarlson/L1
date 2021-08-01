@@ -2,7 +2,7 @@ module LoopTests2 exposing (..)
 
 import Expect exposing (Expectation)
 import Fuzz exposing (Fuzzer, int, list, string)
-import L1.Parser.AST exposing (Element_(..), Name(..), VerbatimType(..), simplify)
+import L1.Parser.AST exposing (Element__(..), Name(..), VerbatimType(..), simplify)
 import L1.Parser.Chunk exposing (pl_)
 import Test exposing (..)
 
@@ -15,145 +15,145 @@ suite =
                 \_ ->
                     "a"
                         |> pl_
-                        |> Expect.equal [ Text_ "a" ]
+                        |> Expect.equal [ Text__ "a" ]
             , test "[a] b" <|
                 \_ ->
                     "[a] b"
                         |> pl_
-                        |> Expect.equal [ Element_ (Name "a") [], Text_ " b" ]
+                        |> Expect.equal [ Element__ (Name "a") [], Text__ " b" ]
             , test "[a b]" <|
                 \_ ->
                     "[a b]"
                         |> pl_
-                        |> Expect.equal [ Element_ (Name "a") [ Text_ "b" ] ]
+                        |> Expect.equal [ Element__ (Name "a") [ Text__ "b" ] ]
             , test "a [b c]" <|
                 \_ ->
                     "a [b c]"
                         |> pl_
-                        |> Expect.equal [ Text_ "a ", Element_ (Name "b") [ Text_ "c" ] ]
+                        |> Expect.equal [ Text__ "a ", Element__ (Name "b") [ Text__ "c" ] ]
             , test "[a b] c" <|
                 \_ ->
                     "[a b] c"
                         |> pl_
-                        |> Expect.equal [ Element_ (Name "a") [ Text_ "b" ], Text_ " c" ]
+                        |> Expect.equal [ Element__ (Name "a") [ Text__ "b" ], Text__ " c" ]
             , test "[a b] [c d]" <|
                 \_ ->
                     "[a b] [c d]"
                         |> pl_
-                        |> Expect.equal [ Element_ (Name "a") [ Text_ "b" ], Text_ " ", Element_ (Name "c") [ Text_ "d" ] ]
+                        |> Expect.equal [ Element__ (Name "a") [ Text__ "b" ], Text__ " ", Element__ (Name "c") [ Text__ "d" ] ]
             , test "[a b] x [c d]" <|
                 \_ ->
                     "[a b] x [c d]"
                         |> pl_
-                        |> Expect.equal [ Element_ (Name "a") [ Text_ "b" ], Text_ " x ", Element_ (Name "c") [ Text_ "d" ] ]
+                        |> Expect.equal [ Element__ (Name "a") [ Text__ "b" ], Text__ " x ", Element__ (Name "c") [ Text__ "d" ] ]
             , test "u [a b] x [c d]" <|
                 \_ ->
                     "u [a b] x [c d]"
                         |> pl_
-                        |> Expect.equal [ Text_ "u ", Element_ (Name "a") [ Text_ "b" ], Text_ " x ", Element_ (Name "c") [ Text_ "d" ] ]
+                        |> Expect.equal [ Text__ "u ", Element__ (Name "a") [ Text__ "b" ], Text__ " x ", Element__ (Name "c") [ Text__ "d" ] ]
             , test "[x [a b]]" <|
                 \_ ->
                     "[x [a b]]"
                         |> pl_
-                        |> Expect.equal [ Element_ (Name "x") [ Element_ (Name "a") [ Text_ "b " ] ] ]
+                        |> Expect.equal [ Element__ (Name "x") [ Element__ (Name "a") [ Text__ "b " ] ] ]
             , test "a b [c d] e [f g]" <|
                 \_ ->
                     "a b [c d] e [f g]"
                         |> pl_
-                        |> Expect.equal [ Text_ "a b ", Element_ (Name "c") [ Text_ "d" ], Text_ " e ", Element_ (Name "f") [ Text_ "g" ] ]
+                        |> Expect.equal [ Text__ "a b ", Element__ (Name "c") [ Text__ "d" ], Text__ " e ", Element__ (Name "f") [ Text__ "g" ] ]
             , test "[a b [c d] e [f g]]" <|
                 \_ ->
                     "[a b [c d] e [f g]]"
                         |> pl_
-                        |> Expect.equal [ Element_ (Name "a") [ Text_ "b  ", Element_ (Name "c") [ Text_ "d " ], Text_ "  e  ", Element_ (Name "f") [ Text_ "g " ] ] ]
+                        |> Expect.equal [ Element__ (Name "a") [ Text__ "b  ", Element__ (Name "c") [ Text__ "d " ], Text__ "  e  ", Element__ (Name "f") [ Text__ "g " ] ] ]
             , test "abc def [foo] ghi jkl [bar] mno pqr" <|
                 \_ ->
                     "abc def [foo] ghi jkl [bar] mno pqr"
                         |> pl_
-                        |> Expect.equal [ Text_ "abc def ", Element_ (Name "foo") [], Text_ " ghi jkl ", Element_ (Name "bar") [], Text_ " mno pqr" ]
+                        |> Expect.equal [ Text__ "abc def ", Element__ (Name "foo") [], Text__ " ghi jkl ", Element__ (Name "bar") [], Text__ " mno pqr" ]
             , test "$a^2$" <|
                 \_ ->
                     "$a^2$"
                         |> pl_
-                        |> Expect.equal [ Verbatim_ Math "a^2" ]
+                        |> Expect.equal [ Verbatim__ Math "a^2" ]
             , test "`a^2`" <|
                 \_ ->
                     "`a^2`"
                         |> pl_
-                        |> Expect.equal [ Verbatim_ Code "a^2" ]
+                        |> Expect.equal [ Verbatim__ Code "a^2" ]
             , test "\"a^2\"" <|
                 \_ ->
                     "\"a^2\""
                         |> pl_
-                        |> Expect.equal [ Verbatim_ Quoted "a^2" ]
+                        |> Expect.equal [ Verbatim__ Quoted "a^2" ]
             , test "# Images" <|
                 \_ ->
                     "# Images"
                         |> pl_
-                        |> Expect.equal [ Element_ (Name "heading1") [ Text_ "Images" ] ]
+                        |> Expect.equal [ Element__ (Name "heading1") [ Text__ "Images" ] ]
             , test "## Images" <|
                 \_ ->
                     "## Images"
                         |> pl_
-                        |> Expect.equal [ Element_ (Name "heading2") [ Text_ "Images" ] ]
+                        |> Expect.equal [ Element__ (Name "heading2") [ Text__ "Images" ] ]
             , test "[i w:8 p:l https://foo.bar]" <|
                 \_ ->
                     "[i w:8 p:l https://foo.bar]"
                         |> pl_
-                        |> Expect.equal [ Element_ (Name "i") [ Text_ "w:8 p:l https://foo.bar" ] ]
+                        |> Expect.equal [ Element__ (Name "i") [ Text__ "w:8 p:l https://foo.bar" ] ]
             , test "[a $b$]" <|
                 \_ ->
                     "[a $b$]"
                         |> pl_
-                        |> Expect.equal [ Element_ (Name "a") [ Verbatim_ Math "b " ] ]
+                        |> Expect.equal [ Element__ (Name "a") [ Verbatim__ Math "b " ] ]
             , test "abc $x^2$ def" <|
                 \_ ->
                     "abc $x^2$ def"
                         |> pl_
-                        |> Expect.equal [ Text_ "abc ", Verbatim_ Math "x^2", Text_ " def" ]
+                        |> Expect.equal [ Text__ "abc ", Verbatim__ Math "x^2", Text__ " def" ]
             , test "[b L1 GOOD" <|
                 \_ ->
                     "[b L1 GOOD"
                         |> pl_
-                        |> Expect.equal [ Element_ (Name "error") [ Text_ " unmatched '['" ], Text_ "b L1 GOOD" ]
+                        |> Expect.equal [ Element__ (Name "error") [ Text__ " unmatched '['" ], Text__ "b L1 GOOD" ]
             , test "[b L1 is  [i somewhat] like Lisp" <|
                 \_ ->
                     "[b L1 is  [i somewhat] like Lisp"
                         |> pl_
-                        |> Expect.equal [ Element_ (Name "error") [ Text_ " unmatched '['" ], Text_ "b L1 is  ", Element_ (Name "i") [ Text_ "somewhat" ], Text_ " like Lisp" ]
+                        |> Expect.equal [ Element__ (Name "error") [ Text__ " unmatched '['" ], Text__ "b L1 is  ", Element__ (Name "i") [ Text__ "somewhat" ], Text__ " like Lisp" ]
             , test "[b aa] $i BB cc" <|
                 \_ ->
                     "[b aa] $i BB cc"
                         |> pl_
-                        |> Expect.equal [ Element_ (Name "b") [ Text_ "aa" ], Text_ " ", Element_ (Name "error") [ Text_ " unmatched '$'" ], Text_ "i BB cc" ]
+                        |> Expect.equal [ Element__ (Name "b") [ Text__ "aa" ], Text__ " ", Element__ (Name "error") [ Text__ " unmatched '$'" ], Text__ "i BB cc" ]
             , test "[a [b c] d]" <|
                 \_ ->
                     "[a [b c] d]"
                         |> pl_
-                        |> Expect.equal [ Element_ (Name "a") [ Element_ (Name "b") [ Text_ "c " ], Text_ "  d" ] ]
+                        |> Expect.equal [ Element__ (Name "a") [ Element__ (Name "b") [ Text__ "c " ], Text__ "  d" ] ]
             , test "[a $b c$ [d e]]" <|
                 \_ ->
                     "[a $b c$ [d e]]"
                         |> pl_
-                        |> Expect.equal [ Element_ (Name "a") [ Verbatim_ Math "b c ", Text_ "   ", Element_ (Name "d") [ Text_ "e " ] ] ]
+                        |> Expect.equal [ Element__ (Name "a") [ Verbatim__ Math "b c ", Text__ "   ", Element__ (Name "d") [ Text__ "e " ] ] ]
             , test "[a $b$ c]" <|
                 \_ ->
                     "[a $b$ c]"
                         |> pl_
-                        |> Expect.equal [ Element_ (Name "a") [ Verbatim_ Math "b ", Text_ "  c" ] ]
+                        |> Expect.equal [ Element__ (Name "a") [ Verbatim__ Math "b ", Text__ "  c" ] ]
             , test "[image \"A:B\" \"URL\"]" <|
                 \_ ->
                     "[image \"A:B\" \"URL\"]"
                         |> pl_
-                        |> Expect.equal [ Element_ (Name "image") [ Verbatim_ Quoted "A:B ", Text_ "   ", Verbatim_ Quoted "URL " ] ]
+                        |> Expect.equal [ Element__ (Name "image") [ Verbatim__ Quoted "A:B ", Text__ "   ", Verbatim__ Quoted "URL " ] ]
             , test "a $b [i c]" <|
                 \_ ->
                     "a $b [i c]"
                         |> pl_
-                        |> Expect.equal [ Text_ "a ", Element_ (Name "error") [ Text_ " unmatched '$'" ], Text_ "b ", Element_ (Name "i") [ Text_ "c" ] ]
+                        |> Expect.equal [ Text__ "a ", Element__ (Name "error") [ Text__ " unmatched '$'" ], Text__ "b ", Element__ (Name "i") [ Text__ "c" ] ]
             , test "AA] BB [link \"CC\" DD] EE" <|
                 \_ ->
                     "AA] BB [link \"CC\" DD] EE"
                         |> pl_
-                        |> Expect.equal [ Text_ "AA", Element_ (Name "error") [ Text_ " unmatched ']'" ], Text_ " BB ", Element_ (Name "link") [ Verbatim_ Quoted "CC ", Text_ "  DD" ], Text_ " EE" ]
+                        |> Expect.equal [ Text__ "AA", Element__ (Name "error") [ Text__ " unmatched ']'" ], Text__ " BB ", Element__ (Name "link") [ Verbatim__ Quoted "CC ", Text__ "  DD" ], Text__ " EE" ]
             ]

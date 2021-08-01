@@ -32,13 +32,13 @@ pl str =
 
 {-| Used for testing
 -}
-pl_ : String -> List AST.Element_
+pl_ : String -> List AST.Element__
 pl_ str =
     let
         tc =
             parseLoop Parser.parse 3 { chunkIndex = 3, firstLine = 0 } str
     in
-    tc |> .complete |> List.map AST.simplify
+    tc |> .complete |> List.map AST.simplify_
 
 
 
