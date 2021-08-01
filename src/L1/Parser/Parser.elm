@@ -94,7 +94,7 @@ primitiveElement : Int -> Loc.ChunkLocation -> Int -> Parser Element
 primitiveElement generation chunkLocation scanPosition =
     Parser.inContext CElement <|
         -- TODO: is this correct?
-        Parser.succeed (\start name body_ end source -> Element name body_ (meta generation chunkLocation (Debug.log "START" (start + scanPosition)) (end + scanPosition)))
+        Parser.succeed (\start name body_ end source -> Element name body_ (meta generation chunkLocation scanPosition start end))
             |= Parser.getOffset
             |. leftBracket
             |= Parser.oneOf [ elementName |> Parser.map Name, Parser.succeed UndefinedName ]
@@ -109,7 +109,7 @@ mathElement : Int -> Loc.ChunkLocation -> Int -> Parser.Parser Context Problem E
 mathElement generation chunkLocation scanPosition =
     Parser.inContext CElement <|
         -- TODO: is this correct?
-        Parser.succeed (\start content end source -> Verbatim Math content (meta generation chunkLocation (start + scanPosition) (end + scanPosition)))
+        Parser.succeed (\start content end source -> Verbatim Math content (meta generation chunkLocation scanPosition start end))
             |= Parser.getOffset
             |. dollarSign
             |= string [ '$' ]
@@ -122,7 +122,7 @@ codeElement : Int -> Loc.ChunkLocation -> Int -> Parser.Parser Context Problem E
 codeElement generation chunkLocation scanPosition =
     Parser.inContext CElement <|
         -- TODO: is this correct?
-        Parser.succeed (\start content end source -> Verbatim Code content (meta generation chunkLocation (start + scanPosition) (end + scanPosition)))
+        Parser.succeed (\start content end source -> Verbatim Code content (meta generation chunkLocation scanPosition start end))
             |= Parser.getOffset
             |. backTick
             |= string [ '`' ]
@@ -135,7 +135,7 @@ quotedElement : Int -> Loc.ChunkLocation -> Int -> Parser.Parser Context Problem
 quotedElement generation chunkLocation scanPosition =
     Parser.inContext CElement <|
         -- TODO: is this correct?
-        Parser.succeed (\start content end source -> Verbatim Quoted content (meta generation chunkLocation (start + scanPosition) (end + scanPosition)))
+        Parser.succeed (\start content end source -> Verbatim Quoted content (meta generation chunkLocation scanPosition start end))
             |= Parser.getOffset
             |. quoteMark
             |= string [ '"' ]
@@ -148,7 +148,7 @@ headingParser : Int -> Loc.ChunkLocation -> Int -> Parser.Parser Context Problem
 headingParser generation chunkLocation scanPosition =
     Parser.inContext CElement <|
         -- TODO: is this correct?
-        Parser.succeed (\start n elements end source -> Element (Name ("heading" ++ String.fromInt n)) elements (meta generation chunkLocation (start + scanPosition) (end + scanPosition)))
+        Parser.succeed (\start n elements end source -> Element (Name ("heading" ++ String.fromInt n)) elements (meta generation chunkLocation scanPosition start end))
             |= Parser.getOffset
             |= hashMarks
             |. Parser.chompIf (\c -> c == ' ') ExpectingSpace
@@ -162,7 +162,7 @@ itemParser : Int -> Loc.ChunkLocation -> Int -> Parser.Parser Context Problem El
 itemParser generation chunkLocation scanPosition =
     Parser.inContext CElement <|
         -- TODO: is this correct?
-        Parser.succeed (\start elements end source -> Element (Name "item") elements (meta generation chunkLocation (start + scanPosition) (end + scanPosition)))
+        Parser.succeed (\start elements end source -> Element (Name "item") elements (meta generation chunkLocation scanPosition start end))
             |= Parser.getOffset
             |. colonMark
             |. Parser.chompWhile (\c -> c == ' ')
@@ -180,7 +180,7 @@ blockParser : Int -> Loc.ChunkLocation -> Int -> Parser.Parser Context Problem E
 blockParser generation chunkLocation scanPosition =
     Parser.inContext CElement <|
         -- TODO: is this correct?
-        Parser.succeed (\start name elements end source -> Element (Name name.content) elements (meta generation chunkLocation (start + scanPosition) (end + scanPosition)))
+        Parser.succeed (\start name elements end source -> Element (Name name.content) elements (meta generation chunkLocation scanPosition start end))
             |= Parser.getOffset
             |. pipeMark
             --|. Parser.spaces
@@ -252,8 +252,8 @@ hasProblem elements =
 -- TEXT AND STRINGS
 
 
-meta : Int -> Loc.ChunkLocation -> Int -> Int -> MetaData
-meta generation chunkLocation start finish =
+meta : Int -> Loc.ChunkLocation -> Int -> Int -> Int -> MetaData
+meta generation chunkLocation scanPosition start finish =
     let
         stringLocation =
             { start = start, end = finish - 1 }
@@ -265,15 +265,15 @@ plainText : Int -> Loc.ChunkLocation -> Int -> Parser Element
 plainText generation chunkLocation scanPosition =
     Parser.inContext TextExpression <|
         (XString.textWithPredicate XString.isNonLanguageChar
-            |> Parser.map (\data -> Text data.content (meta generation chunkLocation (data.start + scanPosition) (data.finish + scanPosition)))
+            |> Parser.map (\data -> Text data.content (meta generation chunkLocation scanPosition data.start data.finish))
         )
 
 
-textWithPredicate : (Char -> Bool) -> Int -> Loc.ChunkLocation -> Parser Element
-textWithPredicate predicate generation chunkLocation =
+textWithPredicate : (Char -> Bool) -> Int -> Loc.ChunkLocation -> Int -> Parser Element
+textWithPredicate predicate generation chunkLocation scanPosition =
     Parser.inContext TextExpression <|
         (XString.textWithPredicate predicate
-            |> Parser.map (\data -> Text data.content (meta generation chunkLocation data.start data.finish))
+            |> Parser.map (\data -> Text data.content (meta generation chunkLocation scanPosition data.start data.finish))
         )
 
 

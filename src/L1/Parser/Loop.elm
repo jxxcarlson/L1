@@ -24,7 +24,7 @@ on each pass. See module Parser.TextCursor for definitions. The TextCursor
 is initialized with source text. When parseLoop concludes, it also carries
 the AST of the processed source.
 -}
-parseLoop : (Int -> Loc.ChunkLocation -> String -> Element) -> Int -> Loc.ChunkLocation -> String -> TextCursor
+parseLoop : (Int -> Loc.ChunkLocation -> Int -> String -> Element) -> Int -> Loc.ChunkLocation -> String -> TextCursor
 parseLoop parser generation chunkLocation str =
     let
         result =
@@ -50,7 +50,7 @@ that parseLoop is guaranteed to terminate. The program terminates
 when the scanPoint comes to the end of the source.
 
 -}
-nextCursor : (Int -> Loc.ChunkLocation -> String -> Element) -> TextCursor -> ParserTools.Step TextCursor TextCursor
+nextCursor : (Int -> Loc.ChunkLocation -> Int -> String -> Element) -> TextCursor -> ParserTools.Step TextCursor TextCursor
 nextCursor parser cursor =
     --let
     --    _ =
@@ -64,7 +64,7 @@ nextCursor parser cursor =
             reduce op parser cursor
 
 
-shift : ShiftOperation -> (Int -> Loc.ChunkLocation -> String -> Element) -> TextCursor -> ParserTools.Step TextCursor TextCursor
+shift : ShiftOperation -> (Int -> Loc.ChunkLocation -> Int -> String -> Element) -> TextCursor -> ParserTools.Step TextCursor TextCursor
 shift op parse cursor =
     case op of
         PushText str ->
@@ -72,6 +72,7 @@ shift op parse cursor =
                 { cursor
                     | count = cursor.count + 1
                     , stack = Stack.TextItem { content = str.content, position = { start = 0, end = String.length str.content } } :: cursor.stack
+                    , previousScanPoint = cursor.scanPoint
                     , scanPoint = cursor.scanPoint + String.length str.content
                     , parsed = []
                     , message = "PUSH(t)"
@@ -81,7 +82,7 @@ shift op parse cursor =
             push cursor data
 
 
-reduce : ReduceOperation -> (Int -> Loc.ChunkLocation -> String -> Element) -> TextCursor -> ParserTools.Step TextCursor TextCursor
+reduce : ReduceOperation -> (Int -> Loc.ChunkLocation -> Int -> String -> Element) -> TextCursor -> ParserTools.Step TextCursor TextCursor
 reduce op parser cursor =
     case op of
         End ->
@@ -97,8 +98,9 @@ reduce op parser cursor =
             ParserTools.Loop
                 { cursor
                     | count = cursor.count + 1
+                    , previousScanPoint = cursor.scanPoint
                     , scanPoint = cursor.scanPoint + String.length strData.content
-                    , complete = parser cursor.generation cursor.chunkLocation strData.content :: cursor.parsed ++ cursor.complete
+                    , complete = parser cursor.generation cursor.chunkLocation cursor.previousScanPoint strData.content :: cursor.parsed ++ cursor.complete
                     , parsed = []
                     , message = "ADD" -- main
                 }
