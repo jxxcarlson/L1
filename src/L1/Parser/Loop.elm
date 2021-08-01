@@ -2,6 +2,7 @@ module L1.Parser.Loop exposing (nextCursor, parseLoop)
 
 import L1.Library.Console as Console
 import L1.Library.ParserTools as ParserTools exposing (StringData)
+import L1.Library.Utility
 import L1.Parser.AST as AST exposing (Element(..), Name(..))
 import L1.Parser.Config as Config exposing (Configuration, EType(..))
 import L1.Parser.Configuration as Configuration
@@ -33,6 +34,8 @@ parseLoop parser generation chunkLocation str =
 
         --_ =
         --    Debug.log (L1.Parser.Print.print result) "-"
+        --_ =
+        --    Debug.log "(P, C)" ( cursor.previousScanPoint, cursor.scanPoint )
     in
     result
 
