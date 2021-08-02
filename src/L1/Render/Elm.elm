@@ -13,6 +13,7 @@ import Json.Encode
 import L1.Library.Utility as Utility
 import L1.Parser.AST as AST exposing (Element(..), Element_(..), Name(..), VerbatimType(..))
 import L1.Parser.Error exposing (Context(..), Problem(..))
+import L1.Parser.MetaData as MetaData exposing (MetaData)
 import Parser.Advanced
 
 
@@ -35,7 +36,7 @@ type alias RenderArgs =
 
 
 type alias FRender msg =
-    RenderArgs -> String -> List Element -> E.Element msg
+    RenderArgs -> String -> List Element -> MetaData -> E.Element msg
 
 
 type alias RenderElementDict msg =
@@ -92,8 +93,8 @@ render renderArgs element =
         Text str _ ->
             E.el [] (text str)
 
-        Element (Name name) body _ ->
-            renderWithDictionary renderArgs name body
+        Element (Name name) body meta ->
+            renderWithDictionary renderArgs name body meta
 
         Verbatim verbatimType str _ ->
             renderVerbatim renderArgs verbatimType str
@@ -119,11 +120,11 @@ renderVerbatim renderArgs verbatimType content =
             el [] (text <| "\"" ++ content ++ "\"")
 
 
-renderWithDictionary : RenderArgs -> String -> List Element -> E.Element msg
-renderWithDictionary renderArgs name body =
+renderWithDictionary : RenderArgs -> String -> List Element -> MetaData -> E.Element msg
+renderWithDictionary renderArgs name body meta =
     case Dict.get name renderElementDict of
         Just f ->
-            f renderArgs name body
+            f renderArgs name body meta
 
         Nothing ->
             E.paragraph [ spacing 8 ]
@@ -138,77 +139,77 @@ renderWithDictionary renderArgs name body =
 
 
 italic : FRender msg
-italic renderArgs _ body =
+italic renderArgs _ body _ =
     paragraph [ Font.italic ] (renderList renderArgs body)
 
 
 bold : FRender msg
-bold renderArgs _ body =
+bold renderArgs _ body _ =
     paragraph [ Font.bold ] (renderList renderArgs body)
 
 
 strike : FRender msg
-strike renderArgs _ body =
+strike renderArgs _ body _ =
     paragraph [ Font.strike ] (renderList renderArgs body)
 
 
 underline : FRender msg
-underline renderArgs _ body =
+underline renderArgs _ body _ =
     paragraph [ Font.underline ] (renderList renderArgs body)
 
 
 hide : FRender msg
-hide renderArgs _ body =
+hide renderArgs _ body _ =
     E.none
 
 
 highlight : FRender msg
-highlight renderArgs _ body =
+highlight renderArgs _ body _ =
     paragraph [ Background.color yellowColor, E.paddingXY 4 2 ] (renderList renderArgs body)
 
 
 bluelight : FRender msg
-bluelight renderArgs _ body =
+bluelight renderArgs _ body _ =
     paragraph [ Background.color lightBlueColor, E.paddingXY 4 2 ] (renderList renderArgs body)
 
 
 redlight : FRender msg
-redlight renderArgs _ body =
+redlight renderArgs _ body _ =
     paragraph [ Background.color lightRedColor, E.paddingXY 4 2 ] (renderList renderArgs body)
 
 
 red : FRender msg
-red renderArgs _ body =
+red renderArgs _ body _ =
     paragraph [ Font.color redColor ] (renderList renderArgs body)
 
 
 error : FRender msg
-error renderArgs _ body =
+error renderArgs _ body _ =
     paragraph [] [ paragraph [ Font.color redColor, E.paddingXY 4 4, Background.color (rgb255 242 199 226) ] (renderList renderArgs body), el [ E.paddingXY 2 4 ] (text " ") ]
 
 
 blue : FRender msg
-blue renderArgs _ body =
+blue renderArgs _ body _ =
     paragraph [ Font.color blueColor ] (renderList renderArgs body)
 
 
 violet : FRender msg
-violet renderArgs _ body =
+violet renderArgs _ body _ =
     paragraph [ Font.color violetColor ] (renderList renderArgs body)
 
 
 gray : FRender msg
-gray renderArgs _ body =
+gray renderArgs _ body _ =
     paragraph [ Font.color (rgb 0.55 0.55 0.55) ] (renderList renderArgs body)
 
 
 quoted : FRender msg
-quoted renderArgs _ body =
+quoted renderArgs _ body _ =
     paragraph [] (renderList renderArgs body)
 
 
 quote : FRender msg
-quote renderArgs _ body =
+quote renderArgs _ body _ =
     let
         content =
             "\"" ++ (List.map AST.getText body |> String.join " ") ++ "\""
@@ -217,7 +218,7 @@ quote renderArgs _ body =
 
 
 toc : FRender msg
-toc rendArgs _ body =
+toc renderArgs _ body _ =
     column [ E.paddingXY 18 18, spacing 8, Background.color (E.rgb255 234 228 247) ] (el [ Font.bold ] (text <| "Table of contents") :: List.map tocItem (List.drop 1 body))
 
 
@@ -225,15 +226,17 @@ tocItem : Element -> E.Element msg
 tocItem e =
     case AST.getTextList2 e of
         n :: content :: rest ->
-            el [ paddingEach { left = tocPadding n, right = 0, top = 0, bottom = 0 }, Font.color (E.rgb255 46 33 194)]
-              (E.link [  ] { url = internalLink content, label = (text content) })
+            el [ paddingEach { left = tocPadding n, right = 0, top = 0, bottom = 0 }, Font.color (E.rgb255 46 33 194) ]
+                (E.link [] { url = internalLink content, label = text content })
 
         _ ->
             E.none
 
+
 internalLink : String -> String
 internalLink str =
     "#" ++ str |> String.toLower |> String.replace " " "-"
+
 
 tocPadding : String -> Int
 tocPadding str =
@@ -241,7 +244,7 @@ tocPadding str =
 
 
 indent : FRender msg
-indent renderArgs _ body =
+indent renderArgs _ body _ =
     column [ indentPadding ] (renderList renderArgs body)
 
 
@@ -262,7 +265,7 @@ code1 renderArgs content =
 
 
 codeblock : FRender msg
-codeblock renderArgs _ body =
+codeblock renderArgs _ body _ =
     column
         [ Font.family [ Font.typeface "Inconsolata", Font.monospace ]
         , Font.color codeColor
@@ -284,7 +287,7 @@ htmlAttribute key value =
 
 
 code : FRender msg
-code renderArgs _ body =
+code renderArgs _ body _ =
     el
         [ Font.family
             [ Font.typeface "Inconsolata"
@@ -299,10 +302,10 @@ fontRGB : FRender msg
 
 
 
--- fontRGB renderArgs _ body =
+-- fontRGB renderArgs _ body _ =
 
 
-fontRGB renderArgs _ body =
+fontRGB renderArgs _ body _ =
     let
         ( args, realBody ) =
             AST.argsAndBody 3 body
@@ -318,8 +321,9 @@ fontRGB renderArgs _ body =
 getArgs body =
     List.map AST.getTextList2 body |> List.concat |> List.map String.trim |> List.filter (\s -> s /= "")
 
+
 link : FRender msg
-link renderArgs name body =
+link renderArgs name body _ =
     case getArgs body of
         label :: url :: rest ->
             E.newTabLink []
@@ -332,8 +336,8 @@ link renderArgs name body =
 
 
 ilink : FRender msg
-ilink renderArgs name body =
-    case getArgs body  of
+ilink renderArgs name body _ =
+    case getArgs body of
         label :: url :: rest ->
             E.link []
                 { url = url
@@ -352,31 +356,34 @@ padLeft element =
 
 --    E.paddingEach { left = k, right = 0, top = 0, bottom = 0 }
 
+
 makeId elements =
     htmlAttribute "id" (makeId_ elements)
+
 
 makeId_ : List Element -> String
 makeId_ elements =
     elements |> List.map AST.getTextList2 |> List.concat |> String.join "-" |> String.toLower |> String.replace " " "-"
 
+
 heading1 : FRender msg
-heading1 renderArgs name body =
-    column [ Font.size (headerFontSize 1), headerPadding 1 , htmlAttribute "id" "title"  ] (renderList renderArgs body)
+heading1 renderArgs name body _ =
+    column [ Font.size (headerFontSize 1), headerPadding 1, htmlAttribute "id" "title" ] (renderList renderArgs body)
 
 
 heading2 : FRender msg
-heading2 renderArgs name body =
-    column [ Font.size (headerFontSize 2), headerPadding 2 , makeId body  ] [E.link [] {url = "#title", label = column [] (renderList renderArgs body)}]
+heading2 renderArgs name body _ =
+    column [ Font.size (headerFontSize 2), headerPadding 2, makeId body ] [ E.link [] { url = "#title", label = column [] (renderList renderArgs body) } ]
 
 
 heading3 : FRender msg
-heading3 renderArgs name body =
-    column [ Font.size (headerFontSize 3), headerPadding 3 , makeId body  ] [E.link [] {url = "#title", label = column [] (renderList renderArgs body)}]
+heading3 renderArgs name body _ =
+    column [ Font.size (headerFontSize 3), headerPadding 3, makeId body ] [ E.link [] { url = "#title", label = column [] (renderList renderArgs body) } ]
 
 
 heading4 : FRender msg
-heading4 renderArgs name body =
-    column [ Font.size (headerFontSize 4), headerPadding 4  , makeId body ] [E.link [] {url = "#title", label = column [] (renderList renderArgs body)}]
+heading4 renderArgs name body _ =
+    column [ Font.size (headerFontSize 4), headerPadding 4, makeId body ] [ E.link [] { url = "#title", label = column [] (renderList renderArgs body) } ]
 
 
 getFactor level =
@@ -392,13 +399,13 @@ headerPadding level =
 
 
 item : FRender msg
-item renderArgs name body =
+item renderArgs name body _ =
     column [ paddingEach { left = 24, right = 0, top = 0, bottom = 0 } ]
         [ paragraph [] (renderList renderArgs body) ]
 
 
 image : FRender msg
-image renderArgs name body =
+image renderArgs name body _ =
     let
         args =
             body |> List.map AST.getText |> List.reverse
@@ -466,22 +473,22 @@ type DisplayMode
 
 
 renderMathDisplay2 : FRender msg
-renderMathDisplay2 rendArgs name body =
-    mathText rendArgs DisplayMathMode (AST.stringContent body)
+renderMathDisplay2 renderArgs name body _ =
+    mathText renderArgs DisplayMathMode (AST.stringContent body)
 
 
 math2 : FRender msg
-math2 renderArgs name body =
+math2 renderArgs name body _ =
     mathText renderArgs InlineMathMode (AST.stringContent body)
 
 
 mathblock : FRender msg
-mathblock rendArgs name body =
-    mathText rendArgs DisplayMathMode (AST.stringContent body)
+mathblock renderArgs name body _ =
+    mathText renderArgs DisplayMathMode (AST.stringContent body)
 
 
 renderMath : FRender msg
-renderMath renderArgs name body =
+renderMath renderArgs name body _ =
     mathText renderArgs InlineMathMode (AST.stringContent body)
 
 
