@@ -12,7 +12,7 @@ import L1.Parser.Loc as Loc
 import L1.Parser.Print
 import L1.Parser.ShiftReduce exposing (Operation(..), ReduceOperation(..), ShiftOperation(..), operation)
 import L1.Parser.Stack as Stack exposing (StackItem(..))
-import L1.Parser.TextCursor as TextCursor exposing (ScannerType(..), TextCursor)
+import L1.Parser.TextCursor as TextCursor exposing (Accumulator, ScannerType(..), TextCursor, emptyAccumulator)
 import Parser.Advanced as Parser exposing ((|.), (|=))
 
 
@@ -25,11 +25,11 @@ on each pass. See module Parser.TextCursor for definitions. The TextCursor
 is initialized with source text. When parseLoop concludes, it also carries
 the AST of the processed source.
 -}
-parseLoop : (Int -> Loc.ChunkLocation -> Int -> String -> Element) -> Int -> Loc.ChunkLocation -> String -> TextCursor
-parseLoop parser generation chunkLocation str =
+parseLoop : (Int -> Loc.ChunkLocation -> Int -> String -> Element) -> Accumulator -> Int -> Loc.ChunkLocation -> String -> TextCursor
+parseLoop parser accumulator generation chunkLocation str =
     let
         result =
-            ParserTools.loop (TextCursor.init generation chunkLocation str) (nextCursor parser)
+            ParserTools.loop (TextCursor.init accumulator generation chunkLocation str) (nextCursor parser)
                 |> (\tc_ -> { tc_ | complete = List.reverse tc_.complete })
 
         --_ =

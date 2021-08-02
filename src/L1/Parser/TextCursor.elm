@@ -1,6 +1,6 @@
 module L1.Parser.TextCursor exposing
     ( TextCursor, init
-    , ProtoStackItem(..), ScannerType(..), advance, advanceHeadingRegister, commit, pop, push
+    , Accumulator, ProtoStackItem(..), ScannerType(..), advance, advanceHeadingRegister, commit, emptyAccumulator, pop, push
     )
 
 {-| TextCursor is the data structure used by L1.Parser.parseLoop.
@@ -66,8 +66,8 @@ type ProtoStackItem
 
 {-| initialize with source text
 -}
-init : Int -> Loc.ChunkLocation -> String -> TextCursor
-init generation chunkLocation source =
+init : Accumulator -> Int -> Loc.ChunkLocation -> String -> TextCursor
+init accumulator generation chunkLocation source =
     { count = 0
     , generation = generation
     , chunkLocation = chunkLocation
@@ -86,9 +86,13 @@ init generation chunkLocation source =
     , stack = []
 
     --
-    , accumulator = { headingRegister = Vector.init 4 }
+    , accumulator = accumulator
     , message = "START"
     }
+
+
+emptyAccumulator =
+    { headingRegister = Vector.init 4 }
 
 
 advanceHeadingRegister : Int -> Accumulator -> Accumulator

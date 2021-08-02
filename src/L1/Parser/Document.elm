@@ -1,9 +1,12 @@
 module L1.Parser.Document exposing (d1, d2, parse, parseWithTOC, split)
 
+import L1.Library.ParserTools as ParserTools
 import L1.Parser.AST as AST exposing (Element)
 import L1.Parser.Chunk
 import L1.Parser.Loc as Loc
+import L1.Parser.Loop as Loop
 import L1.Parser.Parser
+import L1.Parser.TextCursor as TextCursor exposing (Accumulator, TextCursor, emptyAccumulator)
 
 
 d1 =
@@ -55,18 +58,43 @@ parseWithTOC generation doc =
 
 --parse : Int -> Loc.ChunkLocation -> String -> Element
 --parse generation chunkLocation str
+--parseLoop : (Int -> Loc.ChunkLocation -> Int -> String -> Element) -> Accumulator -> Int -> Loc.ChunkLocation -> String -> TextCursor
+--parseLoop parser accumulator generation chunkLocation str =
+--    Loop.parseLoop parser accumulator generation chunkLocation str
 
 
 parse : Int -> Document -> List (List Element)
 parse generation doc =
+    parseAux generation doc |> .output |> List.reverse
+
+
+parseAux : Int -> Document -> { output : List (List Element), accumulator : Accumulator }
+parseAux generation doc =
+    List.foldl (folder generation) { output = [], accumulator = emptyAccumulator } (split doc)
+
+
+folder : Int -> { location : Loc.ChunkLocation, content : String } -> { output : List (List Element), accumulator : Accumulator } -> { output : List (List Element), accumulator : Accumulator }
+folder generation input acc =
     let
-        p : { location : Loc.ChunkLocation, content : String } -> List Element
-        p { location, content } =
-            L1.Parser.Chunk.parse L1.Parser.Parser.parse generation location content
+        newCursor =
+            Loop.parseLoop L1.Parser.Parser.parse acc.accumulator generation input.location input.content
     in
-    doc
-        |> split
-        |> List.map p
+    { output = newCursor.complete :: acc.output, accumulator = newCursor.accumulator }
+
+
+
+-- foldl : (a -> b -> b) -> b -> List a -> b
+--
+--parse1 : Int -> Document -> List (List Element)
+--parse1 generation doc =
+--    let
+--        p : { location : Loc.ChunkLocation, content : String } -> List Element
+--        p { location, content } =
+--            L1.Parser.Chunk.parse L1.Parser.Parser.parse generation location content
+--    in
+--    doc
+--        |> split
+--        |> List.map p
 
 
 {-|
