@@ -24,22 +24,25 @@ heading2 tc =
                         Just name ->
                             case name of
                                 "heading1" ->
-                                    1
-
-                                "heading2" ->
-                                    2
-
-                                "heading3" ->
-                                    3
-
-                                "heading4" ->
-                                    4
-
-                                _ ->
                                     0
 
+                                "heading2" ->
+                                    1
+
+                                "heading3" ->
+                                    2
+
+                                "heading4" ->
+                                    3
+
+                                _ ->
+                                    4
+
                 newAccumulator =
-                    TextCursor.advanceHeadingRegister headingLevel tc.accumulator
+                    TextCursor.advanceHeadingRegister (Debug.log "LEVEL" headingLevel) tc.accumulator
+
+                _ =
+                    Debug.log "(OLD, NEW)" ( tc.accumulator, newAccumulator )
 
                 label =
                     newAccumulator.headingRegister |> Vector.toString

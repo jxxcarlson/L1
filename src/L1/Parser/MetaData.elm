@@ -1,4 +1,4 @@
-module L1.Parser.MetaData exposing (MetaData, dummy, makeId)
+module L1.Parser.MetaData exposing (MetaData, dummy, getLabel, makeId)
 
 import L1.Parser.Loc as Loc
 
@@ -19,6 +19,16 @@ type alias MetaData =
 
 type alias Info =
     { label : String }
+
+
+getLabel : MetaData -> String
+getLabel meta =
+    case meta.info of
+        Nothing ->
+            ""
+
+        Just info ->
+            info.label
 
 
 makeId : Int -> Loc.ChunkLocation -> Loc.StringPosition -> String

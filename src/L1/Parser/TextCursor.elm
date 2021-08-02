@@ -93,7 +93,7 @@ init generation chunkLocation source =
 
 advanceHeadingRegister : Int -> Accumulator -> Accumulator
 advanceHeadingRegister k acc =
-    { acc | headingRegister = Vector.increment k acc.headingRegister }
+    { acc | headingRegister = Vector.increment k acc.headingRegister } |> Debug.log "ACC"
 
 
 {-| SHIFT

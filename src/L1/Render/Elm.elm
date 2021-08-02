@@ -367,23 +367,45 @@ makeId_ elements =
 
 
 heading1 : FRender msg
-heading1 renderArgs name body _ =
-    column [ Font.size (headerFontSize 1), headerPadding 1, htmlAttribute "id" "title" ] (renderList renderArgs body)
+heading1 renderArgs name body meta =
+    column [ Font.size (headerFontSize 1), headerPadding 1, htmlAttribute "id" "title" ]
+        [ paragraph [] (text (MetaData.getLabel meta ++ ". ") :: renderList renderArgs body) ]
 
 
 heading2 : FRender msg
-heading2 renderArgs name body _ =
-    column [ Font.size (headerFontSize 2), headerPadding 2, makeId body ] [ E.link [] { url = "#title", label = column [] (renderList renderArgs body) } ]
+heading2 renderArgs name body meta =
+    column [ Font.size (headerFontSize 2), headerPadding 2, makeId body ]
+        [ E.link []
+            { url = "#title"
+            , label =
+                column []
+                    [ paragraph [] (text (MetaData.getLabel meta ++ ". ") :: renderList renderArgs body) ]
+            }
+        ]
 
 
 heading3 : FRender msg
-heading3 renderArgs name body _ =
-    column [ Font.size (headerFontSize 3), headerPadding 3, makeId body ] [ E.link [] { url = "#title", label = column [] (renderList renderArgs body) } ]
+heading3 renderArgs name body meta =
+    column [ Font.size (headerFontSize 3), headerPadding 3, makeId body ]
+        [ E.link []
+            { url = "#title"
+            , label =
+                column []
+                    [ paragraph [] (text (MetaData.getLabel meta ++ ". ") :: renderList renderArgs body) ]
+            }
+        ]
 
 
 heading4 : FRender msg
-heading4 renderArgs name body _ =
-    column [ Font.size (headerFontSize 4), headerPadding 4, makeId body ] [ E.link [] { url = "#title", label = column [] (renderList renderArgs body) } ]
+heading4 renderArgs name body meta =
+    column [ Font.size (headerFontSize 4), headerPadding 4, makeId body ]
+        [ E.link []
+            { url = "#title"
+            , label =
+                column []
+                    [ paragraph [] (text (MetaData.getLabel meta ++ ". ") :: renderList renderArgs body) ]
+            }
+        ]
 
 
 getFactor level =
