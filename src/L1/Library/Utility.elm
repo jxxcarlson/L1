@@ -29,15 +29,13 @@ characterAt k str =
 
 
 debug str x =
-    Debug.log (Console.yellow str) x
+    -- Debug.log (Console.yellow str) x
+    str ++ x
 
 
 debug2 str x =
-    Debug.log (Console.cyan str) x
-
-
-
--- str ++ x
+    -- Debug.log (Console.cyan str) x
+    str ++ x
 
 
 squeeze : String -> String

@@ -256,7 +256,8 @@ meta : Int -> Loc.ChunkLocation -> Int -> Int -> Int -> MetaData
 meta generation chunkLocation scanPoint start finish =
     let
         stringLocation =
-            { start = start + Debug.log "SCAN POINT" scanPoint, end = finish - 1 + scanPoint }
+            -- { start = start + Debug.log "SCAN POINT" scanPoint, end = finish - 1 + scanPoint }
+            { start = start + scanPoint, end = finish - 1 + scanPoint }
     in
     { position = stringLocation
     , generation = generation

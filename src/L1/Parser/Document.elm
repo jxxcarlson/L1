@@ -82,21 +82,6 @@ folder generation input acc =
     { output = newCursor.complete :: acc.output, accumulator = newCursor.accumulator }
 
 
-
--- foldl : (a -> b -> b) -> b -> List a -> b
---
---parse1 : Int -> Document -> List (List Element)
---parse1 generation doc =
---    let
---        p : { location : Loc.ChunkLocation, content : String } -> List Element
---        p { location, content } =
---            L1.Parser.Chunk.parse L1.Parser.Parser.parse generation location content
---    in
---    doc
---        |> split
---        |> List.map p
-
-
 {-|
 
     > split d1

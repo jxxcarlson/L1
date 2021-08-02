@@ -55,12 +55,11 @@ when the scanPoint comes to the end of the source.
 -}
 nextCursor : (Int -> Loc.ChunkLocation -> Int -> String -> Element) -> TextCursor -> ParserTools.Step TextCursor TextCursor
 nextCursor parser cursor =
-    let
-        -- _ =
-        -- Debug.log (L1.Parser.Print.print cursor) "-"
-        _ =
-            L1.Library.Utility.debug "STACK" cursor.stack
-    in
+    --let
+    --    -- _ =
+    --    -- Debug.log (L1.Parser.Print.print cursor) "-"
+    --
+    --in
     case operation cursor of
         Shift op ->
             shift op cursor
@@ -102,10 +101,8 @@ reduce op parse cursor =
         Add strData ->
             let
                 newParsed =
-                    parse cursor.generation cursor.chunkLocation (Debug.log "ADD, PSP" cursor.previousScanPoint) strData.content
-
-                _ =
-                    Debug.log "DATA (3)" AST.getNameAndId newParsed
+                    -- parse cursor.generation cursor.chunkLocation (Debug.log "ADD, PSP" cursor.previousScanPoint) strData.content
+                    parse cursor.generation cursor.chunkLocation cursor.previousScanPoint strData.content
             in
             ParserTools.Loop
                 { cursor

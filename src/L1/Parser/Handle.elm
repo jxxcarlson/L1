@@ -39,10 +39,7 @@ heading2 tc =
                                     4
 
                 newAccumulator =
-                    TextCursor.advanceHeadingRegister (Debug.log "LEVEL" headingLevel) tc.accumulator
-
-                _ =
-                    Debug.log "(OLD, NEW)" ( tc.accumulator, newAccumulator )
+                    TextCursor.advanceHeadingRegister headingLevel tc.accumulator
 
                 label =
                     newAccumulator.headingRegister |> Vector.toString

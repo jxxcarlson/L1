@@ -97,7 +97,7 @@ emptyAccumulator =
 
 advanceHeadingRegister : Int -> Accumulator -> Accumulator
 advanceHeadingRegister k acc =
-    { acc | headingRegister = Vector.increment k acc.headingRegister } |> Debug.log "ACC"
+    { acc | headingRegister = Vector.increment k acc.headingRegister }
 
 
 {-| SHIFT
@@ -251,13 +251,10 @@ pop parse prefix cursor =
                     Stack.showStack (List.reverse cursor.stack) ++ prefix
 
                 position =
-                    Utility.debug2 "POSITION" (cursor.stack |> List.reverse |> List.head |> Maybe.map Stack.startPosition |> Maybe.withDefault 0)
+                    cursor.stack |> List.reverse |> List.head |> Maybe.map Stack.startPosition |> Maybe.withDefault 0
 
                 newParsed =
                     parse cursor.generation cursor.chunkLocation position data
-
-                _ =
-                    Debug.log "DATA (1)" AST.getNameAndId newParsed
             in
             { cursor
                 | stack = []
@@ -295,10 +292,8 @@ finishUpWithReducibleStack parse tc =
             tc.stack |> List.reverse |> List.map Stack.show |> String.join ""
 
         newParsed =
-            parse tc.generation tc.chunkLocation (Debug.log "FU, P" tc.previousScanPoint) stackData
-
-        _ =
-            Debug.log "DATA (2)" AST.getNameAndId newParsed
+            -- parse tc.generation tc.chunkLocation (Debug.log "FU, P" tc.previousScanPoint) stackData
+            parse tc.generation tc.chunkLocation tc.previousScanPoint stackData
     in
     { tc | complete = newParsed :: tc.complete }
 
