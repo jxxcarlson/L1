@@ -375,8 +375,15 @@ title renderArgs name body meta =
 
 heading1 : FRender msg
 heading1 renderArgs name body meta =
-    column [ Font.size (headerFontSize 2), headerPadding 1, htmlAttribute "id" "title" ]
-        [ paragraph [] (text (MetaData.getLabel meta ++ ". ") :: renderList renderArgs body) ]
+    column [ Font.size (headerFontSize 2), headerPadding 1, makeId body ]
+        --[ paragraph [] (text (MetaData.getLabel meta ++ ". ") :: renderList renderArgs body) ]
+        [ E.link []
+            { url = "#title"
+            , label =
+                column []
+                    [ paragraph [] (text (MetaData.getLabel meta ++ ". ") :: renderList renderArgs body) ]
+            }
+        ]
 
 
 heading2 : FRender msg
@@ -428,10 +435,35 @@ headerPadding level =
     E.paddingEach { top = round (12 / getFactor level), bottom = 0, left = 0, right = 0 }
 
 
+getPrefix element =
+    element |> AST.getArgs |> List.head |> Maybe.map String.words |> Maybe.andThen List.head |> Maybe.withDefault ""
+
+
 item : FRender msg
 item renderArgs name body _ =
-    column [ paddingEach { left = 24, right = 0, top = 0, bottom = 0 } ]
-        [ paragraph [] (renderList renderArgs body) ]
+    case AST.uncons_ body of
+        Nothing ->
+            E.none
+
+        Just ( prefix, rest ) ->
+            case String.trim (AST.getText prefix) of
+                "::" ->
+                    column [ paddingEach { left = 25, right = 0, top = 0, bottom = 0 }, E.width E.fill ]
+                        [ paragraph [] (renderList renderArgs rest) ]
+
+                ":" ->
+                    row [ spacing 8, E.width E.fill ]
+                        [ column [ E.width (px 100), Font.size 18, Font.color (E.rgb255 0 0 200), paddingEach { left = 8, right = 0, top = 0, bottom = 0 } ] [ text "•" ]
+                        , column [ E.moveUp 19, paddingEach { left = 18, right = 0, top = 0, bottom = 0 }, E.width E.fill ]
+                            [ paragraph [] (renderList renderArgs rest) ]
+                        ]
+
+                _ ->
+                    row [ spacing 8, E.width E.fill ]
+                        [ column [ E.width (px 100), Font.color (E.rgb255 0 0 200), paddingEach { left = 8, right = 0, top = 0, bottom = 0 } ] [ render renderArgs prefix ]
+                        , column [ E.moveUp 15, paddingEach { left = 18, right = 0, top = 0, bottom = 0 }, E.width E.fill ]
+                            [ paragraph [] (renderList renderArgs rest) ]
+                        ]
 
 
 image : FRender msg

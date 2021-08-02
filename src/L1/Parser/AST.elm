@@ -30,6 +30,8 @@ module L1.Parser.AST exposing
     , stringContent
     , toList
     , toStringList
+    , uncons
+    , uncons_
     )
 
 import L1.Library.Utility
@@ -156,6 +158,40 @@ getTextList2 e =
 
         _ ->
             []
+
+
+metaDummy =
+    MetaData.dummy
+
+
+uncons_ : List Element -> Maybe ( Element, List Element )
+uncons_ elements =
+    case List.Extra.uncons elements of
+        Nothing ->
+            Nothing
+
+        Just ( first, rest ) ->
+            case first of
+                Text str _ ->
+                    case List.head (String.words str) of
+                        Nothing ->
+                            Just ( first, rest )
+
+                        Just firstWord ->
+                            Just ( Text firstWord metaDummy, Text (String.replace firstWord "" str) metaDummy :: rest )
+
+                _ ->
+                    Nothing
+
+
+uncons : Element -> Maybe ( Element, List Element )
+uncons element =
+    case element of
+        Element _ bod _ ->
+            List.Extra.uncons bod
+
+        _ ->
+            Nothing
 
 
 getArgs : Element -> List String
