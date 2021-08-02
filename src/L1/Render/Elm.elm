@@ -74,6 +74,7 @@ renderElementDict =
         , ( "link", link )
         , ( "ilink", ilink )
         , ( "image", image )
+        , ( "title", title )
         , ( "heading1", heading1 )
         , ( "heading2", heading2 )
         , ( "heading3", heading3 )
@@ -219,7 +220,7 @@ quote renderArgs _ body _ =
 
 toc : FRender msg
 toc renderArgs _ body _ =
-    column [ E.paddingXY 18 18, spacing 8, Background.color (E.rgb255 234 228 247) ] (el [ Font.bold ] (text <| "Table of contents") :: List.map tocItem (List.drop 1 body))
+    column [ E.paddingXY 18 18, spacing 8, Background.color (E.rgb255 234 228 247) ] (el [ Font.bold ] (text <| "Table of contents") :: List.map tocItem body)
 
 
 tocItem : Element -> E.Element msg
@@ -227,7 +228,7 @@ tocItem e =
     case AST.getTextList2 e of
         n :: content :: rest ->
             el [ paddingEach { left = tocPadding n, right = 0, top = 0, bottom = 0 }, Font.color (E.rgb255 46 33 194) ]
-                (E.link [] { url = internalLink content, label = text content })
+                (E.link [] { url = internalLink content, label = text (AST.getLabel e ++ ". " ++ content) })
 
         _ ->
             E.none
@@ -240,7 +241,7 @@ internalLink str =
 
 tocPadding : String -> Int
 tocPadding str =
-    str |> String.toInt |> Maybe.withDefault 4 |> (\x -> (x - 2) * 12)
+    str |> String.toInt |> Maybe.withDefault 4 |> (\x -> (x - 1) * 12)
 
 
 indent : FRender msg
@@ -366,15 +367,21 @@ makeId_ elements =
     elements |> List.map AST.getTextList2 |> List.concat |> String.join "-" |> String.toLower |> String.replace " " "-"
 
 
+title : FRender msg
+title renderArgs name body meta =
+    column [ Font.size (headerFontSize 1), headerPadding 1, htmlAttribute "id" "title" ]
+        [ paragraph [] (renderList renderArgs body) ]
+
+
 heading1 : FRender msg
 heading1 renderArgs name body meta =
-    column [ Font.size (headerFontSize 1), headerPadding 1, htmlAttribute "id" "title" ]
+    column [ Font.size (headerFontSize 2), headerPadding 1, htmlAttribute "id" "title" ]
         [ paragraph [] (text (MetaData.getLabel meta ++ ". ") :: renderList renderArgs body) ]
 
 
 heading2 : FRender msg
 heading2 renderArgs name body meta =
-    column [ Font.size (headerFontSize 2), headerPadding 2, makeId body ]
+    column [ Font.size (headerFontSize 3), headerPadding 2, makeId body ]
         [ E.link []
             { url = "#title"
             , label =
@@ -386,7 +393,7 @@ heading2 renderArgs name body meta =
 
 heading3 : FRender msg
 heading3 renderArgs name body meta =
-    column [ Font.size (headerFontSize 3), headerPadding 3, makeId body ]
+    column [ Font.size (headerFontSize 4), headerPadding 3, makeId body ]
         [ E.link []
             { url = "#title"
             , label =
@@ -398,7 +405,7 @@ heading3 renderArgs name body meta =
 
 heading4 : FRender msg
 heading4 renderArgs name body meta =
-    column [ Font.size (headerFontSize 4), headerPadding 4, makeId body ]
+    column [ Font.size (headerFontSize 5), headerPadding 4, makeId body ]
         [ E.link []
             { url = "#title"
             , label =
@@ -408,12 +415,13 @@ heading4 renderArgs name body meta =
         ]
 
 
+getFactor : Int -> Float
 getFactor level =
     min 1.8 (sqrt (sqrt (toFloat level)))
 
 
 headerFontSize level =
-    round (24 / getFactor level)
+    round (32 / getFactor level)
 
 
 headerPadding level =

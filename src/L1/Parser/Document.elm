@@ -46,21 +46,10 @@ parseWithTOC generation doc =
         ast =
             parse generation doc
 
-        title =
-            List.take 1 ast
-
         toc =
             AST.makeTOC ast
     in
-    List.take 3 ast ++ [ toc ] :: List.drop 3 ast
-
-
-
---parse : Int -> Loc.ChunkLocation -> String -> Element
---parse generation chunkLocation str
---parseLoop : (Int -> Loc.ChunkLocation -> Int -> String -> Element) -> Accumulator -> Int -> Loc.ChunkLocation -> String -> TextCursor
---parseLoop parser accumulator generation chunkLocation str =
---    Loop.parseLoop parser accumulator generation chunkLocation str
+    List.map (AST.replaceByName toc) ast
 
 
 parse : Int -> Document -> List (List Element)

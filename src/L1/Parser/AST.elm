@@ -7,7 +7,9 @@ module L1.Parser.AST exposing
     , argsAndBody
     , body
     , body_
+    , filterOnNames
     , getArgs
+    , getLabel
     , getName
     , getNameAndId
     , getText
@@ -21,6 +23,7 @@ module L1.Parser.AST exposing
     , makeTOC
     , map
     , position
+    , replaceByName
     , setLabel
     , simplify
     , simplify_
@@ -33,7 +36,7 @@ import L1.Library.Utility
 import L1.Parser.Error exposing (..)
 import L1.Parser.Loc as Loc
 import L1.Parser.MetaData as MetaData exposing (MetaData)
-import Maybe.Extra
+import List.Extra
 import Parser.Advanced as Parser
 
 
@@ -58,6 +61,22 @@ setLabel str el =
 
         _ ->
             el
+
+
+getLabel : Element -> String
+getLabel element =
+    case element of
+        Text _ meta ->
+            MetaData.getLabel meta
+
+        Element _ _ meta ->
+            MetaData.getLabel meta
+
+        Verbatim _ _ meta ->
+            MetaData.getLabel meta
+
+        Problem _ _ ->
+            ""
 
 
 toStringList : Element -> List String
@@ -361,12 +380,21 @@ filterOnNames names elements =
         (List.map (\e -> ( getName e |> Maybe.withDefault "@#@", e )) elements)
 
 
-getHeadings : List (List Element) -> List ( String, String )
+replaceByName : Element -> List Element -> List Element
+replaceByName el elements =
+    case getName el of
+        Nothing ->
+            elements
+
+        Just name ->
+            List.Extra.setIf (\element -> getName element == Just name) el elements
+
+
+getHeadings : List (List Element) -> List ( String, Element )
 getHeadings list =
     list
         |> List.concat
-        |> filterOnNames [ "heading1", "heading2", "heading3" ]
-        |> List.map (\( s, e ) -> ( s, getText e ))
+        |> filterOnNames [ "heading1", "heading2", "heading3", "heading4" ]
 
 
 {-| Make table of contents from the AST
@@ -379,28 +407,43 @@ makeTOC ast =
         |> enclose "toc"
 
 
+makeTocItem : ( String, Element ) -> Element
+makeTocItem ( s, e ) =
+    let
+        dummy =
+            MetaData.dummy
+
+        level =
+            -- The suffix "1", "2", etc:
+            String.replace "heading" "" s
+    in
+    Element (Name "tocItem") [ Text level dummy, Text (getText e) dummy ] { dummy | info = Just { label = getLabel e } }
+
+
 enclose : String -> List Element -> Element
 enclose name elements =
     Element (Name name) elements MetaData.dummy
 
 
-makeTocItem : ( String, String ) -> Element
-makeTocItem ( headingType, name ) =
-    case headingType of
-        "heading1" ->
-            Element (Name "tocItem") [ Text "1" MetaData.dummy, Text name MetaData.dummy ] MetaData.dummy
 
-        "heading2" ->
-            Element (Name "tocItem") [ Text "2" MetaData.dummy, Text name MetaData.dummy ] MetaData.dummy
-
-        "heading3" ->
-            Element (Name "tocItem") [ Text "3" MetaData.dummy, Text name MetaData.dummy ] MetaData.dummy
-
-        "heading4" ->
-            Element (Name "tocItem") [ Text "4" MetaData.dummy, Text name MetaData.dummy ] MetaData.dummy
-
-        _ ->
-            Element (Name "tocItem") [ Text "5" MetaData.dummy, Text name MetaData.dummy ] MetaData.dummy
+--
+--makeTocItem : ( String, e ) -> Element
+--makeTocItem ( headingType, e ) =
+--    case headingType of
+--        "heading1" ->
+--            Element (Name "tocItem") [ Text "1" MetaData.dummy, Text name MetaData.dummy ] MetaData.dummy
+--
+--        "heading2" ->
+--            Element (Name "tocItem") [ Text "2" MetaData.dummy, Text name MetaData.dummy ] MetaData.dummy
+--
+--        "heading3" ->
+--            Element (Name "tocItem") [ Text "3" MetaData.dummy, Text name MetaData.dummy ] MetaData.dummy
+--
+--        "heading4" ->
+--            Element (Name "tocItem") [ Text "4" MetaData.dummy, Text name MetaData.dummy ] MetaData.dummy
+--
+--        _ ->
+--            Element (Name "tocItem") [ Text "5" MetaData.dummy, Text name MetaData.dummy ] MetaData.dummy
 
 
 firstLine : List String -> Maybe String
@@ -426,6 +469,9 @@ getTitle str =
         Just line ->
             if L1.Library.Utility.characterAt 0 line == "#" then
                 String.dropLeft 2 line
+
+            else if String.startsWith "[title" line then
+                String.dropLeft 6 line |> String.dropRight 1 |> String.trim
 
             else
                 "Untitled"
