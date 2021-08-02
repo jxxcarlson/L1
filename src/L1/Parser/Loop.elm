@@ -103,6 +103,9 @@ reduce op parse cursor =
             let
                 newParsed =
                     parse cursor.generation cursor.chunkLocation (Debug.log "ADD, PSP" cursor.previousScanPoint) strData.content
+
+                _ =
+                    Debug.log "DATA (3)" AST.getNameAndId newParsed
             in
             ParserTools.Loop
                 { cursor

@@ -1,26 +1,56 @@
 module L1.Parser.Handle exposing (doublePipe, heading2, item, lineCommand, pipe)
 
 import L1.Library.Console as Console
+import L1.Library.Vector as Vector
 import L1.Parser.AST as AST exposing (Element(..), Name(..))
 import L1.Parser.Config as Config exposing (Configuration, EType(..), Expectation)
 import L1.Parser.MetaData as MetaData exposing (MetaData)
 import L1.Parser.Parser as Parser
 import L1.Parser.Stack as Stack exposing (StackItem)
-import L1.Parser.TextCursor exposing (TextCursor)
+import L1.Parser.TextCursor as TextCursor exposing (TextCursor)
 import List.Extra
 
 
+heading2 : TextCursor -> TextCursor
 heading2 tc =
-    let
-        parsed_ =
-            case Parser.parseHeading tc.generation tc.chunkLocation tc.previousScanPoint tc.source of
-                Ok goodstuff ->
-                    [ goodstuff ]
+    case Parser.parseHeading tc.generation tc.chunkLocation tc.previousScanPoint tc.source of
+        Ok parsedHeading_ ->
+            let
+                headingLevel =
+                    case AST.getName parsedHeading_ of
+                        Nothing ->
+                            0
 
-                Err _ ->
-                    errorElement tc.source
-    in
-    { tc | complete = parsed_ ++ tc.complete }
+                        Just name ->
+                            case name of
+                                "heading1" ->
+                                    1
+
+                                "heading2" ->
+                                    2
+
+                                "heading3" ->
+                                    3
+
+                                "heading4" ->
+                                    4
+
+                                _ ->
+                                    0
+
+                newAccumulator =
+                    TextCursor.advanceHeadingRegister headingLevel tc.accumulator
+
+                label =
+                    newAccumulator.headingRegister |> Vector.toString
+
+                parsedHeading =
+                    AST.setLabel label parsedHeading_
+            in
+            { tc | complete = [ parsedHeading ] ++ tc.complete, accumulator = newAccumulator }
+
+        Err _ ->
+            { tc | complete = errorElement tc.source ++ tc.complete }
 
 
 errorElement message =

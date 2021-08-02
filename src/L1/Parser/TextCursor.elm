@@ -1,6 +1,6 @@
 module L1.Parser.TextCursor exposing
     ( TextCursor, init
-    , ProtoStackItem(..), ScannerType(..), advance, commit, pop, push
+    , ProtoStackItem(..), ScannerType(..), advance, advanceHeadingRegister, commit, pop, push
     )
 
 {-| TextCursor is the data structure used by L1.Parser.parseLoop.
@@ -12,6 +12,7 @@ module L1.Parser.TextCursor exposing
 import L1.Library.Console as Console
 import L1.Library.ParserTools as ParserTools
 import L1.Library.Utility as Utility exposing (debug, debug2)
+import L1.Library.Vector as Vector
 import L1.Parser.AST as AST exposing (Element(..), Name(..))
 import L1.Parser.Config as Config exposing (Configuration, EType(..), Expectation)
 import L1.Parser.Configuration as Configuration
@@ -43,7 +44,13 @@ type alias TextCursor =
     , stack : List StackItem -- a stack of unclosed elements
 
     ---
+    , accumulator : Accumulator
     , message : String
+    }
+
+
+type alias Accumulator =
+    { headingRegister : Vector.Vector
     }
 
 
@@ -79,8 +86,14 @@ init generation chunkLocation source =
     , stack = []
 
     --
+    , accumulator = { headingRegister = Vector.init 4 }
     , message = "START"
     }
+
+
+advanceHeadingRegister : Int -> Accumulator -> Accumulator
+advanceHeadingRegister k acc =
+    { acc | headingRegister = Vector.increment k acc.headingRegister }
 
 
 {-| SHIFT
@@ -238,6 +251,9 @@ pop parse prefix cursor =
 
                 newParsed =
                     parse cursor.generation cursor.chunkLocation position data
+
+                _ =
+                    Debug.log "DATA (1)" AST.getNameAndId newParsed
             in
             { cursor
                 | stack = []
@@ -276,6 +292,9 @@ finishUpWithReducibleStack parse tc =
 
         newParsed =
             parse tc.generation tc.chunkLocation (Debug.log "FU, P" tc.previousScanPoint) stackData
+
+        _ =
+            Debug.log "DATA (2)" AST.getNameAndId newParsed
     in
     { tc | complete = newParsed :: tc.complete }
 

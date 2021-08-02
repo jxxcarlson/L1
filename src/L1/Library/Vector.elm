@@ -1,4 +1,4 @@
-module L1.Library.Vector exposing (increment, init, toString)
+module L1.Library.Vector exposing (Vector, increment, init, toString)
 
 import List.Extra
 

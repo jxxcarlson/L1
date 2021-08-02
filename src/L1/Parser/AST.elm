@@ -8,6 +8,7 @@ module L1.Parser.AST exposing
     , body
     , body_
     , getArgs
+    , getName
     , getNameAndId
     , getText
     , getTextList
@@ -20,6 +21,7 @@ module L1.Parser.AST exposing
     , makeTOC
     , map
     , position
+    , setLabel
     , simplify
     , simplify_
     , stringContent
@@ -46,6 +48,16 @@ type VerbatimType
     = Code
     | Math
     | Quoted
+
+
+setLabel : String -> Element -> Element
+setLabel str el =
+    case el of
+        Element (Name name) bod meta ->
+            Element (Name name) bod { meta | info = Just { label = str } }
+
+        _ ->
+            el
 
 
 toStringList : Element -> List String
