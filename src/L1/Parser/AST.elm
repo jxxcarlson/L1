@@ -7,6 +7,7 @@ module L1.Parser.AST exposing
     , argsAndBody
     , body
     , body_
+    , filterOnName
     , filterOnNames
     , getArgs
     , getLabel
@@ -414,6 +415,24 @@ filterOnNames : List String -> List Element -> List ( String, Element )
 filterOnNames names elements =
     List.filter (\( n, _ ) -> List.member n names)
         (List.map (\e -> ( getName e |> Maybe.withDefault "@#@", e )) elements)
+
+
+{-| Return the sublist of elements with the given name
+-}
+filterOnName : String -> List Element -> List Element
+filterOnName name elements =
+    List.filter (\e -> getName e == Just name) elements
+
+
+
+--getElementTexts : String -> List (List Element) -> List String
+--getElementTexts elementName_ parsed =
+--    parsed
+--        |> filter (isNamed elementName_)
+--        |> List.map getBody
+--        |> List.map (Maybe.andThen getText)
+--        |> Maybe.Extra.values
+--
 
 
 replaceByName : Element -> List Element -> List Element
