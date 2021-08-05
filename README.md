@@ -1,5 +1,7 @@
 # Fault-Tolerant Parsing
 
+*Note.* To experiment with L1, please go to [l1-lab.lamdera.app](https://l1-lab.lamdera.app)
+
 The goal of this article is to explain how one can implement a fault-tolerant parser for a simple language, which we will call **L1**.  Here are a few sentences in L1:
 
 ```
