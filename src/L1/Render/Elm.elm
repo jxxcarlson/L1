@@ -424,15 +424,19 @@ heading4 renderArgs name body meta =
 
 getFactor : Int -> Float
 getFactor level =
-    min 1.8 (sqrt (sqrt (toFloat level)))
+    if level < 1 then
+        1
+
+    else
+        max 0.5 (1 / (toFloat level ^ 0.4))
 
 
 headerFontSize level =
-    round (32 / getFactor level)
+    round (32 * getFactor level)
 
 
 headerPadding level =
-    E.paddingEach { top = round (12 / getFactor level), bottom = 0, left = 0, right = 0 }
+    E.paddingEach { top = round (12 * getFactor level), bottom = 0, left = 0, right = 0 }
 
 
 getPrefix element =
@@ -453,15 +457,15 @@ item renderArgs name body _ =
 
                 ":" ->
                     row [ spacing 8, E.width E.fill ]
-                        [ column [ E.width (px 100), Font.size 18, Font.color (E.rgb255 0 0 200), paddingEach { left = 8, right = 0, top = 0, bottom = 0 } ] [ text "•" ]
+                        [ column [ E.width (px 100), paddingEach { left = 8, right = 0, top = 0, bottom = 0 } ] [ text "•" ]
                         , column [ E.moveUp 19, paddingEach { left = 18, right = 0, top = 0, bottom = 0 }, E.width E.fill ]
                             [ paragraph [] (renderList renderArgs rest) ]
                         ]
 
                 _ ->
                     row [ spacing 8, E.width E.fill ]
-                        [ column [ E.width (px 100), Font.color (E.rgb255 0 0 200), paddingEach { left = 8, right = 0, top = 0, bottom = 0 } ] [ render renderArgs prefix ]
-                        , column [ E.moveUp 15, paddingEach { left = 18, right = 0, top = 0, bottom = 0 }, E.width E.fill ]
+                        [ column [ E.width (px 100), paddingEach { left = 8, right = 0, top = 0, bottom = 0 } ] [ render renderArgs prefix ]
+                        , column [ E.moveUp 16, paddingEach { left = 18, right = 0, top = 0, bottom = 0 }, E.width E.fill ]
                             [ paragraph [] (renderList renderArgs rest) ]
                         ]
 
