@@ -69,6 +69,7 @@ renderElementDict =
         , ( "image", image )
         , ( "heading", heading )
         , ( "item", item )
+        , ( "title", title )
         , ( "heading1", heading1 )
         , ( "heading2", heading2 )
         , ( "heading3", heading3 )
@@ -97,7 +98,8 @@ transform renderArgs element =
             str
 
         Element (Name name) body _ ->
-            renderWithDictionary renderArgs name (renderList renderArgs body)
+            -- renderWithDictionary renderArgs name (renderList renderArgs body)
+            renderWithDictionary renderArgs name body
 
         Verbatim verbatimType content _ ->
             renderVerbatim verbatimType content
@@ -109,6 +111,7 @@ transform renderArgs element =
             "PROBLEM: " ++ str
 
 
+renderList : RenderArgs -> List Element -> String
 renderList renderArgs elements =
     List.map (AST.map (\s -> " " ++ s) >> transform renderArgs) elements |> String.join ""
 
@@ -125,6 +128,7 @@ renderVerbatim verbatimType content =
             content
 
 
+renderWithDictionary : RenderArgs -> String -> List Element -> String
 renderWithDictionary renderArgs name body =
     case Dict.get name renderElementDict of
         Just f ->
@@ -190,7 +194,6 @@ heading renderArgs name body =
         text =
             getTextList body |> String.join " "
 
-        -- |> Maybe.withDefault "TITLE"
         level =
             text
                 |> String.words
@@ -202,15 +205,20 @@ heading renderArgs name body =
         prefix =
             String.repeat level "#"
 
-        title =
+        title_ =
             String.replace prefix "" text
     in
-    "#" ++ prefix ++ " " ++ title
+    "#" ++ prefix ++ " " ++ title_
 
 
 item : FRender
 item renderArgs name body =
     "-  " ++ transformList renderArgs body
+
+
+title : FRender
+title renderArgs name body =
+    "# " ++ transformList renderArgs body
 
 
 heading1 : FRender
